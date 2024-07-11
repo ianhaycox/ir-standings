@@ -1,6 +1,6 @@
-//go:generate mockgen -package iracing -destination client_mock.go -source client.go
+//go:generate mockgen -package api -destination client_mock.go -source client.go
 
-package iracing
+package api
 
 import (
 	"bytes"
@@ -96,56 +96,8 @@ func (c *APIClient) PrepareRequest(ctx context.Context, path string, method stri
 	// Add the user agent to the request.
 	request.Header.Add("User-Agent", c.cfg.UserAgent)
 
-	if ctx != nil {
-		request, err = setHeadersFromContext(ctx, request)
-		if err != nil {
-			return request, err
-		}
-	}
-
 	for header, value := range c.cfg.DefaultHeader {
 		request.Header.Add(header, value)
-	}
-
-	return request, nil
-}
-
-func setHeadersFromContext(ctx context.Context, request *http.Request) (*http.Request, error) {
-	if ctx == nil {
-		return nil, fmt.Errorf("no context")
-	}
-
-	// add context to the request
-	request = request.WithContext(ctx)
-
-	// Walk through any authentication.
-	// Usage: auth := context.WithValue(ctx, ContextAPIKey, APIKey{Key: "foo"})
-
-	// Basic HTTP Authentication
-	if auth, ok := ctx.Value(ContextBasicAuth).(BasicAuth); ok {
-		request.SetBasicAuth(auth.UserName, auth.Password)
-	}
-
-	// AccessToken Authentication
-	if auth, ok := ctx.Value(ContextAccessToken).(string); ok {
-		request.Header.Add("Authorization", "Bearer "+auth)
-	}
-
-	// Basic API Key Authentication
-	if auth, ok := ctx.Value(ContextBasicAPIKey).(BasicAPIKey); ok {
-		request.Header.Add("Authorization", "Basic "+auth.Key)
-	}
-
-	// API Key Authentication
-	if auth, ok := ctx.Value(ContextAPIKey).(APIKey); ok {
-		var key string
-		if auth.Prefix != "" {
-			key = auth.Prefix + " " + auth.Key
-		} else {
-			key = auth.Key
-		}
-
-		request.Header.Add("X-API-KEY", key)
 	}
 
 	return request, nil
