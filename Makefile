@@ -1,3 +1,6 @@
+# Unit test coverage floor percentage (CI should fail if coverage is below this)
+COV_CUTOVER := "50"
+
 # Build vars
 export COMMIT_HASH := $(shell git rev-parse --short HEAD)
 export VERSION := $(shell git rev-parse --abbrev-ref HEAD)
@@ -33,6 +36,16 @@ tidy:
 
 lint:
 	golangci-lint run -v ./...
+
+## cover: run unit/mock tests with coverage report. Generated mocks are filtered out of the report
+cover: generate
+	go test -failfast -count=2 --race -coverprofile=coverage.out -coverpkg=./... ./...
+	cat coverage.out | grep -v "_mock.go" > coverage.nomocks.out
+	go tool cover -func coverage.nomocks.out
+
+## cover-check: checks the code coverage to be beyond a certain threshold
+cover-check: cover
+	COV_CUTOVER=${COV_CUTOVER} ./.github/cover-check.sh
 
 standalone:
 	CGO_ENABLED=0 GOOS=linux go build -o load ./loader/load/load.go

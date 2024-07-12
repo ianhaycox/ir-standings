@@ -5,5 +5,9 @@ logs
 # Generated mocks
 *_mock.go
 
+# Coverage
+coverage.nomocks.out
+coverage.out
+
 .vscode/
 
