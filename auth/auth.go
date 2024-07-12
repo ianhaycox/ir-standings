@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -35,6 +36,8 @@ func main() {
 
 	err := ir.Authenticate(ctx)
 	if err != nil {
-		log.Fatal("Can not authenticate", err)
+		log.Fatal("Can not login: ", err)
 	}
+
+	fmt.Println("Logged in")
 }

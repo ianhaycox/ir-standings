@@ -33,11 +33,16 @@ func TestPrepareRequest(t *testing.T) {
 	})
 
 	t.Run("return no error if POST request OK", func(t *testing.T) {
+		type testPost struct {
+			Message string `json:"message,omitempty"`
+		}
+
+		data := testPost{Message: "test"}
 		api := NewAPIClient(NewConfiguration("http://bookings", nil))
 
 		queryParams := url.Values{}
 		queryParams.Add("foo", "bar")
-		_, err := api.PrepareRequest(context.TODO(), "/", http.MethodPost, queryParams, nil)
+		_, err := api.PrepareRequest(context.TODO(), "/", http.MethodPost, queryParams, data)
 		assert.NoError(t, err)
 	})
 }

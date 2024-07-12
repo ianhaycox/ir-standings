@@ -27,16 +27,17 @@ type APIErrorResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-type AuthenticationResponse struct {
-	AuthCode        string `json:"authcode,omitempty"`
-	AutoLoginSeries string `json:"autoLoginSeries,omitempty"`
-	AutoLoginToken  string `json:"auto_login_token,omitempty"`
-	CustID          string `json:"custId,omitempty"`
-	Email           string `json:"email,omitempty"`
-	SsoCookieDomain string `json:"ssoCookieDomain,omitempty"`
-	SsoCookieName   string `json:"ssoCookieName,omitempty"`
-	SsoCookiePath   string `json:"ssoCookiePath,omitempty"`
-	SsoCookieValue  string `json:"ssoCookieValue,omitempty"`
+// "{\"authcode\":0,\"inactive\":false,\"message\":\"Invalid email address or password. Please try again.\",\"verificationRequired\":false}"
+
+type AuthenticationGoodResponse struct {
+	AuthCode   string `json:"authcode,omitempty"`
+	CustomerID int    `json:"custId,omitempty"`
+	Email      string `json:"email,omitempty"`
+}
+
+type AuthenticationBadResponse struct {
+	AuthCode int    `json:"authcode,omitempty"`
+	Message  string `json:"message,omitempty"`
 }
 
 type ResultsResponse struct {
@@ -68,8 +69,6 @@ func (ir *IracingService) ReportError(response *http.Response, body []byte) erro
 }
 
 func (ir *IracingService) Authenticate(ctx context.Context) error {
-	var result AuthenticationResponse
-
 	auth, err := ir.auth.BasicAuth()
 	if err != nil {
 		return fmt.Errorf("unable to apply authentication to context, err:%w", err)
@@ -96,9 +95,20 @@ func (ir *IracingService) Authenticate(ctx context.Context) error {
 		return ir.ReportError(response, body)
 	}
 
-	err = ir.client.Decode(&result, body, response.Header.Get("Content-Type"))
+	var ok AuthenticationGoodResponse
+
+	err = ir.client.Decode(&ok, body, response.Header.Get("Content-Type"))
 	if err != nil {
-		return fmt.Errorf("failed to decode response, %w. Body:%s", err, string(body))
+		var bad AuthenticationBadResponse
+
+		err = ir.client.Decode(&bad, body, response.Header.Get("Content-Type"))
+		if err != nil {
+			return fmt.Errorf("failed to decode response, %w. Body:%s", err, string(body))
+		}
+
+		if bad.AuthCode == 0 {
+			return fmt.Errorf("failed to authenticate: %s", bad.Message)
+		}
 	}
 
 	return nil
