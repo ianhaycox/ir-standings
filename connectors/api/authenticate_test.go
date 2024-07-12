@@ -15,9 +15,9 @@ func TestAuthenticationServiceHappyPath(t *testing.T) {
 		svc := NewAuthenticationService("user", "pass")
 		require.NotNil(t, svc)
 
-		basicAuth, err := svc.BasicAuth()
+		basicAuth, err := svc.Credentials()
 		assert.NoError(t, err)
-		assert.Equal(t, &BasicAuth{Email: "user", Password: "pass"}, basicAuth)
+		assert.Equal(t, &Credentials{Email: "user", EncodedPassword: "ViSRJ1toBu+Css9dtqRDMFOBGz4gUPQHJdNEYcnuXfc="}, basicAuth)
 	})
 }
 
@@ -29,15 +29,23 @@ func TestErrorPaths(t *testing.T) {
 		defer ctrl.Finish()
 
 		svc := NewAuthenticationService("", "blankuser")
-		_, err := svc.BasicAuth()
+		_, err := svc.Credentials()
 		assert.ErrorContains(t, err, "username:password combo can not be blank")
 
 		svc2 := NewAuthenticationService("user", "")
-		_, err = svc2.BasicAuth()
+		_, err = svc2.Credentials()
 		assert.ErrorContains(t, err, "username:password combo can not be blank")
 
 		svc3 := NewAuthenticationService("", "")
-		_, err = svc3.BasicAuth()
+		_, err = svc3.Credentials()
 		assert.ErrorContains(t, err, "username:password combo can not be blank")
 	})
+}
+
+func TestEncode(t *testing.T) {
+	// echo -n "barfoo" | openssl dgst -binary -sha256 | openssl base64
+	// iOzekl2jxvjsPRQGg9qdKkIvJsGuHZIS2h5aU0FtzIg=
+
+	a := NewAuthenticationService("foo", "bar")
+	assert.Equal(t, "iOzekl2jxvjsPRQGg9qdKkIvJsGuHZIS2h5aU0FtzIg=", a.encode())
 }

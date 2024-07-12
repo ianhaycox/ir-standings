@@ -2,17 +2,26 @@
 package api
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
+	"strings"
 )
 
+// Credentials provides post body of encoded credentials
+type Credentials struct {
+	Email           string `json:"email,omitempty"`
+	EncodedPassword string `json:"password,omitempty"`
+}
+
 type AuthenticationService struct {
-	basicAuth *BasicAuth
-	email     string
-	password  string // ENCODEDPW=$(echo -n $PASSWORD$EMAILLOWER | openssl dgst -binary -sha256 | openssl base64)
+	credentials *Credentials
+	email       string
+	password    string // ENCODEDPW=$(echo -n $PASSWORD$EMAILLOWER | openssl dgst -binary -sha256 | openssl base64)
 }
 
 type Authenticator interface {
-	BasicAuth() (*BasicAuth, error)
+	Credentials() (*Credentials, error)
 }
 
 func NewAuthenticationService(email string, password string) *AuthenticationService {
@@ -22,21 +31,29 @@ func NewAuthenticationService(email string, password string) *AuthenticationServ
 	}
 }
 
-func (a *AuthenticationService) BasicAuth() (*BasicAuth, error) {
-	if a.basicAuth != nil {
-		return a.basicAuth, nil
+func (a *AuthenticationService) Credentials() (*Credentials, error) {
+	if a.credentials != nil {
+		return a.credentials, nil
 	}
 
-	basicAuth := BasicAuth{
-		Email:    a.email,
-		Password: a.password,
-	}
-
-	if basicAuth.Email == "" || basicAuth.Password == "" {
+	if a.email == "" || a.password == "" {
 		return nil, fmt.Errorf("username:password combo can not be blank")
 	}
 
-	a.basicAuth = &basicAuth
+	credentials := Credentials{
+		Email:           a.email,
+		EncodedPassword: a.encode(),
+	}
 
-	return a.basicAuth, nil
+	a.credentials = &credentials
+
+	return a.credentials, nil
+}
+
+func (a *AuthenticationService) encode() string {
+	h := sha256.New()
+	h.Write([]byte(a.password + strings.ToLower(a.email)))
+	hash := h.Sum(nil)
+
+	return base64.StdEncoding.EncodeToString(hash)
 }

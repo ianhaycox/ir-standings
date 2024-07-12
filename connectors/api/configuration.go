@@ -4,12 +4,6 @@ import (
 	"net/http"
 )
 
-// BasicAuth provides basic http authentication to a request
-type BasicAuth struct {
-	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
 type Configuration struct {
 	BasePath      string            `json:"basePath,omitempty"` // no trailing '/'
 	DefaultHeader map[string]string `json:"defaultHeader,omitempty"`

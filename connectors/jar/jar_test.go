@@ -2,15 +2,26 @@ package cookiejar
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCookieJar(t *testing.T) {
+	tempDir, err := os.MkdirTemp(os.TempDir(), "example")
+	assert.NoError(t, err)
+
+	defer os.RemoveAll(tempDir)
+
+	cookiesFile := filepath.Join(tempDir, "cookies")
+	fmt.Println(cookiesFile)
+
 	t.Run("Gets and sets a cookie", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if cookie, err := r.Cookie("Flavor"); err != nil {
@@ -27,7 +38,7 @@ func TestCookieJar(t *testing.T) {
 		defer ts.Close()
 
 		ctx := context.Background()
-		jar := NewCookieJar()
+		jar := NewCookieJar(cookiesFile)
 
 		httpClient := http.DefaultClient
 		httpClient.Jar = jar

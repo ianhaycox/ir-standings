@@ -69,7 +69,7 @@ func (ir *IracingService) ReportError(response *http.Response, body []byte) erro
 }
 
 func (ir *IracingService) Authenticate(ctx context.Context) error {
-	auth, err := ir.auth.BasicAuth()
+	auth, err := ir.auth.Credentials()
 	if err != nil {
 		return fmt.Errorf("unable to apply authentication to context, err:%w", err)
 	}
