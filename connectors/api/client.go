@@ -17,14 +17,15 @@ import (
 
 // APIClient manages communication over HTTP
 type APIClient struct {
-	cfg *Configuration
+	cfg     *Configuration
+	lastURL string
 }
 
 type APIClientInterface interface {
 	CallAPI(request *http.Request) (*http.Response, error)
 	PrepareRequest(ctx context.Context, path string, method string, queryParams url.Values, postBody interface{}) (request *http.Request, err error)
 	Decode(v interface{}, b []byte, contentType string) (err error)
-	ReportError(response *http.Response, body []byte) error
+	ReportError(v interface{}, response *http.Response, body []byte) error
 }
 
 // NewAPIClient creates a new API client. Requires a userAgent string describing your application.
@@ -49,23 +50,25 @@ func (c *APIClient) PrepareRequest(ctx context.Context, path string, method stri
 ) (request *http.Request, err error) {
 	var body *bytes.Buffer
 
-	// Setup path and query parameters, path should have a leading '/', e.g. /bookings
-	parsedURL, err := url.Parse(c.cfg.BasePath + path)
+	// Setup path and query parameters, path is the full URL
+	parsedURL, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Adding Query Param
-	query := parsedURL.Query()
+	if len(queryParams) > 0 {
+		query := parsedURL.Query()
 
-	for k, v := range queryParams {
-		for _, iv := range v {
-			query.Add(k, iv)
+		for k, v := range queryParams {
+			for _, iv := range v {
+				query.Add(k, iv)
+			}
 		}
-	}
 
-	// Encode the parameters.
-	parsedURL.RawQuery = query.Encode()
+		// Encode the parameters.
+		parsedURL.RawQuery = query.Encode()
+	}
 
 	// Encode body
 	if postBody != nil {
@@ -82,11 +85,13 @@ func (c *APIClient) PrepareRequest(ctx context.Context, path string, method stri
 		}
 	}
 
+	c.lastURL = parsedURL.String() // For error reporting
+
 	// Generate a new request
 	if body != nil {
-		request, err = http.NewRequest(method, parsedURL.String(), body)
+		request, err = http.NewRequestWithContext(ctx, method, c.lastURL, body)
 	} else {
-		request, err = http.NewRequest(method, parsedURL.String(), nil)
+		request, err = http.NewRequestWithContext(ctx, method, c.lastURL, nil)
 	}
 
 	if err != nil {
@@ -94,7 +99,9 @@ func (c *APIClient) PrepareRequest(ctx context.Context, path string, method stri
 	}
 
 	// Add the user agent to the request.
-	request.Header.Add("User-Agent", c.cfg.UserAgent)
+	if c.cfg.UserAgent != "" {
+		request.Header.Add("User-Agent", c.cfg.UserAgent)
+	}
 
 	for header, value := range c.cfg.DefaultHeader {
 		request.Header.Add(header, value)
@@ -121,15 +128,13 @@ func (c *APIClient) Decode(v interface{}, b []byte, contentType string) (err err
 	return errors.New("undefined Content-Type in response")
 }
 
-func (c *APIClient) ReportError(response *http.Response, body []byte) error {
-	var v APIErrorResponse
-
+func (c *APIClient) ReportError(v interface{}, response *http.Response, body []byte) error {
 	if len(body) > 0 {
 		err := c.Decode(&v, body, response.Header.Get("Content-Type"))
 		if err != nil {
-			return fmt.Errorf("server returned an error, body %s: err %w", string(body), err)
+			return fmt.Errorf("server %s returned an error, body %s: err %w", c.lastURL, string(body), err)
 		}
 	}
 
-	return fmt.Errorf("server returned non-200 http code: %v, response '%s'", response.StatusCode, string(body))
+	return fmt.Errorf("server %s returned non-200 http code: %v, response '%s'", c.lastURL, response.StatusCode, string(body))
 }

@@ -2,7 +2,6 @@ package cookiejar
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -20,7 +19,6 @@ func TestCookieJar(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	cookiesFile := filepath.Join(tempDir, "cookies")
-	fmt.Println(cookiesFile)
 
 	t.Run("Gets and sets a cookie", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

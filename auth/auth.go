@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
@@ -26,13 +24,14 @@ func main() {
 		log.Fatal("insufficient args")
 	}
 
-	cookiesFile := filepath.Join(os.TempDir(), "ir-standings-cookies")
-
 	ctx := context.Background()
 	httpClient := http.DefaultClient
-	httpClient.Jar = cookiejar.NewCookieJar(cookiesFile)
+	httpClient.Jar = cookiejar.NewCookieJar(iracing.CookiesFile)
 
-	cfg := api.NewConfiguration(iracing.Endpoint, httpClient)
+	cfg := api.NewConfiguration(httpClient, api.UserAgent)
+	cfg.AddDefaultHeader("Accept", "application/json")
+	cfg.AddDefaultHeader("Content-Type", "application/json")
+
 	auth := api.NewAuthenticationService(flag.Arg(0), flag.Arg(1))
 	client := api.NewAPIClient(cfg)
 

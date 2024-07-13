@@ -20,7 +20,7 @@ type Cookies struct {
 
 func NewCookieJar(filename string) http.CookieJar {
 	return &Cookies{
-		cookies:  make(map[string][]*http.Cookie),
+		cookies:  nil,
 		filename: filename,
 	}
 }
@@ -50,14 +50,18 @@ func (c *Cookies) Cookies(u *url.URL) []*http.Cookie {
 	c.Lock()
 	defer c.Unlock()
 
-	b, err := os.ReadFile(c.filename)
-	if err != nil {
-		return c.cookies[u.Host]
-	}
+	if c.cookies == nil {
+		c.cookies = make(map[string][]*http.Cookie)
 
-	err = json.Unmarshal(b, &c.cookies)
-	if err != nil {
-		log.Printf("can't open cookie jar:%s", err)
+		b, err := os.ReadFile(c.filename)
+		if err != nil {
+			return c.cookies[u.Host]
+		}
+
+		err = json.Unmarshal(b, &c.cookies)
+		if err != nil {
+			log.Printf("can't open cookie jar:%s", err)
+		}
 	}
 
 	return c.cookies[u.Host]

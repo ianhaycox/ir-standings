@@ -10,9 +10,11 @@ func TestAddDefaultHeader(t *testing.T) {
 	t.Parallel()
 
 	t.Run("add header", func(t *testing.T) {
-		c := NewConfiguration("https://example.com", nil)
+		c := NewConfiguration(nil, "agent")
 		c.AddDefaultHeader("key", "value")
+		c.AddDefaultHeader("Accept", "application/json")
+		c.AddDefaultHeader("Content-Type", "application/json")
 		assert.Equal(t, map[string]string{"Accept": "application/json", "Content-Type": "application/json", "key": "value"}, c.DefaultHeader)
-		assert.Equal(t, "https://example.com", c.BasePath)
+		assert.Equal(t, "agent", c.UserAgent)
 	})
 }
