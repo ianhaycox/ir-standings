@@ -34,7 +34,7 @@ update: tidy
 tidy:
 	go mod tidy -v
 
-lint:
+lint: generate
 	golangci-lint run -v ./...
 
 ## cover: run unit/mock tests with coverage report. Generated mocks are filtered out of the report
