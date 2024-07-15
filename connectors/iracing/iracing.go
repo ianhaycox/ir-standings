@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
+	"github.com/ianhaycox/ir-standings/model/iracing/results"
+	"github.com/ianhaycox/ir-standings/model/iracing/results/searchseries"
 )
 
 const (
@@ -22,7 +24,8 @@ var (
 
 type IracingAPI interface {
 	Authenticate(ctx context.Context)
-	ResultLink(ctx context.Context, subsessionID string) (ResultsLink, error)
+	ResultLink(ctx context.Context, subsessionID string) (results.ResultLink, error)
+	SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) (*searchseries.SearchSeriesResults, error)
 }
 
 type IracingDataAPI interface {

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ianhaycox/ir-standings/model/iracing/results"
 	"github.com/stretchr/testify/assert"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -17,8 +18,8 @@ func TestResultLink(t *testing.T) {
 
 		ctx := context.Background()
 
-		var link ResultsLink
-		linkResponse := ResultsLink{Link: "https://cdn.com/result/8w8wh8e"}
+		var link results.ResultLink
+		linkResponse := results.ResultLink{Link: "https://cdn.com/result/8w8wh8e"}
 
 		queryParams := url.Values{}
 		queryParams.Add("subsession_id", "12345")

@@ -12,7 +12,8 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
-	result "github.com/ianhaycox/ir-standings/model"
+	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/model/data/results/searchseries"
 )
 
 func main() {
@@ -42,32 +43,55 @@ func main() {
 
 	// https://members-ng.iracing.com/racing/results-stats/results?subsessionid=69999199
 
-	var sessions = []int{69999199, 70062129, 69930471}
-
-	results := make(map[int]result.Result)
-
-	for _, sessionID := range sessions {
-		link, err := ir.ResultLink(ctx, sessionID)
-		if err != nil {
-			log.Fatal("Can not get result link for session ID:", sessionID, "", err)
-		}
-
-		var res result.Result
-
-		err = data.Get(ctx, link.Link, &res)
-		if err != nil {
-			log.Fatal("Can not get result:"+link.Link, err)
-		}
-
-		results[sessionID] = res
+	searchSeriesResults, err := ir.SearchSeriesResults(ctx, 2024, 2, iracing.KamelSeriesID)
+	if err != nil {
+		log.Fatal("Can not get series results:", err)
 	}
 
-	b, err := json.MarshalIndent(results, "", "  ")
+	allResults := make(map[int]results.Result)
+
+	if searchSeriesResults.Data.Success {
+		for i := range searchSeriesResults.Data.ChunkInfo.ChunkFileNames {
+			var ssResults []searchseries.SearchSeriesResult
+
+			url := searchSeriesResults.Data.ChunkInfo.BaseDownloadURL + searchSeriesResults.Data.ChunkInfo.ChunkFileNames[i]
+
+			err := data.Get(ctx, url, &ssResults)
+			if err != nil {
+				log.Fatal("Can not get search series result:"+url, err)
+			}
+
+			for j := range ssResults {
+
+				// TODO Just Saturday 17:00 GMT
+
+				if !ssResults[j].IsBroadcast() {
+					continue
+				}
+
+				link, err := ir.ResultLink(ctx, ssResults[j].SubsessionID)
+				if err != nil {
+					log.Fatal("Can not get result link for sub session ID:", ssResults[j].SubsessionID, "", err)
+				}
+
+				var res results.Result
+
+				err = data.Get(ctx, link.Link, &res)
+				if err != nil {
+					log.Fatal("Can not get result:"+link.Link, err)
+				}
+
+				allResults[ssResults[j].SubsessionID] = res
+			}
+		}
+	}
+
+	b, err := json.MarshalIndent(allResults, "", "  ")
 	if err != nil {
 		log.Fatal("Can not marshal result:", err.Error())
 	}
 
-	err = os.WriteFile("./r.json", b, 0600) //nolint:mnd // ok
+	err = os.WriteFile("./2024-2-285-results.json", b, 0600) //nolint:mnd // ok
 	if err != nil {
 		log.Fatal("Can not write result:", err.Error())
 	}

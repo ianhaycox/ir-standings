@@ -1,5 +1,5 @@
-// Package result for a single event subsession_id
-package result
+// Package results response from CDN
+package results
 
 import "time"
 
@@ -209,13 +209,13 @@ type Results struct {
 	Ai                      bool      `json:"ai"`
 }
 type SessionResults struct {
-	SimsessionNumber   int           `json:"simsession_number"`
-	SimsessionType     int           `json:"simsession_type"`
-	SimsessionTypeName string        `json:"simsession_type_name"`
-	SimsessionSubtype  int           `json:"simsession_subtype"`
-	SimsessionName     string        `json:"simsession_name"`
-	WeatherResult      WeatherResult `json:"weather_result"`
-	Results            []Results     `json:"results"`
+	SimsessionNumber   int    `json:"simsession_number"`
+	SimsessionType     int    `json:"simsession_type"`
+	SimsessionTypeName string `json:"simsession_type_name"`
+	SimsessionSubtype  int    `json:"simsession_subtype"`
+	SimsessionName     string `json:"simsession_name"`
+	// WeatherResult      WeatherResult `json:"weather_result"`
+	Results []Results `json:"results"`
 }
 type SessionSplits struct {
 	SubsessionID         int `json:"subsession_id"`
