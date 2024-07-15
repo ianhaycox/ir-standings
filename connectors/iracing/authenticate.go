@@ -29,12 +29,12 @@ func (ir *IracingService) Authenticate(ctx context.Context) error {
 		return fmt.Errorf("unable to retrieve credentials, err:%w", err)
 	}
 
-	r, err := ir.client.PrepareRequest(ctx, Endpoint+"/auth", http.MethodPost, url.Values{}, auth)
+	r, err := ir.data.Client().PrepareRequest(ctx, Endpoint+"/auth", http.MethodPost, url.Values{}, auth)
 	if err != nil {
 		return err
 	}
 
-	response, err := ir.client.CallAPI(r) //nolint:bodyclose // ok
+	response, err := ir.data.Client().CallAPI(r) //nolint:bodyclose // ok
 	if err != nil || response == nil {
 		return err
 	}
@@ -49,17 +49,17 @@ func (ir *IracingService) Authenticate(ctx context.Context) error {
 	if response.StatusCode != http.StatusOK {
 		var apiError APIErrorResponse
 
-		return ir.client.ReportError(&apiError, response, body)
+		return ir.data.Client().ReportError(&apiError, response, body)
 	}
 
 	// Two different responses are received after an authentication request
 	var ok AuthenticationGoodResponse
 
-	err = ir.client.Decode(&ok, body, response.Header.Get("Content-Type"))
+	err = ir.data.Client().Decode(&ok, body, response.Header.Get("Content-Type"))
 	if err != nil {
 		var bad AuthenticationBadResponse
 
-		err = ir.client.Decode(&bad, body, response.Header.Get("Content-Type"))
+		err = ir.data.Client().Decode(&bad, body, response.Header.Get("Content-Type"))
 		if err != nil {
 			return fmt.Errorf("failed to decode response, %w. Body:%s", err, string(body))
 		}

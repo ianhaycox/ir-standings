@@ -23,7 +23,7 @@ type CDNService struct {
 }
 
 type CDNAPI interface {
-	GetResult(ctx context.Context, link string) (string, error)
+	Get(ctx context.Context, link string) (string, error)
 }
 
 // NewCDNService gets iRacing results, etc. from AWS

@@ -34,7 +34,7 @@ func main() {
 	cfg.AddDefaultHeader("Content-Type", "application/json")
 
 	auth := api.NewAuthenticationService(flag.Arg(0), flag.Arg(1))
-	client := api.NewAPIClient(cfg)
+	client := iracing.NewIracingDataService(api.NewAPIClient(cfg))
 
 	ir := iracing.NewIracingService(client, auth)
 

@@ -10,7 +10,7 @@ import (
 func TestIRacing(t *testing.T) {
 	t.Run("should return an IRacingService instance", func(t *testing.T) {
 		i := NewIracingService(
-			api.NewAPIClient(api.NewConfiguration(nil, "")),
+			NewIracingDataService(api.NewAPIClient(api.NewConfiguration(nil, ""))),
 			api.NewAuthenticationService("", ""),
 		)
 		assert.NotNil(t, i)

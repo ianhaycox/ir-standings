@@ -39,7 +39,7 @@ func TestAuthenticate(t *testing.T) {
 		var ok AuthenticationGoodResponse
 		mockAPI.EXPECT().Decode(&ok, []byte("result"), "application/json").Return(nil)
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.NoError(t, err)
@@ -71,7 +71,7 @@ func TestAuthenticate(t *testing.T) {
 		bad := AuthenticationBadResponse{AuthCode: 0}
 		mockAPI.EXPECT().Decode(&bad, []byte(`{"authcode":0}`), "application/json").Return(nil)
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "failed to authenticate")
@@ -106,7 +106,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAPI := api.NewMockAPIClientInterface(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{}).Return(nil, fmt.Errorf("prepare failed"))
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "prepare failed")
@@ -127,7 +127,7 @@ func TestAuthenticateErrors(t *testing.T) {
 
 		mockAPI.EXPECT().CallAPI(request).Return(nil, fmt.Errorf("callapi failed"))
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "callapi failed")
@@ -153,7 +153,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		}
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "read error")
@@ -181,7 +181,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 		mockAPI.EXPECT().ReportError(&apiError, response, []byte("result")).Return(fmt.Errorf("403"))
 
-		ir := NewIracingService(mockAPI, mockAuth)
+		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "403")
