@@ -1,3 +1,5 @@
+//go:generate mockgen -package cdn -destination cdn_mock.go -source cdn.go
+
 // Package cdn gets data from the iRacing Content Delivery Network
 package cdn
 

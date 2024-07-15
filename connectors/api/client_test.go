@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,30 @@ func TestPrepareRequest(t *testing.T) {
 		queryParams.Add("foo", "bar")
 		_, err := api.PrepareRequest(context.TODO(), "http://bookings", http.MethodPost, queryParams, data)
 		assert.NoError(t, err)
+	})
+
+	t.Run("return no error if POST request OK from io.Reader", func(t *testing.T) {
+		data := strings.NewReader(`{Message: "test"}`)
+		api := NewAPIClient(NewConfiguration(nil, ""))
+
+		queryParams := url.Values{}
+		queryParams.Add("foo", "bar")
+		_, err := api.PrepareRequest(context.TODO(), "http://bookings", http.MethodPost, queryParams, data)
+		assert.NoError(t, err)
+	})
+
+	t.Run("sets the user agent and request headers", func(t *testing.T) {
+		data := strings.NewReader(`{Message: "test"}`)
+		cfg := NewConfiguration(nil, "user-agent")
+		cfg.AddDefaultHeader("key", "value")
+		api := NewAPIClient(cfg)
+
+		queryParams := url.Values{}
+		queryParams.Add("foo", "bar")
+		request, err := api.PrepareRequest(context.TODO(), "http://bookings", http.MethodPost, queryParams, data)
+		assert.NoError(t, err)
+		assert.Equal(t, "user-agent", request.UserAgent())
+		assert.Equal(t, http.Header{"Key": []string{"value"}, "User-Agent": []string{"user-agent"}}, request.Header)
 	})
 }
 

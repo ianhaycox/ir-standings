@@ -14,8 +14,8 @@ type ResultsLink struct {
 	Link string `json:"link,omitempty"`
 }
 
-// GetResultLink https://members-ng.iracing.com/data/results/get?subsession_id=38280997
-func (ir *IracingService) GetResultLink(ctx context.Context, subsessionID string) (*ResultsLink, error) {
+// ResultLink https://members-ng.iracing.com/data/results/get?subsession_id=38280997
+func (ir *IracingService) ResultLink(ctx context.Context, subsessionID string) (*ResultsLink, error) {
 	queryParams := url.Values{}
 	queryParams.Add("subsession_id", subsessionID)
 

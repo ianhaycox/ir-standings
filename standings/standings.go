@@ -26,7 +26,8 @@ func main() {
 
 	ctx := context.Background()
 	httpClient := http.DefaultClient
-	httpClient.Jar = cookiejar.NewCookieJar(iracing.CookiesFile)
+	cookieStore := cookiejar.NewStore(iracing.CookiesFile)
+	httpClient.Jar = cookiejar.NewCookieJar(cookieStore)
 
 	cfg := api.NewConfiguration(httpClient, api.UserAgent)
 	cfg.AddDefaultHeader("Accept", "application/json")
@@ -41,7 +42,7 @@ func main() {
 	var sessions = []string{"69999199", "70062129", "69930471"}
 
 	for _, sessionID := range sessions {
-		link, err := ir.GetResultLink(ctx, sessionID)
+		link, err := ir.ResultLink(ctx, sessionID)
 		if err != nil {
 			log.Fatal("Can not get result link for session ID:", sessionID, "", err)
 		}

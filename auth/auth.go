@@ -26,7 +26,8 @@ func main() {
 
 	ctx := context.Background()
 	httpClient := http.DefaultClient
-	httpClient.Jar = cookiejar.NewCookieJar(iracing.CookiesFile)
+	cookieStore := cookiejar.NewStore(iracing.CookiesFile)
+	httpClient.Jar = cookiejar.NewCookieJar(cookieStore)
 
 	cfg := api.NewConfiguration(httpClient, api.UserAgent)
 	cfg.AddDefaultHeader("Accept", "application/json")

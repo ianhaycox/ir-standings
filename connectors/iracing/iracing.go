@@ -1,3 +1,5 @@
+//go:generate mockgen -package iracing -destination iracing_mock.go -source iracing.go
+
 // Package iracing API
 package iracing
 
@@ -36,5 +38,5 @@ func NewIracingService(client api.APIClientInterface, auth api.Authenticator) *I
 
 type IracingAPI interface {
 	Authenticate(ctx context.Context)
-	GetResultLink(ctx context.Context, subsessionID string) (ResultsLink, error)
+	ResultLink(ctx context.Context, subsessionID string) (ResultsLink, error)
 }

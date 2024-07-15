@@ -2,26 +2,21 @@
 package cookiejar
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 )
 
-const mode = 0600
-
 type Cookies struct {
 	sync.Mutex
-	cookies  map[string][]*http.Cookie
-	filename string
+	cookies   map[string][]*http.Cookie
+	persister Persister
 }
 
-func NewCookieJar(filename string) http.CookieJar {
+func NewCookieJar(persister Persister) http.CookieJar {
 	return &Cookies{
-		cookies:  nil,
-		filename: filename,
+		cookies:   nil,
+		persister: persister,
 	}
 }
 
@@ -35,14 +30,8 @@ func (c *Cookies) SetCookies(u *url.URL, cookies []*http.Cookie) {
 		c.cookies[u.Host] = cookies
 	}
 
-	b, err := json.Marshal(c.cookies)
-	if err != nil {
-		log.Printf("broken cookie jar:%s", err)
-	}
-
-	err = os.WriteFile(c.filename, b, mode)
-	if err != nil {
-		log.Printf("can't close cookie jar:%s", err)
+	if c.persister != nil {
+		_ = c.persister.Write(c.cookies)
 	}
 }
 
@@ -53,14 +42,8 @@ func (c *Cookies) Cookies(u *url.URL) []*http.Cookie {
 	if c.cookies == nil {
 		c.cookies = make(map[string][]*http.Cookie)
 
-		b, err := os.ReadFile(c.filename)
-		if err != nil {
-			return c.cookies[u.Host]
-		}
-
-		err = json.Unmarshal(b, &c.cookies)
-		if err != nil {
-			log.Printf("can't open cookie jar:%s", err)
+		if c.persister != nil {
+			c.cookies, _ = c.persister.Read()
 		}
 	}
 
