@@ -41,5 +41,7 @@ type Track struct {
 }
 
 func (ssr *SearchSeriesResult) IsBroadcast() bool {
-	return true
+	const broadcastRaceTime = 17
+
+	return ssr.StartTime.Weekday() == time.Saturday && ssr.StartTime.Hour() == broadcastRaceTime
 }

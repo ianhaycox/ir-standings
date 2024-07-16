@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
@@ -17,15 +19,7 @@ import (
 )
 
 func main() {
-	const (
-		numArgs = 2
-	)
-
-	flag.Parse()
-
-	if len(flag.Args()) != numArgs {
-		log.Fatal("insufficient args")
-	}
+	seasonYear, seasonQuarter := args()
 
 	ctx := context.Background()
 	httpClient := http.DefaultClient
@@ -43,7 +37,7 @@ func main() {
 
 	// https://members-ng.iracing.com/racing/results-stats/results?subsessionid=69999199
 
-	searchSeriesResults, err := ir.SearchSeriesResults(ctx, 2024, 2, iracing.KamelSeriesID)
+	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, iracing.KamelSeriesID)
 	if err != nil {
 		log.Fatal("Can not get series results:", err)
 	}
@@ -62,9 +56,6 @@ func main() {
 			}
 
 			for j := range ssResults {
-
-				// TODO Just Saturday 17:00 GMT
-
 				if !ssResults[j].IsBroadcast() {
 					continue
 				}
@@ -91,8 +82,32 @@ func main() {
 		log.Fatal("Can not marshal result:", err.Error())
 	}
 
-	err = os.WriteFile("./2024-2-285-results.json", b, 0600) //nolint:mnd // ok
+	err = os.WriteFile(fmt.Sprintf("./%d-%d-%d-results.json", seasonYear, seasonQuarter, iracing.KamelSeriesID), b, 0600) //nolint:mnd // ok
 	if err != nil {
 		log.Fatal("Can not write result:", err.Error())
 	}
+}
+
+func args() (int, int) {
+	const (
+		numArgs = 2
+	)
+
+	flag.Parse()
+
+	if len(flag.Args()) != numArgs {
+		log.Fatal("insufficient args")
+	}
+
+	seasonYear, err := strconv.Atoi(flag.Arg(0))
+	if err != nil {
+		panic(err)
+	}
+
+	seasonQuarter, err := strconv.Atoi(flag.Arg(1))
+	if err != nil {
+		panic(err)
+	}
+
+	return seasonYear, seasonQuarter
 }
