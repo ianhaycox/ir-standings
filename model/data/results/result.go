@@ -57,7 +57,7 @@ type Result struct {
 	SessionSplits           []SessionSplits   `json:"session_splits"`
 	SpecialEventType        int               `json:"special_event_type"`
 	StartTime               time.Time         `json:"start_time"`
-	Track                   Track             `json:"track"`
+	Track                   ResultTrack       `json:"track"`
 	TrackState              TrackState        `json:"track_state"`
 	Weather                 Weather           `json:"weather"`
 }
@@ -221,7 +221,7 @@ type SessionSplits struct {
 	SubsessionID         int `json:"subsession_id"`
 	EventStrengthOfField int `json:"event_strength_of_field"`
 }
-type Track struct {
+type ResultTrack struct {
 	Category   string `json:"category"`
 	CategoryID int    `json:"category_id"`
 	ConfigName string `json:"config_name"`

@@ -10,7 +10,7 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/api"
 )
 
-func (ids *IracingDataService) Get(ctx context.Context, v interface{}, path string, queryParams url.Values) error {
+func (ids *IracingDataAPI) Get(ctx context.Context, v interface{}, path string, queryParams url.Values) error {
 	r, err := ids.client.PrepareRequest(ctx, path, http.MethodGet, queryParams, nil)
 	if err != nil {
 		return err

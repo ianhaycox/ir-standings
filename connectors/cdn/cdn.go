@@ -19,15 +19,15 @@ type AWSErrorResponse struct {
 }
 
 type CDNService struct {
-	client api.APIClientInterface
+	client api.API
 }
 
 type CDNAPI interface {
-	Get(ctx context.Context, link string) (string, error)
+	CDN(ctx context.Context, link string, v interface{}) error
 }
 
 // NewCDNService gets iRacing results, etc. from AWS
-func NewCDNService(client api.APIClientInterface) *CDNService {
+func NewCDNService(client api.API) *CDNService {
 	return &CDNService{
 		client: client,
 	}

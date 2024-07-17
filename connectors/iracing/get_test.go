@@ -27,7 +27,7 @@ func TestGet(t *testing.T) {
 		ctx := context.Background()
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://example.com/data", "GET", url.Values{"test": {"12345"}}, nil).Return(request, nil)
 
 		response := &http.Response{
@@ -41,7 +41,7 @@ func TestGet(t *testing.T) {
 		vRet := obj{Value: 9999}
 		mockAPI.EXPECT().Decode(&v, []byte("result"), "application/json").Return(nil).SetArg(0, vRet)
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var actual obj
 		expected := obj{Value: 9999}
@@ -59,10 +59,10 @@ func TestGetErrors(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("prepare failed"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var v obj
 
@@ -77,12 +77,12 @@ func TestGetErrors(t *testing.T) {
 		ctx := context.Background()
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://example.com/data", "GET", url.Values{"test": {"12345"}}, nil).Return(request, nil)
 
 		mockAPI.EXPECT().CallAPI(request).Return(nil, fmt.Errorf("callapi failed"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var v obj
 
@@ -97,7 +97,7 @@ func TestGetErrors(t *testing.T) {
 		ctx := context.Background()
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://example.com/data", "GET", url.Values{"test": {"12345"}}, nil).Return(request, nil)
 
 		response := &http.Response{
@@ -107,7 +107,7 @@ func TestGetErrors(t *testing.T) {
 		}
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var v obj
 
@@ -122,7 +122,7 @@ func TestGetErrors(t *testing.T) {
 		ctx := context.Background()
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://example.com/data", "GET", url.Values{"test": {"12345"}}, nil).Return(request, nil)
 
 		response := &http.Response{
@@ -134,7 +134,7 @@ func TestGetErrors(t *testing.T) {
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 		mockAPI.EXPECT().ReportError(&apiError, response, []byte("result")).Return(fmt.Errorf("403"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var v obj
 
@@ -149,7 +149,7 @@ func TestGetErrors(t *testing.T) {
 		ctx := context.Background()
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://example.com/data", "GET", url.Values{"test": {"12345"}}, nil).Return(request, nil)
 
 		response := &http.Response{
@@ -161,7 +161,7 @@ func TestGetErrors(t *testing.T) {
 
 		mockAPI.EXPECT().Decode(gomock.Any(), []byte("result"), "application/json").Return(fmt.Errorf("opps"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), nil)
+		ir := NewIracingService(nil, NewIracingDataService(mockAPI, nil), nil)
 
 		var v obj
 

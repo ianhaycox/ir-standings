@@ -15,11 +15,13 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
 	"github.com/ianhaycox/ir-standings/model/data/results"
-	"github.com/ianhaycox/ir-standings/model/data/results/searchseries"
 )
 
 func main() {
-	seasonYear, seasonQuarter := args()
+	seasonYear, seasonQuarter, err := args()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ctx := context.Background()
 	httpClient := http.DefaultClient
@@ -29,55 +31,23 @@ func main() {
 	cfg := api.NewConfiguration(httpClient, api.UserAgent)
 	cfg.AddDefaultHeader("Accept", "application/json")
 	cfg.AddDefaultHeader("Content-Type", "application/json")
+	client := api.NewHTTPClient(cfg)
 
 	// See auth.go that authenticates separately and saves encrypted credentials in a cookie jar
-	ir := iracing.NewIracingService(iracing.NewIracingDataService(api.NewAPIClient(cfg)), nil)
+	ir := iracing.NewIracingService(
+		client,
+		iracing.NewIracingDataService(
+			client, cdn.NewCDNService(api.NewHTTPClient(api.NewConfiguration(http.DefaultClient, ""))),
+		),
+		nil,
+	)
 
-	data := cdn.NewCDNService(api.NewAPIClient(api.NewConfiguration(http.DefaultClient, "")))
-
-	// https://members-ng.iracing.com/racing/results-stats/results?subsessionid=69999199
-
-	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, iracing.KamelSeriesID)
+	seasonResults, err := standings(ctx, ir, seasonYear, seasonQuarter)
 	if err != nil {
-		log.Fatal("Can not get series results:", err)
+		log.Fatal("Can not get standings:", err.Error())
 	}
 
-	allResults := make(map[int]results.Result)
-
-	if searchSeriesResults.Data.Success {
-		for i := range searchSeriesResults.Data.ChunkInfo.ChunkFileNames {
-			var ssResults []searchseries.SearchSeriesResult
-
-			url := searchSeriesResults.Data.ChunkInfo.BaseDownloadURL + searchSeriesResults.Data.ChunkInfo.ChunkFileNames[i]
-
-			err := data.Get(ctx, url, &ssResults)
-			if err != nil {
-				log.Fatal("Can not get search series result:"+url, err)
-			}
-
-			for j := range ssResults {
-				if !ssResults[j].IsBroadcast() {
-					continue
-				}
-
-				link, err := ir.ResultLink(ctx, ssResults[j].SubsessionID)
-				if err != nil {
-					log.Fatal("Can not get result link for sub session ID:", ssResults[j].SubsessionID, "", err)
-				}
-
-				var res results.Result
-
-				err = data.Get(ctx, link.Link, &res)
-				if err != nil {
-					log.Fatal("Can not get result:"+link.Link, err)
-				}
-
-				allResults[ssResults[j].SubsessionID] = res
-			}
-		}
-	}
-
-	b, err := json.MarshalIndent(allResults, "", "  ")
+	b, err := json.MarshalIndent(seasonResults, "", "  ")
 	if err != nil {
 		log.Fatal("Can not marshal result:", err.Error())
 	}
@@ -88,7 +58,21 @@ func main() {
 	}
 }
 
-func args() (int, int) {
+func standings(ctx context.Context, ir iracing.IracingService, seasonYear, seasonQuarter int) ([]results.Result, error) {
+	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, iracing.KamelSeriesID)
+	if err != nil {
+		return nil, fmt.Errorf("can not get series results:%w", err)
+	}
+
+	seasonResults, err := ir.SeasonBroadcastResults(ctx, searchSeriesResults)
+	if err != nil {
+		return nil, fmt.Errorf("can not get series results:%w", err)
+	}
+
+	return seasonResults, nil
+}
+
+func args() (int, int, error) {
 	const (
 		numArgs = 2
 	)
@@ -96,18 +80,18 @@ func args() (int, int) {
 	flag.Parse()
 
 	if len(flag.Args()) != numArgs {
-		log.Fatal("insufficient args")
+		return 0, 0, fmt.Errorf("insufficient args")
 	}
 
 	seasonYear, err := strconv.Atoi(flag.Arg(0))
 	if err != nil {
-		panic(err)
+		return 0, 0, fmt.Errorf("season year should be numeric, e.g. 2023")
 	}
 
 	seasonQuarter, err := strconv.Atoi(flag.Arg(1))
 	if err != nil {
-		panic(err)
+		return 0, 0, fmt.Errorf("season quarter should be numeric, e.g. 1, 2, 3, 4, 5")
 	}
 
-	return seasonYear, seasonQuarter
+	return seasonYear, seasonQuarter, nil
 }

@@ -15,38 +15,38 @@ import (
 	"strings"
 )
 
-// APIClient manages communication over HTTP
-type APIClient struct {
+// HTTPClient manages communication over HTTP
+type HTTPClient struct {
 	cfg     *Configuration
 	lastURL string
 }
 
-type APIClientInterface interface {
+type API interface {
 	CallAPI(request *http.Request) (*http.Response, error)
 	PrepareRequest(ctx context.Context, path string, method string, queryParams url.Values, postBody interface{}) (request *http.Request, err error)
 	Decode(v interface{}, b []byte, contentType string) (err error)
 	ReportError(v interface{}, response *http.Response, body []byte) error
 }
 
-// NewAPIClient creates a new API client. Requires a userAgent string describing your application.
+// NewHTTPClient creates a new API client. Requires a userAgent string describing your application.
 // optionally, a custom http.Client to allow for advanced features such as caching.
-func NewAPIClient(cfg *Configuration) *APIClient {
+func NewHTTPClient(cfg *Configuration) *HTTPClient {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
 
-	return &APIClient{
+	return &HTTPClient{
 		cfg: cfg,
 	}
 }
 
 // CallAPI do the request.
-func (c *APIClient) CallAPI(request *http.Request) (*http.Response, error) {
+func (c *HTTPClient) CallAPI(request *http.Request) (*http.Response, error) {
 	return c.cfg.HTTPClient.Do(request)
 }
 
 // PrepareRequest build the request
-func (c *APIClient) PrepareRequest(ctx context.Context, path string, method string, queryParams url.Values, postBody interface{},
+func (c *HTTPClient) PrepareRequest(ctx context.Context, path string, method string, queryParams url.Values, postBody interface{},
 ) (request *http.Request, err error) {
 	var body *bytes.Buffer
 
@@ -110,7 +110,7 @@ func (c *APIClient) PrepareRequest(ctx context.Context, path string, method stri
 	return request, nil
 }
 
-func (c *APIClient) Decode(v interface{}, b []byte, contentType string) (err error) {
+func (c *HTTPClient) Decode(v interface{}, b []byte, contentType string) (err error) {
 	if strings.Contains(contentType, "application/xml") {
 		if err = xml.Unmarshal(b, v); err != nil {
 			return err
@@ -128,7 +128,7 @@ func (c *APIClient) Decode(v interface{}, b []byte, contentType string) (err err
 	return errors.New("undefined Content-Type in response")
 }
 
-func (c *APIClient) ReportError(v interface{}, response *http.Response, body []byte) error {
+func (c *HTTPClient) ReportError(v interface{}, response *http.Response, body []byte) error {
 	if len(body) > 0 {
 		err := c.Decode(&v, body, response.Header.Get("Content-Type"))
 		if err != nil {

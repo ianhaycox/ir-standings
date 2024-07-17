@@ -26,7 +26,7 @@ func TestAuthenticate(t *testing.T) {
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}).Return(request, nil)
 
 		response := &http.Response{
@@ -39,7 +39,7 @@ func TestAuthenticate(t *testing.T) {
 		var ok AuthenticationGoodResponse
 		mockAPI.EXPECT().Decode(&ok, []byte("result"), "application/json").Return(nil)
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.NoError(t, err)
@@ -55,7 +55,7 @@ func TestAuthenticate(t *testing.T) {
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}).Return(request, nil)
 
 		response := &http.Response{
@@ -71,7 +71,7 @@ func TestAuthenticate(t *testing.T) {
 		bad := AuthenticationBadResponse{AuthCode: 0}
 		mockAPI.EXPECT().Decode(&bad, []byte(`{"authcode":0}`), "application/json").Return(nil)
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "failed to authenticate")
@@ -88,7 +88,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAuth := api.NewMockAuthenticator(ctrl)
 		mockAuth.EXPECT().Credentials().Return(nil, fmt.Errorf("no creds"))
 
-		ir := NewIracingService(nil, mockAuth)
+		ir := NewIracingService(nil, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "no creds")
@@ -103,10 +103,10 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAuth := api.NewMockAuthenticator(ctrl)
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
 
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{}).Return(nil, fmt.Errorf("prepare failed"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "prepare failed")
@@ -122,12 +122,12 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{}).Return(request, nil)
 
 		mockAPI.EXPECT().CallAPI(request).Return(nil, fmt.Errorf("callapi failed"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "callapi failed")
@@ -143,7 +143,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{}).Return(request, nil)
 
 		response := &http.Response{
@@ -153,7 +153,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		}
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "read error")
@@ -169,7 +169,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}).Return(request, nil)
 
 		response := &http.Response{
@@ -181,7 +181,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		mockAPI.EXPECT().CallAPI(request).Return(response, nil)
 		mockAPI.EXPECT().ReportError(&apiError, response, []byte("result")).Return(fmt.Errorf("403"))
 
-		ir := NewIracingService(NewIracingDataService(mockAPI), mockAuth)
+		ir := NewIracingService(mockAPI, nil, mockAuth)
 
 		err := ir.Authenticate(ctx)
 		assert.ErrorContains(t, err, "403")

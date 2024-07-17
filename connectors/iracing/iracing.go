@@ -10,8 +10,9 @@ import (
 	"path/filepath"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
-	"github.com/ianhaycox/ir-standings/model/iracing/results"
-	"github.com/ianhaycox/ir-standings/model/iracing/results/searchseries"
+	"github.com/ianhaycox/ir-standings/connectors/cdn"
+	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/model/data/results/searchseries"
 )
 
 const (
@@ -22,44 +23,51 @@ var (
 	CookiesFile = filepath.Join(os.TempDir(), "ir-standings-cookies")
 )
 
-type IracingAPI interface {
-	Authenticate(ctx context.Context)
-	ResultLink(ctx context.Context, subsessionID string) (results.ResultLink, error)
-	SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) (*searchseries.SearchSeriesResults, error)
-}
-
-type IracingDataAPI interface {
-	Get(ctx context.Context, v interface{}, path string, queryParams url.Values) error // GET from the data endpoint
-	Client() api.APIClientInterface
-}
-
-type IracingDataService struct {
-	client api.APIClientInterface
-}
-
-func (ids *IracingDataService) Client() api.APIClientInterface {
-	return ids.client
-}
-
-type IracingService struct {
-	data IracingDataAPI
-	auth api.Authenticator
-}
-
 type APIErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message,omitempty"`
 	Note    string `json:"note,omitempty"`
 }
 
-func NewIracingDataService(client api.APIClientInterface) *IracingDataService {
-	return &IracingDataService{client}
+type IracingService interface {
+	Authenticate(ctx context.Context) error
+	ResultLink(ctx context.Context, subsessionID int) (*results.ResultLink, error)
+	SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) ([]searchseries.SearchSeriesResult, error)
+	SeasonBroadcastResults(ctx context.Context, ssResults []searchseries.SearchSeriesResult) ([]results.Result, error)
+}
+
+type IracingAPI struct {
+	client api.API
+	data   IracingDataService
+	auth   api.Authenticator
 }
 
 // NewIracingService https://members-ng.iracing.com/data/doc
-func NewIracingService(data IracingDataAPI, auth api.Authenticator) *IracingService {
-	return &IracingService{
-		data: data,
-		auth: auth,
+func NewIracingService(client api.API, data IracingDataService, auth api.Authenticator) *IracingAPI {
+	return &IracingAPI{
+		client: client,
+		data:   data,
+		auth:   auth,
+	}
+}
+
+type IracingDataService interface {
+	Get(ctx context.Context, v interface{}, path string, queryParams url.Values) error // GET from the members /data endpoint
+	cdn.CDNAPI                                                                         // GET from the Amazon bucket
+}
+
+type IracingDataAPI struct {
+	client api.API
+	cdn    cdn.CDNAPI
+}
+
+func (ids *IracingDataAPI) CDN(ctx context.Context, link string, v interface{}) error {
+	return ids.cdn.CDN(ctx, link, v)
+}
+
+func NewIracingDataService(client api.API, cdn cdn.CDNAPI) *IracingDataAPI {
+	return &IracingDataAPI{
+		client: client,
+		cdn:    cdn,
 	}
 }

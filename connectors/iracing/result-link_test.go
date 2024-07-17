@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ianhaycox/ir-standings/model/iracing/results"
+	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/stretchr/testify/assert"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -23,10 +23,10 @@ func TestResultLink(t *testing.T) {
 
 		queryParams := url.Values{}
 		queryParams.Add("subsession_id", "12345")
-		mockDataAPI := NewMockIracingDataAPI(ctrl)
+		mockDataAPI := NewMockIracingDataService(ctrl)
 		mockDataAPI.EXPECT().Get(ctx, &link, Endpoint+"/data/results/get", queryParams).Return(nil).SetArg(1, linkResponse)
 
-		ir := NewIracingService(mockDataAPI, nil)
+		ir := NewIracingService(nil, mockDataAPI, nil)
 
 		actual, err := ir.ResultLink(ctx, 12345)
 		assert.NoError(t, err)
@@ -41,10 +41,10 @@ func TestResultLinkErrors(t *testing.T) {
 
 		ctx := context.Background()
 
-		mockDataAPI := NewMockIracingDataAPI(ctrl)
+		mockDataAPI := NewMockIracingDataService(ctrl)
 		mockDataAPI.EXPECT().Get(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("get failed"))
 
-		ir := NewIracingService(mockDataAPI, nil)
+		ir := NewIracingService(nil, mockDataAPI, nil)
 
 		link, err := ir.ResultLink(ctx, 12345)
 		assert.ErrorContains(t, err, "get failed")

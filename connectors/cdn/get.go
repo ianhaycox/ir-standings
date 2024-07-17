@@ -9,7 +9,7 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/api"
 )
 
-func (cdn *CDNService) Get(ctx context.Context, link string, v interface{}) error {
+func (cdn *CDNService) CDN(ctx context.Context, link string, v interface{}) error {
 	r, err := cdn.client.PrepareRequest(ctx, link, http.MethodGet, nil, nil)
 	if err != nil {
 		return err

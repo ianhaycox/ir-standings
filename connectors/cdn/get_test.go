@@ -24,7 +24,7 @@ func TestResult(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 
 		request := &http.Request{}
 		var v testData
@@ -43,7 +43,7 @@ func TestResult(t *testing.T) {
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.NoError(t, err)
 		assert.Equal(t, "123456", data.Message)
 	})
@@ -55,14 +55,14 @@ func TestResultErrors(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("prepare failed"))
 
 		c := NewCDNService(mockAPI)
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.ErrorContains(t, err, "prepare failed")
 	})
 
@@ -71,7 +71,7 @@ func TestResultErrors(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 
 		request := &http.Request{}
 		mockAPI.EXPECT().PrepareRequest(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(request, nil)
@@ -81,7 +81,7 @@ func TestResultErrors(t *testing.T) {
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.ErrorContains(t, err, "call failed")
 	})
 
@@ -90,7 +90,7 @@ func TestResultErrors(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 
 		request := &http.Request{}
 		mockAPI.EXPECT().PrepareRequest(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(request, nil)
@@ -104,7 +104,7 @@ func TestResultErrors(t *testing.T) {
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.ErrorContains(t, err, "read error")
 	})
 
@@ -113,7 +113,7 @@ func TestResultErrors(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 
 		request := &http.Request{}
 		response := &http.Response{
@@ -128,7 +128,7 @@ func TestResultErrors(t *testing.T) {
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.ErrorContains(t, err, "forbidden")
 	})
 
@@ -137,7 +137,7 @@ func TestResultErrors(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.Background()
-		mockAPI := api.NewMockAPIClientInterface(ctrl)
+		mockAPI := api.NewMockAPI(ctrl)
 
 		request := &http.Request{}
 		response := &http.Response{
@@ -152,7 +152,7 @@ func TestResultErrors(t *testing.T) {
 
 		var data testData
 
-		err := c.Get(ctx, "https://cdn.com/results", &data)
+		err := c.CDN(ctx, "https://cdn.com/results", &data)
 		assert.ErrorContains(t, err, "decode failed")
 	})
 }

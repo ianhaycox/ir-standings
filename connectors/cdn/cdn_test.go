@@ -9,7 +9,7 @@ import (
 
 func TestCDN(t *testing.T) {
 	t.Run("Should retrun an instance of CDNService", func(t *testing.T) {
-		c := NewCDNService(api.NewAPIClient(api.NewConfiguration(nil, "")))
+		c := NewCDNService(api.NewHTTPClient(api.NewConfiguration(nil, "")))
 		assert.NotNil(t, c)
 	})
 }
