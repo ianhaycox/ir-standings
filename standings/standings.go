@@ -10,17 +10,38 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
+	"github.com/ianhaycox/ir-standings/model/championship"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 )
 
 func main() {
-	seasonYear, seasonQuarter, err := args()
+	seasonYear, seasonQuarter, err := args() // TODO SeriesID, BestOf, Exclude events/tracks
 	if err != nil {
-		log.Fatal(err)
+		exampleData, err := getResults()
+		if err != nil {
+			log.Fatal("Can not get example results:", err.Error())
+		}
+
+		const maxSplits = 3
+
+		var excludeTrackID = map[int]bool{18: true}
+
+		champ := championship.NewChampionship(iracing.KamelSeriesID, excludeTrackID, maxSplits, exampleData)
+
+		season := champ.BroadcastRaces()
+
+		season.CalculatePositionsByCarClass()
+
+		season.CalculateChampionshipPoints()
+
+		spew.Dump(season)
+
+		return
 	}
 
 	ctx := context.Background()
@@ -94,4 +115,20 @@ func args() (int, int, error) {
 	}
 
 	return seasonYear, seasonQuarter, nil
+}
+
+func getResults() ([]results.Result, error) {
+	buf, err := os.ReadFile("./2024-2-285-results.json")
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]results.Result, 0)
+
+	err = json.Unmarshal(buf, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

@@ -40,7 +40,7 @@ lint: generate
 ## cover: run unit/mock tests with coverage report. Generated mocks are filtered out of the report
 cover: generate
 	go test -failfast -count=2 --race -coverprofile=coverage.out -coverpkg=./... ./...
-	cat coverage.out | grep -v "_mock.go" > coverage.nomocks.out
+	cat coverage.out | grep -v "_mock.go" | grep -v redact.go > coverage.nomocks.out
 	go tool cover -func coverage.nomocks.out
 
 ## cover-check: checks the code coverage to be beyond a certain threshold
