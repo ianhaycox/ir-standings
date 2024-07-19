@@ -1,6 +1,7 @@
 package championship
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/ianhaycox/ir-standings/model/data/results"
@@ -102,4 +103,35 @@ func (s *Season) CalculateChampionshipPoints() {
 			}
 		}
 	}
+}
+
+type tab struct {
+	DisplayName string
+	BestOf      int
+}
+
+func (s *Season) PrintTable() {
+	for splitNum, splitResult := range s.splits {
+		fmt.Printf("Split:%d\n", splitNum)
+
+		for carClassID, car := range splitResult.pointsByCarClass {
+			fmt.Printf("  Car:%d\n", carClassID)
+
+			out := make([]tab, 0)
+
+			for custID := range car {
+				out = append(out, tab{DisplayName: car[custID].displayName, BestOf: car[custID].bestOf})
+
+				//fmt.Printf("    %s %d\n", car[custID].displayName, car[custID].bestOf)
+			}
+
+			sort.SliceStable(out, func(i, j int) bool { return out[i].BestOf > out[j].BestOf })
+
+			for _, l := range out {
+				fmt.Printf("    %s %d\n", l.DisplayName, l.BestOf)
+			}
+		}
+
+	}
+
 }

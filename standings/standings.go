@@ -10,7 +10,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
@@ -39,7 +38,9 @@ func main() {
 
 		season.CalculateChampionshipPoints()
 
-		spew.Dump(season)
+		//		spew.Dump(season)
+
+		season.PrintTable()
 
 		return
 	}
