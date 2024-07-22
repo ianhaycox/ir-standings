@@ -9,7 +9,7 @@ import (
 
 func TestRaceWinnerLapComplete(t *testing.T) {
 	t.Run("Should return empty for no results", func(t *testing.T) {
-		race := Race{}
+		race := NewRace(1, 2, []model.Result{})
 
 		actual := race.WinnerLapsComplete()
 		assert.Equal(t, make(map[model.CarClassID]int), actual)
@@ -68,18 +68,18 @@ func TestFinishingPositions(t *testing.T) {
 
 		expected := map[model.CarClassID]map[model.CustID]Position{
 			1: {
-				1777: Position{splitNum: 1, lapsComplete: 13, position: 1},
-				1888: Position{splitNum: 1, lapsComplete: 13, position: 2},
-				1999: Position{splitNum: 1, lapsComplete: 12, position: 3},
+				1777: NewPosition(13, 1, 1),
+				1888: NewPosition(13, 1, 2),
+				1999: NewPosition(12, 1, 3),
 			},
 			2: {
-				2111: Position{splitNum: 1, lapsComplete: 10, position: 1},
-				2222: Position{splitNum: 1, lapsComplete: 9, position: 2},
-				2333: Position{splitNum: 1, lapsComplete: 9, position: 3},
+				2111: NewPosition(10, 1, 1),
+				2222: NewPosition(9, 1, 2),
+				2333: NewPosition(9, 1, 3),
 			},
 			3: {
-				3333: Position{splitNum: 1, lapsComplete: 6, position: 1},
-				3444: Position{splitNum: 1, lapsComplete: 6, position: 2},
+				3333: NewPosition(6, 1, 1),
+				3444: NewPosition(6, 1, 2),
 			},
 		}
 		actual := race.Positions()

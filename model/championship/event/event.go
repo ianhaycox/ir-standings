@@ -2,6 +2,8 @@
 package event
 
 import (
+	"fmt"
+	"sort"
 	"time"
 
 	"github.com/ianhaycox/ir-standings/model"
@@ -27,6 +29,38 @@ func NewEvent(sessionID model.SessionID, startTime time.Time, track results.Resu
 
 func (e *Event) AddRace(subsessionID model.SubsessionID, race race.Race) {
 	e.race[subsessionID] = race
+}
+
+// SubSessions in order of splitNum
+func (e *Event) SubSessions() []model.SubsessionID {
+	type sorter struct {
+		splitNum     model.SplitNum
+		subsessionID model.SubsessionID
+	}
+
+	var bySplitNum []sorter
+
+	for subsessionID, race := range e.race {
+		bySplitNum = append(bySplitNum, sorter{subsessionID: subsessionID, splitNum: race.SplitNum()})
+	}
+
+	sort.SliceStable(bySplitNum, func(i, j int) bool { return bySplitNum[i].splitNum < bySplitNum[j].splitNum })
+
+	subsessionIDs := make([]model.SubsessionID, 0)
+
+	for i := range bySplitNum {
+		subsessionIDs = append(subsessionIDs, bySplitNum[i].subsessionID)
+	}
+
+	return subsessionIDs
+}
+
+func (e *Event) Race(subsessionID model.SubsessionID) (*race.Race, error) {
+	if race, ok := e.race[subsessionID]; ok {
+		return &race, nil
+	}
+
+	return nil, fmt.Errorf("race %d not found", subsessionID)
 }
 
 func (e *Event) StartTime() time.Time {

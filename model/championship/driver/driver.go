@@ -14,3 +14,11 @@ func NewDriver(custID model.CustID, displayName string) Driver {
 		displayName: displayName,
 	}
 }
+
+func (d *Driver) CustID() model.CustID {
+	return d.custID
+}
+
+func (d *Driver) DisplayName() string {
+	return d.displayName
+}

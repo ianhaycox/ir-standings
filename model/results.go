@@ -30,7 +30,7 @@ type Result struct {
 }
 
 func (r *Result) IsClassified(winnerLapsComplete int) bool {
-	return r.LapsComplete*3 <= winnerLapsComplete*4 // 75%
+	return r.LapsComplete*4 >= winnerLapsComplete*3 // 75%
 }
 
 type Livery struct {

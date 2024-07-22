@@ -11,6 +11,20 @@ type Race struct {
 	results   []model.Result
 }
 
+type Position struct {
+	lapsComplete int
+	splitNum     model.SplitNum
+	position     int
+}
+
+func NewPosition(lapsComplete int, splitNum model.SplitNum, position int) Position {
+	return Position{
+		lapsComplete: lapsComplete,
+		splitNum:     splitNum,
+		position:     position,
+	}
+}
+
 func NewRace(splitNum model.SplitNum, sessionID model.SessionID, results []model.Result) Race {
 	return Race{
 		splitNum:  splitNum,
@@ -19,10 +33,8 @@ func NewRace(splitNum model.SplitNum, sessionID model.SessionID, results []model
 	}
 }
 
-type Position struct {
-	lapsComplete int
-	splitNum     model.SplitNum
-	position     int
+func (r *Race) SplitNum() model.SplitNum {
+	return r.splitNum
 }
 
 func (r *Race) WinnerLapsComplete() map[model.CarClassID]int {

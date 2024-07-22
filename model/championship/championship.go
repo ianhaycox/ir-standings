@@ -47,10 +47,6 @@ func (c *Championship) Events() []event.Event {
 	return sortedEvents
 }
 
-func (c *Championship) AddDriver(custID model.CustID, driver driver.Driver) {
-	c.drivers[custID] = driver
-}
-
 func (c *Championship) LoadRaceData(data []results.Result) {
 	if len(data) > 0 {
 		c.carClasses = data[0].CarClasses
@@ -106,11 +102,11 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 
 					sessionResults = append(sessionResults, sessionResult)
 
-					c.AddDriver(sessionResult.CustID, driver.NewDriver(sessionResult.CustID, sessionResult.DisplayName))
+					c.addDriver(sessionResult.CustID, driver.NewDriver(sessionResult.CustID, sessionResult.DisplayName))
 				}
 			}
 
-			race := race.NewRace(c.SplitNum(subsessionID, result.SessionSplits), sessionID, sessionResults)
+			race := race.NewRace(c.splitNum(subsessionID, result.SessionSplits), sessionID, sessionResults)
 
 			sessionEvent.AddRace(subsessionID, race)
 
@@ -119,7 +115,7 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 	}
 }
 
-func (c *Championship) SplitNum(subsessionID model.SubsessionID, sessionSplits []results.SessionSplits) model.SplitNum {
+func (c *Championship) splitNum(subsessionID model.SubsessionID, sessionSplits []results.SessionSplits) model.SplitNum {
 	for i, sessionSplit := range sessionSplits {
 		if sessionSplit.SubsessionID == int(subsessionID) {
 			return model.SplitNum(i)
@@ -135,6 +131,10 @@ func (c *Championship) isExcluded(trackID int) bool {
 	_, ok := c.excludeTrackID[trackID]
 
 	return ok
+}
+
+func (c *Championship) addDriver(custID model.CustID, driver driver.Driver) {
+	c.drivers[custID] = driver
 }
 
 /*
