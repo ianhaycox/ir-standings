@@ -1,4 +1,4 @@
-package championship
+package model
 
 // Result trimmed version of iRacing results.Result to remove dependency
 type Result struct {

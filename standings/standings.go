@@ -15,6 +15,7 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
 	"github.com/ianhaycox/ir-standings/model/championship"
+	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 )
 
@@ -30,17 +31,17 @@ func main() {
 
 		var excludeTrackID = map[int]bool{18: true}
 
-		champ := championship.NewChampionship(iracing.KamelSeriesID, excludeTrackID, maxSplits, exampleData)
+		pointsPerSplit := points.PointsPerSplit{
+			0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+			1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+			2: []int{9, 6, 4, 3, 2, 1},
+		}
 
-		season := champ.BroadcastRaces()
+		ps := points.NewPointsStructure(pointsPerSplit)
 
-		season.CalculatePositionsByCarClass()
+		champ := championship.NewChampionship(iracing.KamelSeriesID, excludeTrackID, maxSplits, ps)
 
-		season.CalculateChampionshipPoints()
-
-		//		spew.Dump(season)
-
-		season.PrintTable()
+		champ.LoadRaceData(exampleData)
 
 		return
 	}

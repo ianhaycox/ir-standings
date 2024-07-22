@@ -2,131 +2,133 @@
 package championship
 
 import (
+	"log"
 	"sort"
 
+	"github.com/ianhaycox/ir-standings/model"
+	"github.com/ianhaycox/ir-standings/model/championship/driver"
+	"github.com/ianhaycox/ir-standings/model/championship/event"
+	"github.com/ianhaycox/ir-standings/model/championship/points"
+	"github.com/ianhaycox/ir-standings/model/championship/race"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 )
 
-type SessionID int
-type SubsessionID int
-type CarClassID int
-type CustID int
-
 type Championship struct {
 	seriesID       int
-	races          []results.Result // All race,qualifying,practice results from iRacing for this series and season
-	excludeTrackID map[int]bool     // Exclude these candidates from the results
-	maxSplits      int              // Ignore more splits than this when calculating results
+	events         map[model.SessionID]event.Event // Events have multiple races in different splits
+	carClasses     []results.CarClasses            // Competing cars
+	excludeTrackID map[int]bool                    // Exclude these candidates from the results
+	maxSplits      int                             // Ignore more splits than this when calculating results
+	points         points.PointsStructure          // Points awarded by split
+	drivers        map[model.CustID]driver.Driver
 }
 
-func NewChampionship(seriesID int, excludeTrackID map[int]bool, maxSplits int, results []results.Result) *Championship {
+func NewChampionship(seriesID int, excludeTrackID map[int]bool, maxSplits int, points points.PointsStructure) *Championship {
 	return &Championship{
 		seriesID:       seriesID,
-		races:          results,
+		events:         make(map[model.SessionID]event.Event),
 		excludeTrackID: excludeTrackID,
 		maxSplits:      maxSplits,
+		points:         points,
+		drivers:        make(map[model.CustID]driver.Driver),
 	}
 }
 
-func (c *Championship) BroadcastRaces() Season {
-	s := Season{
-		events:     c.events(),
-		carClasses: c.races[0].CarClasses,
+// Events list of events sorted by start time
+func (c *Championship) Events() []event.Event {
+	sortedEvents := make([]event.Event, 0, len(c.events))
+
+	for _, event := range c.events {
+		sortedEvents = append(sortedEvents, event)
 	}
 
-	s.splits = make([]SplitResult, 0)
+	sort.SliceStable(sortedEvents, func(i, j int) bool { return sortedEvents[i].StartTime().Before(sortedEvents[j].StartTime()) })
 
-	// Include only races and filter out unnecessary tracks and splits
-	for splitNum := 0; splitNum < c.maxSplits; splitNum++ {
-		splitResult := SplitResult{
-			results:          make(map[SubsessionID]map[CustID]*Result),
-			pointsByCarClass: make(map[CarClassID]map[CustID]SeasonPoints),
-		}
-
-		for _, result := range c.races {
-			if len(result.SessionSplits) <= splitNum {
-				continue
-			}
-
-			if c.isExcluded(result.Track.TrackID) {
-				continue
-			}
-
-			subsessionID := result.SessionSplits[splitNum].SubsessionID
-
-			if result.SubsessionID == subsessionID {
-				for i := range result.SessionResults {
-					if result.SessionResults[i].SimsessionName == "RACE" {
-						custResult := make(map[CustID]*Result)
-
-						for _, sessionResult := range result.SessionResults[i].Results {
-							custID := CustID(sessionResult.CustID)
-
-							custResult[custID] = &Result{
-								SessionID:               SessionID(result.SessionID),
-								SubsessionID:            SubsessionID(result.SubsessionID),
-								CustID:                  CustID(sessionResult.CustID),
-								DisplayName:             sessionResult.DisplayName,
-								FinishPosition:          sessionResult.FinishPosition,
-								FinishPositionInClass:   sessionResult.FinishPositionInClass,
-								LapsLead:                sessionResult.LapsLead,
-								LapsComplete:            sessionResult.LapsComplete,
-								Position:                sessionResult.Position,
-								QualLapTime:             sessionResult.QualLapTime,
-								StartingPosition:        sessionResult.StartingPosition,
-								StartingPositionInClass: sessionResult.StartingPositionInClass,
-								CarClassID:              CarClassID(sessionResult.CarClassID),
-								CarClassName:            sessionResult.CarClassName,
-								CarClassShortName:       sessionResult.CarClassShortName,
-								ClubID:                  sessionResult.ClubID,
-								ClubName:                sessionResult.ClubName,
-								ClubShortname:           sessionResult.ClubShortname,
-								Division:                sessionResult.Division,
-								DivisionName:            sessionResult.DivisionName,
-								Incidents:               sessionResult.Incidents,
-								CarID:                   sessionResult.CarID,
-								CarName:                 sessionResult.CarName,
-							}
-						}
-
-						splitResult.results[SubsessionID(subsessionID)] = custResult
-					}
-				}
-			}
-		}
-
-		if len(splitResult.results) > 0 {
-			s.splits = append(s.splits, splitResult)
-		}
-	}
-
-	return s
+	return sortedEvents
 }
 
-func (c *Championship) events() []Event {
-	tracks := make(map[int]Event)
+func (c *Championship) AddDriver(custID model.CustID, driver driver.Driver) {
+	c.drivers[custID] = driver
+}
 
-	for i := range c.races {
-		if c.isExcluded(c.races[i].Track.TrackID) {
+func (c *Championship) LoadRaceData(data []results.Result) {
+	if len(data) > 0 {
+		c.carClasses = data[0].CarClasses
+	}
+
+	for _, result := range data {
+		if c.isExcluded(result.Track.TrackID) {
 			continue
 		}
 
-		tracks[c.races[i].Track.TrackID] = Event{
-			sessionID: SessionID(c.races[i].SessionID),
-			startTime: c.races[i].StartTime,
-			track:     c.races[i].Track,
+		sessionID := model.SessionID(result.SessionID)
+		subsessionID := model.SubsessionID(result.SubsessionID)
+
+		var (
+			sessionEvent event.Event
+			ok           bool
+		)
+
+		if sessionEvent, ok = c.events[sessionID]; !ok {
+			sessionEvent = event.NewEvent(sessionID, result.StartTime, result.Track)
+		}
+
+		sessionResults := make([]model.Result, 0)
+
+		for i := range result.SessionResults {
+			if result.SessionResults[i].SimsessionName == "RACE" {
+				for _, sessionResult := range result.SessionResults[i].Results {
+					sessionResult := model.Result{
+						SessionID:               model.SessionID(result.SessionID),
+						SubsessionID:            model.SubsessionID(result.SubsessionID),
+						CustID:                  model.CustID(sessionResult.CustID),
+						DisplayName:             sessionResult.DisplayName,
+						FinishPosition:          sessionResult.FinishPosition,
+						FinishPositionInClass:   sessionResult.FinishPositionInClass,
+						LapsLead:                sessionResult.LapsLead,
+						LapsComplete:            sessionResult.LapsComplete,
+						Position:                sessionResult.Position,
+						QualLapTime:             sessionResult.QualLapTime,
+						StartingPosition:        sessionResult.StartingPosition,
+						StartingPositionInClass: sessionResult.StartingPositionInClass,
+						CarClassID:              model.CarClassID(sessionResult.CarClassID),
+						CarClassName:            sessionResult.CarClassName,
+						CarClassShortName:       sessionResult.CarClassShortName,
+						ClubID:                  sessionResult.ClubID,
+						ClubName:                sessionResult.ClubName,
+						ClubShortname:           sessionResult.ClubShortname,
+						Division:                sessionResult.Division,
+						DivisionName:            sessionResult.DivisionName,
+						Incidents:               sessionResult.Incidents,
+						CarID:                   sessionResult.CarID,
+						CarName:                 sessionResult.CarName,
+					}
+
+					sessionResults = append(sessionResults, sessionResult)
+
+					c.AddDriver(sessionResult.CustID, driver.NewDriver(sessionResult.CustID, sessionResult.DisplayName))
+				}
+			}
+
+			race := race.NewRace(c.SplitNum(subsessionID, result.SessionSplits), sessionID, sessionResults)
+
+			sessionEvent.AddRace(subsessionID, race)
+
+			c.events[sessionID] = sessionEvent
+		}
+	}
+}
+
+func (c *Championship) SplitNum(subsessionID model.SubsessionID, sessionSplits []results.SessionSplits) model.SplitNum {
+	for i, sessionSplit := range sessionSplits {
+		if sessionSplit.SubsessionID == int(subsessionID) {
+			return model.SplitNum(i)
 		}
 	}
 
-	events := make([]Event, 0, len(tracks))
+	log.Fatal("can not determine split number for SubsessionID", subsessionID)
 
-	for _, track := range tracks {
-		events = append(events, track)
-	}
-
-	sort.SliceStable(events, func(i, j int) bool { return events[i].startTime.Before(events[j].startTime) })
-
-	return events
+	return 0
 }
 
 func (c *Championship) isExcluded(trackID int) bool {
@@ -134,3 +136,55 @@ func (c *Championship) isExcluded(trackID int) bool {
 
 	return ok
 }
+
+/*
+func (s *Season) CalculateChampionshipPoints(points [][]int) {
+	for splitNum, splitResult := range s.splits {
+		winnerLapsComplete := make(map[SubsessionID]map[CarClassID]int)
+
+		for subsessionID, result := range splitResult.results {
+			for _, sessionResult := range result {
+				carClassID := sessionResult.CarClassID
+
+				if len(winnerLapsComplete[subsessionID]) == 0 {
+					winnerLapsComplete[subsessionID] = make(map[CarClassID]int)
+				}
+
+				if sessionResult.LapsComplete > winnerLapsComplete[subsessionID][carClassID] {
+					winnerLapsComplete[subsessionID][carClassID] = sessionResult.LapsComplete
+				}
+			}
+		}
+
+		for carClassID, car := range splitResult.pointsByCarClass {
+			for custID := range car {
+				for subsessionID := range car[custID].finishingPositions {
+					if splitResult.results[subsessionID][custID].IsClassified(winnerLapsComplete[subsessionID][carClassID]) {
+						if len(points[splitNum]) > splitResult.pointsByCarClass[carClassID][custID].finishingPositions[subsessionID] {
+							splitResult.pointsByCarClass[carClassID][custID].championshipsPoints[subsessionID] =
+								points[splitNum][splitResult.pointsByCarClass[carClassID][custID].finishingPositions[subsessionID]]
+						}
+					}
+				}
+
+				all := make([]int, 0)
+				for _, champPoints := range splitResult.pointsByCarClass[carClassID][custID].championshipsPoints {
+					all = append(all, champPoints)
+				}
+
+				sort.SliceStable(all, func(i, j int) bool { return all[i] > all[j] })
+
+				bestOf := 0
+
+				for i := 0; i < 9 && i < len(all); i++ {
+					bestOf += all[i]
+				}
+
+				x := splitResult.pointsByCarClass[carClassID][custID]
+				x.bestOf = bestOf
+				splitResult.pointsByCarClass[carClassID][custID] = x
+			}
+		}
+	}
+}
+*/
