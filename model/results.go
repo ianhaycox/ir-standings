@@ -6,7 +6,6 @@ type Result struct {
 	SubsessionID            SubsessionID `json:"subsession_id,omitempty"`
 	CustID                  CustID       `json:"cust_id"`
 	DisplayName             string       `json:"display_name"`
-	FinishPosition          int          `json:"finish_position"`
 	FinishPositionInClass   int          `json:"finish_position_in_class"`
 	LapsLead                int          `json:"laps_lead"`
 	LapsComplete            int          `json:"laps_complete"`
@@ -15,22 +14,16 @@ type Result struct {
 	StartingPosition        int          `json:"starting_position"`
 	StartingPositionInClass int          `json:"starting_position_in_class"`
 	CarClassID              CarClassID   `json:"car_class_id"`
-	CarClassName            string       `json:"car_class_name"`
-	CarClassShortName       string       `json:"car_class_short_name"`
 	ClubID                  int          `json:"club_id"`
 	ClubName                string       `json:"club_name"`
 	ClubShortname           string       `json:"club_shortname"`
 	Division                int          `json:"division"`
 	DivisionName            string       `json:"division_name"`
 	Incidents               int          `json:"incidents"`
-	CarID                   int          `json:"car_id"`
+	CarID                   CarID        `json:"car_id"`
 	CarName                 string       `json:"car_name"`
 	// Livery                  Livery `json:"livery"`
 	// Helmet                  Helmet `json:"helmet"`
-}
-
-func (r *Result) IsClassified(winnerLapsComplete int) bool {
-	return r.LapsComplete*4 >= winnerLapsComplete*3 // 75%
 }
 
 type Livery struct {

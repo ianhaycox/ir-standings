@@ -6,3 +6,4 @@ type SubsessionID int
 type CarClassID int
 type CustID int
 type SplitNum int
+type CarID int

@@ -7,7 +7,7 @@ import (
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/driver"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
-	"github.com/ianhaycox/ir-standings/model/championship/race"
+	"github.com/ianhaycox/ir-standings/model/championship/position"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestChampionship(t *testing.T) {
 	}
 
 	t.Run("Loads a simplified set of results into Events and Races", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{1: true}, 2, points.NewPointsStructure(pointsPerSplit))
+		c := NewChampionship(1, map[int]bool{1: true}, 2, points.NewPointsStructure(pointsPerSplit), 9)
 
 		start1, err := time.Parse(time.RFC3339, "2024-03-16T17:00:00Z")
 		require.NoError(t, err)
@@ -46,10 +46,10 @@ func TestChampionship(t *testing.T) {
 					{
 						SimsessionName: "RACE",
 						Results: []results.Results{
-							{CustID: 9001, DisplayName: "Driver-9001", FinishPositionInClass: 1, LapsComplete: 30, CarClassID: 84},
-							{CustID: 9002, DisplayName: "Driver-9002", FinishPositionInClass: 2, LapsComplete: 30, CarClassID: 84},
-							{CustID: 9003, DisplayName: "Driver-9003", FinishPositionInClass: 1, LapsComplete: 25, CarClassID: 83},
-							{CustID: 9004, DisplayName: "Driver-9004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83},
+							{CustID: 9001, DisplayName: "Driver-9001", FinishPositionInClass: 1, LapsComplete: 30, CarClassID: 84, CarID: 77},
+							{CustID: 9002, DisplayName: "Driver-9002", FinishPositionInClass: 2, LapsComplete: 30, CarClassID: 84, CarID: 77},
+							{CustID: 9003, DisplayName: "Driver-9003", FinishPositionInClass: 1, LapsComplete: 25, CarClassID: 83, CarID: 76},
+							{CustID: 9004, DisplayName: "Driver-9004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76},
 						},
 					},
 				},
@@ -73,10 +73,10 @@ func TestChampionship(t *testing.T) {
 					{
 						SimsessionName: "RACE",
 						Results: []results.Results{
-							{CustID: 8001, DisplayName: "Driver-8001", FinishPositionInClass: 1, LapsComplete: 29, CarClassID: 84},
-							{CustID: 8002, DisplayName: "Driver-8002", FinishPositionInClass: 2, LapsComplete: 28, CarClassID: 84},
-							{CustID: 8003, DisplayName: "Driver-8003", FinishPositionInClass: 1, LapsComplete: 24, CarClassID: 83},
-							{CustID: 8004, DisplayName: "Driver-8004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83},
+							{CustID: 8001, DisplayName: "Driver-8001", FinishPositionInClass: 1, LapsComplete: 29, CarClassID: 84, CarID: 77},
+							{CustID: 8002, DisplayName: "Driver-8002", FinishPositionInClass: 2, LapsComplete: 28, CarClassID: 84, CarID: 77},
+							{CustID: 8003, DisplayName: "Driver-8003", FinishPositionInClass: 1, LapsComplete: 24, CarClassID: 83, CarID: 76},
+							{CustID: 8004, DisplayName: "Driver-8004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76},
 						},
 					},
 				},
@@ -109,41 +109,45 @@ func TestChampionship(t *testing.T) {
 
 		race1, err := events[0].Race(subsessionIDs[0])
 		assert.NoError(t, err)
-		assert.Equal(t, map[model.CarClassID]int{84: 30, 83: 25}, race1.WinnerLapsComplete())
+		assert.Equal(t, 30, race1.WinnerLapsComplete(84))
+		assert.Equal(t, 25, race1.WinnerLapsComplete(83))
 
 		race2, err := events[0].Race(subsessionIDs[1])
 		assert.NoError(t, err)
-		assert.Equal(t, map[model.CarClassID]int{84: 29, 83: 24}, race2.WinnerLapsComplete())
+		assert.Equal(t, 29, race2.WinnerLapsComplete(84))
+		assert.Equal(t, 24, race2.WinnerLapsComplete(83))
 
-		expectedPositions1 := map[model.CarClassID]map[model.CustID]race.Position{
-			84: {
-				9001: race.NewPosition(30, 0, 1),
-				9002: race.NewPosition(30, 0, 2),
-			},
-			83: {
-				9003: race.NewPosition(25, 0, 1),
-				9004: race.NewPosition(24, 0, 2),
-			},
+		expectedPositions84 := map[model.CustID]position.Position{
+			9001: position.NewPosition(30, 0, 1, 77),
+			9002: position.NewPosition(30, 0, 2, 77),
 		}
-		positions1 := race1.Positions()
-		assert.Equal(t, expectedPositions1, positions1)
+		positions84 := race1.Positions(84)
+		assert.Equal(t, expectedPositions84, positions84)
 
-		expectedPositions2 := map[model.CarClassID]map[model.CustID]race.Position{
-			84: {
-				8001: race.NewPosition(29, 1, 1),
-				8002: race.NewPosition(28, 1, 2),
-			},
-			83: {
-				8003: race.NewPosition(24, 1, 1),
-				8004: race.NewPosition(24, 1, 2),
-			},
+		expectedPositions83 := map[model.CustID]position.Position{
+			9003: position.NewPosition(25, 0, 1, 76),
+			9004: position.NewPosition(24, 0, 2, 76),
 		}
-		positions2 := race2.Positions()
-		assert.Equal(t, expectedPositions2, positions2)
+		positions83 := race1.Positions(83)
+		assert.Equal(t, expectedPositions83, positions83)
+
+		expectedPositions84 = map[model.CustID]position.Position{
+			8001: position.NewPosition(29, 1, 1, 77),
+			8002: position.NewPosition(28, 1, 2, 77),
+		}
+		positions84 = race2.Positions(84)
+		assert.Equal(t, expectedPositions84, positions84)
+
+		expectedPositions83 = map[model.CustID]position.Position{
+			8003: position.NewPosition(24, 1, 1, 76),
+			8004: position.NewPosition(24, 1, 2, 76),
+		}
+		positions83 = race2.Positions(83)
+		assert.Equal(t, expectedPositions83, positions83)
 	})
 
 	t.Run("Verify an excluded track is ignored", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{219: true}, 2, points.NewPointsStructure(pointsPerSplit))
+		c := NewChampionship(1, map[int]bool{219: true}, 2, points.NewPointsStructure(pointsPerSplit), 1)
 
 		fixture := []results.Result{
 			{

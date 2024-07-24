@@ -3,26 +3,13 @@ package race
 
 import (
 	"github.com/ianhaycox/ir-standings/model"
+	"github.com/ianhaycox/ir-standings/model/championship/position"
 )
 
 type Race struct {
 	splitNum  model.SplitNum
 	sessionID model.SessionID
 	results   []model.Result
-}
-
-type Position struct {
-	lapsComplete int
-	splitNum     model.SplitNum
-	position     int
-}
-
-func NewPosition(lapsComplete int, splitNum model.SplitNum, position int) Position {
-	return Position{
-		lapsComplete: lapsComplete,
-		splitNum:     splitNum,
-		position:     position,
-	}
 }
 
 func NewRace(splitNum model.SplitNum, sessionID model.SessionID, results []model.Result) Race {
@@ -37,33 +24,35 @@ func (r *Race) SplitNum() model.SplitNum {
 	return r.splitNum
 }
 
-func (r *Race) WinnerLapsComplete() map[model.CarClassID]int {
-	winnerLapsComplete := make(map[model.CarClassID]int)
+func (r *Race) IsClassified(winnerLapsComplete int, lapsComplete int) bool {
+	return lapsComplete*4 >= winnerLapsComplete*3 // 75%
+}
+
+func (r *Race) WinnerLapsComplete(carClassID model.CarClassID) int {
+	winnerLapsComplete := 0
 
 	for i := range r.results {
-		if r.results[i].LapsComplete > winnerLapsComplete[r.results[i].CarClassID] {
-			winnerLapsComplete[r.results[i].CarClassID] = r.results[i].LapsComplete
+		if r.results[i].CarClassID != carClassID {
+			continue
+		}
+
+		if r.results[i].LapsComplete > winnerLapsComplete {
+			winnerLapsComplete = r.results[i].LapsComplete
 		}
 	}
 
 	return winnerLapsComplete
 }
 
-func (r *Race) Positions() map[model.CarClassID]map[model.CustID]Position {
-	finishingPositions := make(map[model.CarClassID]map[model.CustID]Position)
+func (r *Race) Positions(carClassID model.CarClassID) map[model.CustID]position.Position {
+	finishingPositions := make(map[model.CustID]position.Position)
 
 	for _, result := range r.results {
-		if len(finishingPositions[result.CarClassID]) == 0 {
-			finishingPositions[result.CarClassID] = make(map[model.CustID]Position)
+		if result.CarClassID != carClassID {
+			continue
 		}
 
-		positionForCust := finishingPositions[result.CarClassID][result.CustID]
-
-		positionForCust.splitNum = r.splitNum
-		positionForCust.lapsComplete = result.LapsComplete
-		positionForCust.position = result.FinishPositionInClass
-
-		finishingPositions[result.CarClassID][result.CustID] = positionForCust
+		finishingPositions[result.CustID] = position.NewPosition(result.LapsComplete, r.splitNum, result.FinishPositionInClass, result.CarID)
 	}
 
 	return finishingPositions
