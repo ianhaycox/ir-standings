@@ -5,6 +5,7 @@ import (
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
+	"github.com/ianhaycox/ir-standings/model/championship/standings"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -163,22 +164,22 @@ func TestTotal(t *testing.T) {
 func TestPositions(t *testing.T) {
 	t.Run("Positions should return empty slice for empty input", func(t *testing.T) {
 		positions := Positions{}
-		assert.Equal(t, []model.TieBreaker{}, positions.Positions(false, 10))
+		assert.Equal(t, []standings.TieBreaker{}, positions.Positions(false, 10))
 	})
 
 	t.Run("Positions should return positions of all finishing positions", func(t *testing.T) {
 		positions := Positions{{subsessionID: 1, position: 34}, {subsessionID: 1, position: 10}}
-		assert.Equal(t, []model.TieBreaker{model.NewTieBreaker(1, 10), model.NewTieBreaker(1, 34)}, positions.Positions(false, 10))
+		assert.Equal(t, []standings.TieBreaker{standings.NewTieBreaker(1, 10), standings.NewTieBreaker(1, 34)}, positions.Positions(false, 10))
 	})
 
 	t.Run("Positions should return positions of classified finishing positions", func(t *testing.T) {
 		positions := Positions{{subsessionID: 1, classified: true, position: 10}, {subsessionID: 1, classified: false, position: 34}}
-		assert.Equal(t, []model.TieBreaker{model.NewTieBreaker(1, 10)}, positions.Positions(true, 10))
+		assert.Equal(t, []standings.TieBreaker{standings.NewTieBreaker(1, 10)}, positions.Positions(true, 10))
 	})
 
 	t.Run("Positions should return positions of best 2 finishing positions", func(t *testing.T) {
 		positions := Positions{{subsessionID: 1, position: 10}, {position: 34}, {subsessionID: 1, position: 25}}
-		assert.Equal(t, []model.TieBreaker{model.NewTieBreaker(1, 10), model.NewTieBreaker(1, 25)}, positions.Positions(false, 2))
+		assert.Equal(t, []standings.TieBreaker{standings.NewTieBreaker(1, 10), standings.NewTieBreaker(1, 25)}, positions.Positions(false, 2))
 	})
 }
 

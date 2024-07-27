@@ -13,6 +13,8 @@ import (
 	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/championship/position"
 	"github.com/ianhaycox/ir-standings/model/championship/race"
+	"github.com/ianhaycox/ir-standings/model/championship/result"
+	"github.com/ianhaycox/ir-standings/model/championship/standings"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 )
 
@@ -55,13 +57,13 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 		c.carClasses = car.NewCarClasses(data[0].CarClasses)
 	}
 
-	for _, result := range data {
-		if c.isExcluded(result.Track.TrackID) {
+	for _, irResult := range data {
+		if c.isExcluded(irResult.Track.TrackID) {
 			continue
 		}
 
-		sessionID := model.SessionID(result.SessionID)
-		subsessionID := model.SubsessionID(result.SubsessionID)
+		sessionID := model.SessionID(irResult.SessionID)
+		subsessionID := model.SubsessionID(irResult.SubsessionID)
 
 		var (
 			sessionEvent event.Event
@@ -69,17 +71,17 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 		)
 
 		if sessionEvent, ok = c.events[sessionID]; !ok {
-			sessionEvent = event.NewEvent(sessionID, result.StartTime, result.Track)
+			sessionEvent = event.NewEvent(sessionID, irResult.StartTime, irResult.Track)
 		}
 
-		sessionResults := make([]model.Result, 0)
+		sessionResults := make([]result.Result, 0)
 
-		for i := range result.SessionResults {
-			if result.SessionResults[i].SimsessionName == "RACE" {
-				for _, sessionResult := range result.SessionResults[i].Results {
-					sessionResult := model.Result{
-						SessionID:               model.SessionID(result.SessionID),
-						SubsessionID:            model.SubsessionID(result.SubsessionID),
+		for i := range irResult.SessionResults {
+			if irResult.SessionResults[i].SimsessionName == "RACE" {
+				for _, sessionResult := range irResult.SessionResults[i].Results {
+					sessionResult := result.Result{
+						SessionID:               model.SessionID(irResult.SessionID),
+						SubsessionID:            model.SubsessionID(irResult.SubsessionID),
 						CustID:                  model.CustID(sessionResult.CustID),
 						DisplayName:             sessionResult.DisplayName,
 						FinishPositionInClass:   sessionResult.FinishPositionInClass,
@@ -108,7 +110,7 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 				}
 			}
 
-			race := race.NewRace(c.splitNum(subsessionID, result.SessionSplits), sessionID, sessionResults)
+			race := race.NewRace(c.splitNum(subsessionID, irResult.SessionSplits), sessionID, sessionResults)
 
 			sessionEvent.AddRace(subsessionID, race)
 
@@ -117,11 +119,11 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 	}
 }
 
-func (c *Championship) Standings(carClassID model.CarClassID) model.ChampionshipStandings {
-	cs := model.ChampionshipStandings{
+func (c *Championship) Standings(carClassID model.CarClassID) standings.ChampionshipStandings {
+	cs := standings.ChampionshipStandings{
 		BestOf:       c.countBestOf,
 		CarClassName: "GTP",
-		Table:        make([]model.ChampionshipTable, 0),
+		Table:        make([]standings.ChampionshipTable, 0),
 	}
 
 	events := c.Events()
@@ -149,7 +151,7 @@ func (c *Championship) Standings(carClassID model.CarClassID) model.Championship
 	for custID, positions := range custFinishingPositions {
 		driver := c.drivers[custID]
 
-		cs.Table = append(cs.Table, model.ChampionshipTable{
+		cs.Table = append(cs.Table, standings.ChampionshipTable{
 			DroppedRoundPoints:      positions.Total(c.points, true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(c.points, true, len(events)),
 			TieBreakFinishPositions: positions.Positions(true, c.countBestOf),

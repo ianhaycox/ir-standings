@@ -6,6 +6,7 @@ import (
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/race"
+	"github.com/ianhaycox/ir-standings/model/championship/result"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,10 +25,10 @@ func TestEvent(t *testing.T) {
 		now := time.Now().UTC()
 		e := NewEvent(model.SessionID(1), now, results.ResultTrack{TrackName: "Silverstone"})
 
-		r2 := race.NewRace(model.SplitNum(1), model.SessionID(1), []model.Result{{SessionID: 6, SubsessionID: 777}})
+		r2 := race.NewRace(model.SplitNum(1), model.SessionID(1), []result.Result{{SessionID: 6, SubsessionID: 777}})
 		e.AddRace(model.SubsessionID(777), r2)
 
-		r1 := race.NewRace(model.SplitNum(0), model.SessionID(1), []model.Result{})
+		r1 := race.NewRace(model.SplitNum(0), model.SessionID(1), []result.Result{})
 		e.AddRace(model.SubsessionID(888), r1)
 
 		r, err := e.Race(model.SubsessionID(888))

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
+	"github.com/ianhaycox/ir-standings/model/championship/standings"
 )
 
 type Position struct {
@@ -103,13 +104,13 @@ func (p Positions) Total(ps points.PointsStructure, classifiedOnly bool, countBe
 	return total
 }
 
-func (p Positions) Positions(classifiedOnly bool, countBestOf int) []model.TieBreaker {
+func (p Positions) Positions(classifiedOnly bool, countBestOf int) []standings.TieBreaker {
 	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
 
-	justPositions := make([]model.TieBreaker, 0, len(filteredPositions))
+	justPositions := make([]standings.TieBreaker, 0, len(filteredPositions))
 
 	for i := range filteredPositions {
-		justPositions = append(justPositions, model.NewTieBreaker(filteredPositions[i].SubsessionID(), filteredPositions[i].Position()))
+		justPositions = append(justPositions, standings.NewTieBreaker(filteredPositions[i].SubsessionID(), filteredPositions[i].Position()))
 	}
 
 	return justPositions

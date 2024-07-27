@@ -4,15 +4,16 @@ package race
 import (
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/position"
+	"github.com/ianhaycox/ir-standings/model/championship/result"
 )
 
 type Race struct {
 	splitNum  model.SplitNum
 	sessionID model.SessionID
-	results   []model.Result
+	results   []result.Result
 }
 
-func NewRace(splitNum model.SplitNum, sessionID model.SessionID, results []model.Result) Race {
+func NewRace(splitNum model.SplitNum, sessionID model.SessionID, results []result.Result) Race {
 	return Race{
 		splitNum:  splitNum,
 		sessionID: sessionID,

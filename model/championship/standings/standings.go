@@ -1,7 +1,10 @@
-package model
+// Package standings to work out the final scores
+package standings
 
 import (
 	"sort"
+
+	"github.com/ianhaycox/ir-standings/model"
 )
 
 type ChampionshipStandings struct {
@@ -11,11 +14,11 @@ type ChampionshipStandings struct {
 }
 
 type TieBreaker struct {
-	subsessionID SubsessionID
+	subsessionID model.SubsessionID
 	position     int
 }
 
-func NewTieBreaker(subsessionID SubsessionID, position int) TieBreaker {
+func NewTieBreaker(subsessionID model.SubsessionID, position int) TieBreaker {
 	return TieBreaker{
 		subsessionID: subsessionID,
 		position:     position,
@@ -39,7 +42,7 @@ func (cs ChampionshipStandings) orderedBy(less ...lessFunc) *multiSorter {
 	}
 }
 
-type bySession map[SubsessionID]int
+type bySession map[model.SubsessionID]int
 
 func betterFinish(c1Sessions, c2Sessions bySession) int {
 	c1Better := 0

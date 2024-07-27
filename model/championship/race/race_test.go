@@ -5,19 +5,20 @@ import (
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/position"
+	"github.com/ianhaycox/ir-standings/model/championship/result"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRaceWinnerLapComplete(t *testing.T) {
 	t.Run("Should return zero for no results", func(t *testing.T) {
-		race := NewRace(1, 2, []model.Result{})
+		race := NewRace(1, 2, []result.Result{})
 
 		actual := race.WinnerLapsComplete(333)
 		assert.Equal(t, 0, actual)
 	})
 
 	t.Run("Should return max laps complete per class", func(t *testing.T) {
-		results := []model.Result{
+		results := []result.Result{
 			{CarClassID: 1, LapsComplete: 8},
 			{CarClassID: 2, LapsComplete: 30},
 			{CarClassID: 1, LapsComplete: 10},
@@ -66,7 +67,7 @@ func TestFinishingPositions(t *testing.T) {
 	})
 
 	t.Run("Should return positions and points per class and cust", func(t *testing.T) {
-		results := []model.Result{
+		results := []result.Result{
 			{SubsessionID: 444, CarClassID: 1, CustID: 1777, LapsComplete: 13, FinishPositionInClass: 1, CarID: 97},
 			{SubsessionID: 444, CarClassID: 3, CustID: 3333, LapsComplete: 6, FinishPositionInClass: 1, CarID: 99},
 			{SubsessionID: 444, CarClassID: 1, CustID: 1999, LapsComplete: 12, FinishPositionInClass: 3, CarID: 97},
@@ -109,7 +110,7 @@ func TestFinishingPositions(t *testing.T) {
 
 func TestSplitNum(t *testing.T) {
 	t.Run("Should return split number", func(t *testing.T) {
-		race := NewRace(2, 1, []model.Result{})
+		race := NewRace(2, 1, []result.Result{})
 
 		assert.Equal(t, model.SplitNum(2), race.SplitNum())
 	})
