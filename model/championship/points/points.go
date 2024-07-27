@@ -5,7 +5,7 @@ import (
 	"github.com/ianhaycox/ir-standings/model"
 )
 
-type PointsPerSplit map[model.SplitNum][]int
+type PointsPerSplit map[model.SplitNum][]model.Point
 
 type PointsStructure struct {
 	structure PointsPerSplit
@@ -17,10 +17,14 @@ func NewPointsStructure(structure PointsPerSplit) PointsStructure {
 	}
 }
 
-func (ps *PointsStructure) Award(splitNum model.SplitNum, finishingPosition int) int {
-	if len(ps.structure[splitNum]) > finishingPosition {
+func (ps *PointsStructure) Award(splitNum model.SplitNum, finishingPosition model.FinishPositionInClass) model.Point {
+	if _, ok := ps.structure[splitNum]; !ok {
+		return model.NotCounted
+	}
+
+	if len(ps.structure[splitNum]) > int(finishingPosition) {
 		return ps.structure[splitNum][finishingPosition]
 	}
 
-	return 0
+	return model.Point(0)
 }

@@ -20,8 +20,8 @@ import (
 
 func TestChampionship(t *testing.T) {
 	pointsPerSplit := points.PointsPerSplit{
-		0: []int{5, 3, 1},
-		1: []int{3, 1},
+		0: {5, 3, 1},
+		1: {3, 1},
 	}
 
 	t.Run("Loads a simplified set of results into Events and Races", func(t *testing.T) {
@@ -123,31 +123,31 @@ func TestChampionship(t *testing.T) {
 		assert.Equal(t, 24, race2.WinnerLapsComplete(83))
 
 		expectedPositions84 := map[model.CustID]position.Position{
-			9001: position.NewPosition(1001, true, 30, 0, 1, 77),
-			9002: position.NewPosition(1001, true, 30, 0, 2, 77),
+			9001: position.NewPosition(1001, true, 30, 1, 25, 77),
+			9002: position.NewPosition(1001, true, 30, 2, 25, 77),
 		}
-		positions84 := race1.Positions(84, 30)
+		positions84 := race1.Positions(84, 30, c.awards)
 		assert.Equal(t, expectedPositions84, positions84)
 
 		expectedPositions83 := map[model.CustID]position.Position{
-			9003: position.NewPosition(1001, true, 25, 0, 1, 76),
-			9004: position.NewPosition(1001, true, 24, 0, 2, 76),
+			9003: position.NewPosition(1001, true, 25, 1, 25, 76),
+			9004: position.NewPosition(1001, true, 24, 2, 25, 76),
 		}
-		positions83 := race1.Positions(83, 25)
+		positions83 := race1.Positions(83, 25, c.awards)
 		assert.Equal(t, expectedPositions83, positions83)
 
 		expectedPositions84 = map[model.CustID]position.Position{
-			8001: position.NewPosition(1002, true, 29, 1, 1, 77),
-			8002: position.NewPosition(1002, true, 28, 1, 2, 77),
+			8001: position.NewPosition(1002, true, 29, 1, 25, 77),
+			8002: position.NewPosition(1002, true, 28, 2, 25, 77),
 		}
-		positions84 = race2.Positions(84, 29)
+		positions84 = race2.Positions(84, 29, c.awards)
 		assert.Equal(t, expectedPositions84, positions84)
 
 		expectedPositions83 = map[model.CustID]position.Position{
-			8003: position.NewPosition(1002, true, 24, 1, 1, 76),
-			8004: position.NewPosition(1002, true, 24, 1, 2, 76),
+			8003: position.NewPosition(1002, true, 24, 1, 25, 76),
+			8004: position.NewPosition(1002, true, 24, 2, 25, 76),
 		}
-		positions83 = race2.Positions(83, 24)
+		positions83 = race2.Positions(83, 24, c.awards)
 		assert.Equal(t, expectedPositions83, positions83)
 	})
 
@@ -173,10 +173,10 @@ func TestFixture2024S1(t *testing.T) {
 	exampleData := files.ReadResultsFixture(t, "../fixtures/2024-1-285-results-redacted.json")
 
 	pointsPerSplit := points.PointsPerSplit{
-		//        0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
-		0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-		1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-		2: []int{9, 6, 4, 3, 2, 1},
+		//   0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
+		0: {25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		1: {14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		2: {9, 6, 4, 3, 2, 1},
 	}
 
 	ps := points.NewPointsStructure(pointsPerSplit)
@@ -258,10 +258,10 @@ func TestFixture2024S2(t *testing.T) {
 	var excludeTrackID = map[int]bool{18: true}
 
 	pointsPerSplit := points.PointsPerSplit{
-		//        0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
-		0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-		1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-		2: []int{9, 6, 4, 3, 2, 1},
+		//   0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
+		0: {25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		1: {14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		2: {9, 6, 4, 3, 2, 1},
 	}
 
 	ps := points.NewPointsStructure(pointsPerSplit)

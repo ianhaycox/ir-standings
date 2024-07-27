@@ -7,26 +7,26 @@ import (
 	"sort"
 
 	"github.com/ianhaycox/ir-standings/model"
-	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/championship/standings"
 )
 
 type Position struct {
 	subsessionID model.SubsessionID
 	classified   bool
-	lapsComplete int
-	splitNum     model.SplitNum
-	position     int
+	lapsComplete model.LapsComplete
+	position     model.FinishPositionInClass
+	points       model.Point
 	carID        model.CarID
 }
 
-func NewPosition(subsessionID model.SubsessionID, classified bool, lapsComplete int, splitNum model.SplitNum, position int, carID model.CarID) Position {
+func NewPosition(subsessionID model.SubsessionID, classified bool, lapsComplete model.LapsComplete, position model.FinishPositionInClass,
+	points model.Point, carID model.CarID) Position {
 	return Position{
 		subsessionID: subsessionID,
 		classified:   classified,
 		lapsComplete: lapsComplete,
-		splitNum:     splitNum,
 		position:     position,
+		points:       points,
 		carID:        carID,
 	}
 }
@@ -39,16 +39,16 @@ func (o Position) IsClassified() bool {
 	return o.classified
 }
 
-func (o Position) SplitNum() model.SplitNum {
-	return o.splitNum
-}
-
-func (o Position) Position() int {
+func (o Position) Position() model.FinishPositionInClass {
 	return o.position
 }
 
-func (o Position) LapsComplete() int {
+func (o Position) LapsComplete() model.LapsComplete {
 	return o.lapsComplete
+}
+
+func (o Position) Points() model.Point {
+	return o.points
 }
 
 func (o Position) CarID() model.CarID {
@@ -57,55 +57,58 @@ func (o Position) CarID() model.CarID {
 
 type Positions []Position
 
-func (p Positions) BestPositions(countBestOf int) Positions {
-	bestPositions := make(Positions, 0)
+func (p Positions) BestResults(countBestOf int) Positions {
+	bestResults := make(Positions, 0)
 
-	bestPositions = append(bestPositions, p...)
+	bestResults = append(bestResults, p...)
 
-	// Higher splits trump lower splits
-	slices.SortFunc(bestPositions, func(a, b Position) int {
+	slices.SortFunc(bestResults, func(a, b Position) int {
 		return cmp.Or(
+			cmp.Compare(-a.Points(), -b.Points()),
 			cmp.Compare(a.Position(), b.Position()),
-			cmp.Compare(a.SplitNum(), b.SplitNum()),
-			cmp.Compare(-a.LapsComplete(), -b.LapsComplete()),
 		)
 	})
 
-	if len(bestPositions) > countBestOf {
-		return bestPositions[:countBestOf]
+	if len(bestResults) > countBestOf {
+		return bestResults[:countBestOf]
 	}
 
-	return bestPositions
+	return bestResults
 }
 
 func (p Positions) Classified(classifiedOnly bool) Positions {
-	classifiedPositions := make(Positions, 0)
+	classifiedResults := make(Positions, 0)
 
 	for i := range p {
 		if classifiedOnly && !p[i].classified {
 			continue
 		}
 
-		classifiedPositions = append(classifiedPositions, p[i])
+		classifiedResults = append(classifiedResults, p[i])
 	}
 
-	return classifiedPositions
+	return classifiedResults
 }
 
-func (p Positions) Total(ps points.PointsStructure, classifiedOnly bool, countBestOf int) int {
-	total := 0
+// Total of all candidate finishing positions
+func (p Positions) Total(classifiedOnly bool, countBestOf int) model.Point {
+	total := model.Point(0)
 
-	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
+	filteredPositions := p.Classified(classifiedOnly).BestResults(countBestOf)
 
 	for i := range filteredPositions {
-		total += ps.Award(filteredPositions[i].SplitNum(), filteredPositions[i].Position())
+		if filteredPositions[i].Points() == model.NotCounted {
+			continue
+		}
+
+		total += filteredPositions[i].Points()
 	}
 
 	return total
 }
 
-func (p Positions) Positions(classifiedOnly bool, countBestOf int) []standings.TieBreaker {
-	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
+func (p Positions) TieBreakerPositions(classifiedOnly bool, countBestOf int) []standings.TieBreaker {
+	filteredPositions := p.Classified(classifiedOnly).BestResults(countBestOf)
 
 	justPositions := make([]standings.TieBreaker, 0, len(filteredPositions))
 
@@ -116,10 +119,10 @@ func (p Positions) Positions(classifiedOnly bool, countBestOf int) []standings.T
 	return justPositions
 }
 
-func (p Positions) Laps(classifiedOnly bool, countBestOf int) int {
-	laps := 0
+func (p Positions) Laps(classifiedOnly bool, countBestOf int) model.LapsComplete {
+	laps := model.LapsComplete(0)
 
-	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
+	filteredPositions := p.Classified(classifiedOnly).BestResults(countBestOf)
 
 	for i := range filteredPositions {
 		laps += filteredPositions[i].LapsComplete()
@@ -129,7 +132,7 @@ func (p Positions) Laps(classifiedOnly bool, countBestOf int) int {
 }
 
 func (p Positions) Counted(classifiedOnly bool, countBestOf int) int {
-	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
+	filteredPositions := p.Classified(classifiedOnly).BestResults(countBestOf)
 
 	return len(filteredPositions)
 }
@@ -137,7 +140,7 @@ func (p Positions) Counted(classifiedOnly bool, countBestOf int) int {
 func (p Positions) CarsDriven(classifiedOnly bool, countBestOf int) []model.CarID {
 	carIDs := make(map[model.CarID]bool)
 
-	filteredPositions := p.Classified(classifiedOnly).BestPositions(countBestOf)
+	filteredPositions := p.Classified(classifiedOnly).BestResults(countBestOf)
 
 	for i := range filteredPositions {
 		carIDs[filteredPositions[i].CarID()] = true

@@ -15,10 +15,10 @@ type ChampionshipStandings struct {
 
 type TieBreaker struct {
 	subsessionID model.SubsessionID
-	position     int
+	position     model.FinishPositionInClass
 }
 
-func NewTieBreaker(subsessionID model.SubsessionID, position int) TieBreaker {
+func NewTieBreaker(subsessionID model.SubsessionID, position model.FinishPositionInClass) TieBreaker {
 	return TieBreaker{
 		subsessionID: subsessionID,
 		position:     position,
@@ -26,14 +26,14 @@ func NewTieBreaker(subsessionID model.SubsessionID, position int) TieBreaker {
 }
 
 type ChampionshipTable struct {
-	Position                int
+	Position                model.FinishPositionInClass
 	DriverName              string
 	CarNames                string
-	DroppedRoundPoints      int
-	AllRoundsPoints         int          // Tie-breaker: points without drops
+	DroppedRoundPoints      model.Point
+	AllRoundsPoints         model.Point  // Tie-breaker: points without drops
 	TieBreakFinishPositions []TieBreaker // then: higher number of better positions.
 	Counted                 int
-	TotalLaps               int
+	TotalLaps               model.LapsComplete
 }
 
 func (cs ChampionshipStandings) orderedBy(less ...lessFunc) *multiSorter {
@@ -42,7 +42,7 @@ func (cs ChampionshipStandings) orderedBy(less ...lessFunc) *multiSorter {
 	}
 }
 
-type bySession map[model.SubsessionID]int
+type bySession map[model.SubsessionID]model.FinishPositionInClass
 
 func betterFinish(c1Sessions, c2Sessions bySession) int {
 	c1Better := 0
@@ -102,7 +102,7 @@ func (cs ChampionshipStandings) Sort() ChampionshipStandings {
 	cs.orderedBy(points, tieBreakOne, tieBreakTwo, tieBreakThree, tieBreakFour).Sort(cs.Table)
 
 	for i := range cs.Table {
-		cs.Table[i].Position = i + 1
+		cs.Table[i].Position = model.FinishPositionInClass(i + 1)
 	}
 
 	return cs

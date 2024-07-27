@@ -23,17 +23,17 @@ type Championship struct {
 	events         map[model.SessionID]event.Event // Events have multiple races in different splits
 	carClasses     car.CarClasses                  // Competing car classes and names
 	excludeTrackID map[int]bool                    // Exclude these candidates from the results
-	points         points.PointsStructure          // Points awarded by split
+	awards         points.PointsStructure          // Points awarded by split
 	drivers        map[model.CustID]driver.Driver
 	countBestOf    int
 }
 
-func NewChampionship(seriesID int, excludeTrackID map[int]bool, points points.PointsStructure, countBestOf int) *Championship {
+func NewChampionship(seriesID int, excludeTrackID map[int]bool, awards points.PointsStructure, countBestOf int) *Championship {
 	return &Championship{
 		seriesID:       seriesID,
 		events:         make(map[model.SessionID]event.Event),
 		excludeTrackID: excludeTrackID,
-		points:         points,
+		awards:         awards,
 		drivers:        make(map[model.CustID]driver.Driver),
 		countBestOf:    countBestOf,
 	}
@@ -84,9 +84,9 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 						SubsessionID:            model.SubsessionID(irResult.SubsessionID),
 						CustID:                  model.CustID(sessionResult.CustID),
 						DisplayName:             sessionResult.DisplayName,
-						FinishPositionInClass:   sessionResult.FinishPositionInClass,
+						FinishPositionInClass:   model.FinishPositionInClass(sessionResult.FinishPositionInClass),
 						LapsLead:                sessionResult.LapsLead,
-						LapsComplete:            sessionResult.LapsComplete,
+						LapsComplete:            model.LapsComplete(sessionResult.LapsComplete),
 						Position:                sessionResult.Position,
 						QualLapTime:             sessionResult.QualLapTime,
 						StartingPosition:        sessionResult.StartingPosition,
@@ -141,7 +141,7 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 
 			winnerLapsComplete := race.WinnerLapsComplete(carClassID)
 
-			racePositions := race.Positions(carClassID, winnerLapsComplete)
+			racePositions := race.Positions(carClassID, winnerLapsComplete, c.awards)
 			for custID, position := range racePositions {
 				custFinishingPositions[custID] = append(custFinishingPositions[custID], position)
 			}
@@ -152,9 +152,9 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 		driver := c.drivers[custID]
 
 		cs.Table = append(cs.Table, standings.ChampionshipTable{
-			DroppedRoundPoints:      positions.Total(c.points, true, c.countBestOf),
-			AllRoundsPoints:         positions.Total(c.points, true, len(events)),
-			TieBreakFinishPositions: positions.Positions(true, c.countBestOf),
+			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
+			AllRoundsPoints:         positions.Total(true, len(events)),
+			TieBreakFinishPositions: positions.TieBreakerPositions(true, c.countBestOf),
 			CarNames:                strings.Join(c.carClasses.Names(positions.CarsDriven(true, c.countBestOf)), ","),
 			DriverName:              driver.DisplayName(),
 			Counted:                 positions.Counted(false, c.countBestOf),
