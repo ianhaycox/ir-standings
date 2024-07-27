@@ -1,14 +1,19 @@
 package championship
 
 import (
+	"bytes"
+	"encoding/csv"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/driver"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/championship/position"
 	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/test/files"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +25,7 @@ func TestChampionship(t *testing.T) {
 	}
 
 	t.Run("Loads a simplified set of results into Events and Races", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{1: true}, 2, points.NewPointsStructure(pointsPerSplit), 9)
+		c := NewChampionship(1, map[int]bool{1: true}, points.NewPointsStructure(pointsPerSplit), 9)
 
 		start1, err := time.Parse(time.RFC3339, "2024-03-16T17:00:00Z")
 		require.NoError(t, err)
@@ -118,36 +123,36 @@ func TestChampionship(t *testing.T) {
 		assert.Equal(t, 24, race2.WinnerLapsComplete(83))
 
 		expectedPositions84 := map[model.CustID]position.Position{
-			9001: position.NewPosition(30, 0, 1, 77),
-			9002: position.NewPosition(30, 0, 2, 77),
+			9001: position.NewPosition(1001, true, 30, 0, 1, 77),
+			9002: position.NewPosition(1001, true, 30, 0, 2, 77),
 		}
-		positions84 := race1.Positions(84)
+		positions84 := race1.Positions(84, 30)
 		assert.Equal(t, expectedPositions84, positions84)
 
 		expectedPositions83 := map[model.CustID]position.Position{
-			9003: position.NewPosition(25, 0, 1, 76),
-			9004: position.NewPosition(24, 0, 2, 76),
+			9003: position.NewPosition(1001, true, 25, 0, 1, 76),
+			9004: position.NewPosition(1001, true, 24, 0, 2, 76),
 		}
-		positions83 := race1.Positions(83)
+		positions83 := race1.Positions(83, 25)
 		assert.Equal(t, expectedPositions83, positions83)
 
 		expectedPositions84 = map[model.CustID]position.Position{
-			8001: position.NewPosition(29, 1, 1, 77),
-			8002: position.NewPosition(28, 1, 2, 77),
+			8001: position.NewPosition(1002, true, 29, 1, 1, 77),
+			8002: position.NewPosition(1002, true, 28, 1, 2, 77),
 		}
-		positions84 = race2.Positions(84)
+		positions84 = race2.Positions(84, 29)
 		assert.Equal(t, expectedPositions84, positions84)
 
 		expectedPositions83 = map[model.CustID]position.Position{
-			8003: position.NewPosition(24, 1, 1, 76),
-			8004: position.NewPosition(24, 1, 2, 76),
+			8003: position.NewPosition(1002, true, 24, 1, 1, 76),
+			8004: position.NewPosition(1002, true, 24, 1, 2, 76),
 		}
-		positions83 = race2.Positions(83)
+		positions83 = race2.Positions(83, 24)
 		assert.Equal(t, expectedPositions83, positions83)
 	})
 
 	t.Run("Verify an excluded track is ignored", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{219: true}, 2, points.NewPointsStructure(pointsPerSplit), 1)
+		c := NewChampionship(1, map[int]bool{219: true}, points.NewPointsStructure(pointsPerSplit), 1)
 
 		fixture := []results.Result{
 			{
@@ -161,5 +166,173 @@ func TestChampionship(t *testing.T) {
 
 		// No events as 219 excluded
 		assert.Len(t, c.Events(), 0)
+	})
+}
+
+func TestFixture2024S1(t *testing.T) {
+	exampleData := files.ReadResultsFixture(t, "../fixtures/2024-1-285-results-redacted.json")
+
+	pointsPerSplit := points.PointsPerSplit{
+		//        0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
+		0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		2: []int{9, 6, 4, 3, 2, 1},
+	}
+
+	ps := points.NewPointsStructure(pointsPerSplit)
+
+	champ := NewChampionship(iracing.KamelSeriesID, nil, ps, 10)
+
+	champ.LoadRaceData(exampleData)
+
+	t.Run("Verify GTP results match https://vcr.myleague.racing/seasons/60", func(t *testing.T) {
+		csvBytes := files.ReadFile(t, "../fixtures/2024-1-285-gtp-expected-redacted.csv")
+
+		csvReader := csv.NewReader(bytes.NewReader(csvBytes))
+		expected, err := csvReader.ReadAll()
+		assert.NoError(t, err)
+
+		cs := champ.Standings(84)
+
+		actual := [][]string{{"Class", "Pos", "Driver", "Car", "Points", "Counted", "Laps"}}
+
+		for _, entry := range cs.Table {
+			actual = append(actual, []string{
+				"",
+				fmt.Sprintf("%d", entry.Position),
+				entry.DriverName,
+				entry.CarNames,
+				fmt.Sprintf("%d", entry.DroppedRoundPoints),
+				fmt.Sprintf("%d", entry.Counted),
+				fmt.Sprintf("%d", entry.TotalLaps),
+			})
+		}
+
+		assert.Len(t, actual, len(expected))
+
+		// Only check top 20 places because the tiebreaker is non-deterministic for low numbers of events/finishes
+		assert.Equal(t, expected[:20], actual[:20])
+	})
+
+	t.Run("Verify GTO results match https://vcr.myleague.racing/seasons/60", func(t *testing.T) {
+		csvBytes := files.ReadFile(t, "../fixtures/2024-1-285-gto-expected-redacted.csv")
+
+		csvReader := csv.NewReader(bytes.NewReader(csvBytes))
+		expected, err := csvReader.ReadAll()
+		assert.NoError(t, err)
+
+		cs := champ.Standings(83)
+
+		actual := [][]string{{"Class", "Pos", "Driver", "Car", "Points", "Counted", "Laps"}}
+
+		for _, entry := range cs.Table {
+			actual = append(actual, []string{
+				"",
+				fmt.Sprintf("%d", entry.Position),
+				entry.DriverName,
+				entry.CarNames,
+				fmt.Sprintf("%d", entry.DroppedRoundPoints),
+				fmt.Sprintf("%d", entry.Counted),
+				fmt.Sprintf("%d", entry.TotalLaps),
+			})
+		}
+
+		assert.Len(t, actual, len(expected))
+
+		for i := range actual {
+			ok := assert.Equal(t, expected[i], actual[i])
+			if !ok {
+				fmt.Println("Actual:  ", actual[i])
+				fmt.Println("Expected:", expected[i])
+			}
+		}
+
+		// Only check top 20 places because the tiebreaker is non-deterministic for low numbers of events/finishes
+		assert.Equal(t, expected[:20], actual[:20])
+	})
+}
+
+func TestFixture2024S2(t *testing.T) {
+	exampleData := files.ReadResultsFixture(t, "../fixtures/2024-2-285-results-redacted.json")
+
+	var excludeTrackID = map[int]bool{18: true}
+
+	pointsPerSplit := points.PointsPerSplit{
+		//        0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
+		0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+		2: []int{9, 6, 4, 3, 2, 1},
+	}
+
+	ps := points.NewPointsStructure(pointsPerSplit)
+
+	champ := NewChampionship(iracing.KamelSeriesID, excludeTrackID, ps, 9)
+
+	champ.LoadRaceData(exampleData)
+
+	t.Run("Verify GTP results match https://vcr.myleague.racing/seasons/63", func(t *testing.T) {
+		csvBytes := files.ReadFile(t, "../fixtures/2024-2-285-gtp-expected-redacted.csv")
+
+		csvReader := csv.NewReader(bytes.NewReader(csvBytes))
+		expected, err := csvReader.ReadAll()
+		assert.NoError(t, err)
+
+		cs := champ.Standings(84)
+
+		actual := [][]string{{"Class", "Pos", "Driver", "Car", "Points", "Counted", "Laps"}}
+
+		for _, entry := range cs.Table {
+			actual = append(actual, []string{
+				"",
+				fmt.Sprintf("%d", entry.Position),
+				entry.DriverName,
+				entry.CarNames,
+				fmt.Sprintf("%d", entry.DroppedRoundPoints),
+				fmt.Sprintf("%d", entry.Counted),
+				fmt.Sprintf("%d", entry.TotalLaps),
+			})
+		}
+
+		assert.Len(t, actual, len(expected))
+
+		// Only check top 20 places because the tiebreaker is non-deterministic for low numbers of events/finishes
+		assert.Equal(t, expected[:20], actual[:20])
+	})
+
+	t.Run("Verify GTO results match https://vcr.myleague.racing/seasons/63", func(t *testing.T) {
+		csvBytes := files.ReadFile(t, "../fixtures/2024-2-285-gto-expected-redacted.csv")
+
+		csvReader := csv.NewReader(bytes.NewReader(csvBytes))
+		expected, err := csvReader.ReadAll()
+		assert.NoError(t, err)
+
+		cs := champ.Standings(83)
+
+		actual := [][]string{{"Class", "Pos", "Driver", "Car", "Points", "Counted", "Laps"}}
+
+		for _, entry := range cs.Table {
+			actual = append(actual, []string{
+				"",
+				fmt.Sprintf("%d", entry.Position),
+				entry.DriverName,
+				entry.CarNames,
+				fmt.Sprintf("%d", entry.DroppedRoundPoints),
+				fmt.Sprintf("%d", entry.Counted),
+				fmt.Sprintf("%d", entry.TotalLaps),
+			})
+		}
+
+		assert.Len(t, actual, len(expected))
+
+		for i := range actual {
+			ok := assert.Equal(t, expected[i], actual[i])
+			if !ok {
+				fmt.Println("Actual:  ", actual[i])
+				fmt.Println("Expected:", expected[i])
+			}
+		}
+
+		// Only check top 20 places because the tiebreaker is non-deterministic for low numbers of events/finishes
+		assert.Equal(t, expected[:20], actual[:20])
 	})
 }

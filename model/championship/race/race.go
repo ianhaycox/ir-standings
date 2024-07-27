@@ -24,10 +24,6 @@ func (r *Race) SplitNum() model.SplitNum {
 	return r.splitNum
 }
 
-func (r *Race) IsClassified(winnerLapsComplete int, lapsComplete int) bool {
-	return lapsComplete*4 >= winnerLapsComplete*3 // 75%
-}
-
 func (r *Race) WinnerLapsComplete(carClassID model.CarClassID) int {
 	winnerLapsComplete := 0
 
@@ -44,7 +40,7 @@ func (r *Race) WinnerLapsComplete(carClassID model.CarClassID) int {
 	return winnerLapsComplete
 }
 
-func (r *Race) Positions(carClassID model.CarClassID) map[model.CustID]position.Position {
+func (r *Race) Positions(carClassID model.CarClassID, winnerLapsComplete int) map[model.CustID]position.Position {
 	finishingPositions := make(map[model.CustID]position.Position)
 
 	for _, result := range r.results {
@@ -52,8 +48,13 @@ func (r *Race) Positions(carClassID model.CarClassID) map[model.CustID]position.
 			continue
 		}
 
-		finishingPositions[result.CustID] = position.NewPosition(result.LapsComplete, r.splitNum, result.FinishPositionInClass, result.CarID)
+		finishingPositions[result.CustID] = position.NewPosition(result.SubsessionID, r.IsClassified(winnerLapsComplete, result.LapsComplete),
+			result.LapsComplete, r.splitNum, result.FinishPositionInClass, result.CarID)
 	}
 
 	return finishingPositions
+}
+
+func (r *Race) IsClassified(winnerLapsComplete int, lapsComplete int) bool {
+	return lapsComplete*4 >= winnerLapsComplete*3 // 75%
 }

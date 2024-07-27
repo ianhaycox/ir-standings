@@ -10,7 +10,7 @@ require (
 require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 )
 
 require (

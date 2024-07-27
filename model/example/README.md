@@ -1,1 +1,0 @@
-https://members-ng.iracing.com/data/results/search_series?series_id=285&season_year=2024&season_quarter=2&official_only=true&event_type=5

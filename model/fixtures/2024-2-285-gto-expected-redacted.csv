@@ -1,0 +1,123 @@
+Class,Pos,Driver,Car,Points,Counted,Laps
+GTO,1,A*dr*us*Šl*um*a,Audi 90 GTO,184,9,226
+,2,M*ck*y *ri*se*,Audi 90 GTO,167,9,220
+,3,J*ra* V*nh*xe,Audi 90 GTO,153,9,201
+,4,N*el*Lu*eb*rg,Audi 90 GTO,152,8,196
+,5,A*dr*us*Va*an*ie*us,Audi 90 GTO,140,6,158
+,6,A*dr*as*Sc*us*er,Audi 90 GTO,119,8,166
+,7,A*tu*as*Ku*de*is,Audi 90 GTO,110,7,157
+,8,J*sh*Br*in,Audi 90 GTO,104,9,196
+,9,C*m *or*er,Audi 90 GTO,100,9,181
+,10,D*ug*Cl*ud,Audi 90 GTO,88,9,157
+,11,J*ck*Da*id*Sp*ck*tt,Audi 90 GTO,76,5,102
+,12,R*ma*n *el*,Audi 90 GTO,71,9,181
+,13,T*or*en*Pa*li*,Audi 90 GTO,70,9,201
+,14,S*m *ko*ga*rd,Audi 90 GTO,54,9,175
+,15,B*oe*n *ck*rm*nn,Audi 90 GTO,41,8,179
+,16,A*fo*so*Fe*na*de*5,Audi 90 GTO,36,3,78
+,17,H*ct*r *or*er* S*ar*z,Audi 90 GTO,35,6,113
+,18,T*mo*hy*Re*d4,Audi 90 GTO,31,3,71
+,19,D*vi* G*ti*rr*z4,Audi 90 GTO,28,2,38
+,20,D*vi* B*Le*an,Audi 90 GTO,25,3,46
+,21,E*er*on*Ga*di*,Audi 90 GTO,25,2,45
+,22,I*n *hi*ip*Jo*ns*n,Audi 90 GTO,24,6,88
+,23,F*an*oi* D*me*s,Audi 90 GTO,22,2,39
+,24,J*ri*Wi*st*öm,Audi 90 GTO,22,2,38
+,25,N*ls*Co*r,Audi 90 GTO,22,1,19
+,26,P*bl* R*ng*l2,Audi 90 GTO,21,4,47
+,27,K*vi* B*nk*ey,Audi 90 GTO,21,2,42
+,28,Z*mf*r *ad*-O*im*iu,Audi 90 GTO,20,1,15
+,29,J*mi* H*me*-S*it*,Audi 90 GTO,19,6,70
+,30,S*rg*j *ra*un,Audi 90 GTO,18,1,20
+,31,K*nn*th*Ol*ve,Audi 90 GTO,18,1,12
+,32,M*x *ar*ec*in,Audi 90 GTO,15,4,59
+,33,R*be*t *oa*er,Audi 90 GTO,15,1,27
+,34,F*bi* S*hl,Audi 90 GTO,15,1,24
+,35,A*ex*Ma*,Audi 90 GTO,14,2,31
+,36,J*an*Ca*lo* C*rd*ir* G*nÃ*al*z,Audi 90 GTO,14,2,19
+,37,A*ri*as*Zi*in*ka*,Audi 90 GTO,13,1,6
+,38,A*ta* H*rk,Audi 90 GTO,12,1,20
+,39,S*ép*an* L*sl*,Audi 90 GTO,12,1,19
+,40,J*re*y * D*Mc*ro*y,Audi 90 GTO,12,1,6
+,41,J*an*Ma*ti,Audi 90 GTO,11,1,39
+,42,F*bi* D*mm,Audi 90 GTO,11,1,30
+,43,M*ch*el*Ha*ne*,Audi 90 GTO,10,4,68
+,44,C*ri* Y*tt*to,Audi 90 GTO,10,1,19
+,45,J* R*dr*gu*z,Audi 90 GTO,10,1,17
+,46,N*na* I*an*vi*,Audi 90 GTO,10,1,6
+,47,B*nj*mi* L*ke,Audi 90 GTO,9,1,19
+,48,D*ni*l *el*,Audi 90 GTO,9,1,18
+,49,M*rc*s *ay*n,Audi 90 GTO,9,2,18
+,50,N*ck*La*cs,Audi 90 GTO,9,1,6
+,51,D*vi* B*an*oM*,Audi 90 GTO,9,1,6
+,52,D*vi* V*ns*am*ro*ck,Audi 90 GTO,8,1,18
+,53,s*ba*ti*n *an*De* C*yl*n,Audi 90 GTO,8,1,17
+,54,R*ph*el*So*za*,Audi 90 GTO,8,1,6
+,55,N*al*Ke*p,Audi 90 GTO,8,1,6
+,56,J*sé*Ma*er*,Audi 90 GTO,7,2,33
+,57,P*il*pp* S*vo*e,Audi 90 GTO,7,1,30
+,58,A*ht*n *oh*so*3,Audi 90 GTO,7,2,27
+,59,M*ch*el*Ca*pe*te*2,Audi 90 GTO,7,1,18
+,60,D*vi* C*nc*al*s,Audi 90 GTO,7,1,6
+,61,B*no*t *av*nn*,Audi 90 GTO,6,1,38
+,62,M*rk*Da*ne*l,Audi 90 GTO,6,1,23
+,63,P*il*pp* M*ur*er*,Audi 90 GTO,6,1,18
+,64,M*ch*el*Ba*di*i,Audi 90 GTO,6,1,16
+,65,B*u * S*lv*,Audi 90 GTO,6,1,6
+,66,I*n *ay*ox,Audi 90 GTO,6,1,6
+,67,T*mo*hy*S *or*er,Audi 90 GTO,5,2,30
+,68,B*ad*ey*Gr*ha*3,Audi 90 GTO,5,1,28
+,69,K*j-*ri*ti*n *os*nq*is*,Audi 90 GTO,5,1,18
+,70,H*go*Si*ms*n,Audi 90 GTO,4,1,17
+,71,L*on*Ha*ho*f,Audi 90 GTO,4,1,6
+,72,A*ex*nd*r *ra*,Audi 90 GTO,4,1,5
+,73,F*rn*nd* M*tt*s,Audi 90 GTO,3,3,43
+,74,T*av*s *ap*in*s,Audi 90 GTO,3,1,17
+,75,M*ks*m *om*a,Audi 90 GTO,3,1,5
+,76,K*vi* S*bs*n,Audi 90 GTO,2,1,33
+,77,R*nn*e *et*rs*n,Audi 90 GTO,2,1,17
+,78,J*sh*a *al*o,Audi 90 GTO,2,1,5
+,79,J*an*Jo*e *ua*ez,Audi 90 GTO,1,2,27
+,80,J*e *ar*el,Audi 90 GTO,1,1,17
+,81,F*br*zi* R*ff*,Audi 90 GTO,1,1,5
+,82,F*rr*n *. *ra*,Audi 90 GTO,0,1,22
+,83,K*rl*St*ne*if*r,Audi 90 GTO,0,1,20
+,84,T*is*an*Pi*er,Audi 90 GTO,0,1,19
+,85,N*ah*Fr*dl*nd,Audi 90 GTO,0,1,12
+,86,A*no*d *oc*,Audi 90 GTO,0,1,12
+,87,S*ad* A*ma*,Audi 90 GTO,0,1,11
+,88,J*n-*aa* D* V*s,Audi 90 GTO,0,1,11
+,89,G*ov*nn* L*re*zo*Gu*st*ll*,Audi 90 GTO,0,1,10
+,90,Y*nn*ck*Ch*uv*n,Audi 90 GTO,0,1,10
+,91,F*an*oi* S*in*,Audi 90 GTO,0,1,10
+,92,J* M*Co*,Audi 90 GTO,0,1,10
+,93,G*eg*ry*Wo*ds,Audi 90 GTO,0,1,9
+,94,J*me* F*el*s3,Audi 90 GTO,0,1,8
+,95,M*ka*Tu*po*a,Audi 90 GTO,0,1,8
+,96,M*rt*n *óp*z *er*án*ez,Audi 90 GTO,0,1,7
+,97,P*te* B*an*,Audi 90 GTO,0,1,6
+,98,N*kl*s *im*er*an*,Audi 90 GTO,0,1,5
+,99,O*ai*a *ab*ri*,Audi 90 GTO,0,1,5
+,100,K*ke*Me*gu*l,Audi 90 GTO,0,1,5
+,101,R*an*M *lm*re,Audi 90 GTO,0,1,4
+,102,F*an*es* A*dr*s *ia*,Audi 90 GTO,0,1,4
+,103,D*ko*a *le*gh,Audi 90 GTO,0,1,4
+,104,P*dd* S*ro*le,Audi 90 GTO,0,1,4
+,105,B*an*on*El*in*,Audi 90 GTO,0,1,4
+,106,N*ko*ay*So*ol*v2,Audi 90 GTO,0,1,4
+,107,M*rc*Ga*ma*k,Audi 90 GTO,0,1,4
+,108,M*rl*we*Du*ca*,Audi 90 GTO,0,1,3
+,109,A*th*ny*Ci*in*,Audi 90 GTO,0,1,3
+,110,D*ur*a *uj*r,Audi 90 GTO,0,1,3
+,111,J*rd* T*es,Audi 90 GTO,0,1,3
+,112,F*an*o *cu*i,Audi 90 GTO,0,1,3
+,113,K*le*De*n2,Audi 90 GTO,0,1,3
+,114,B*e *he*pa*d,Audi 90 GTO,0,1,2
+,115,S*b *ix*er,Audi 90 GTO,0,1,1
+,116,D*na*d *ea*,Audi 90 GTO,0,1,1
+,117,A*dr*as*He*ck,Audi 90 GTO,0,1,1
+,118,B*ia* N*uy*n3,Audi 90 GTO,0,1,1
+,119,G*ne*is*Wi*li*ms,Audi 90 GTO,0,1,1
+,120,S*ba*ti*n *oi*er,Audi 90 GTO,0,1,0
+,121,J*de* C*eu*g,Audi 90 GTO,0,1,0
+,122,P*we* P*wl*k,Audi 90 GTO,0,1,0

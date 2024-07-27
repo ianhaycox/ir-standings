@@ -14,59 +14,13 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
-	"github.com/ianhaycox/ir-standings/model/championship"
-	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 )
 
 func main() {
 	seasonYear, seasonQuarter, err := args() // TODO SeriesID, BestOf, Exclude events/tracks
 	if err != nil {
-		exampleData, err := getResults()
-		if err != nil {
-			log.Fatal("Can not get example results:", err.Error())
-		}
-
-		const maxSplits = 3
-
-		var excludeTrackID = map[int]bool{18: true}
-
-		pointsPerSplit := points.PointsPerSplit{
-			0: []int{25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-			1: []int{14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-			2: []int{9, 6, 4, 3, 2, 1},
-		}
-
-		ps := points.NewPointsStructure(pointsPerSplit)
-
-		champ := championship.NewChampionship(iracing.KamelSeriesID, excludeTrackID, maxSplits, ps, 9)
-
-		champ.LoadRaceData(exampleData)
-
-		cs := champ.Standings(84)
-
-		fmt.Println("Class,Pos,Driver,Car,,Points,Counted")
-
-		//		fmt.Printf("%-4s  %-40s %-20s %-4s (%-4s) %s  %s\n", "Pos", "Driver", "Car", "Pts", "All", "Counted", "laps")
-
-		for _, entry := range cs.Table {
-			//			fmt.Printf("%4d  %-40s %-20s %4d (%4d) %2d  %d\n",
-			//				entry.Position, entry.DriverName, entry.CarNames, entry.DroppedRoundPoints, entry.AllRoundsPoints, entry.Counted, entry.TotalLaps)
-
-			fmt.Printf(",%d.,%s,%s,,%d,%d laps: %d/ Stg:\n",
-				entry.Position, entry.DriverName, entry.CarNames, entry.DroppedRoundPoints, entry.Counted, entry.TotalLaps)
-		}
-
-		/*		cs = champ.Standings(83)
-
-				fmt.Printf("%-4s  %-40s %-20s %-4s (%-4s) %s  %s\n", "Pos", "Driver", "Car", "Pts", "All", "Counted", "laps")
-
-				for _, entry := range cs.Table {
-					fmt.Printf("%4d  %-40s %-20s %4d (%4d) %2d   %d\n",
-						entry.Position, entry.DriverName, entry.CarNames, entry.DroppedRoundPoints, entry.AllRoundsPoints, entry.Counted, entry.TotalLaps)
-				}
-		*/
-		return
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
@@ -140,20 +94,4 @@ func args() (int, int, error) {
 	}
 
 	return seasonYear, seasonQuarter, nil
-}
-
-func getResults() ([]results.Result, error) {
-	buf, err := os.ReadFile("./2024-2-285-results.json")
-	if err != nil {
-		return nil, err
-	}
-
-	res := make([]results.Result, 0)
-
-	err = json.Unmarshal(buf, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }

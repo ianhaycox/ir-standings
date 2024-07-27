@@ -61,20 +61,20 @@ func TestFinishingPositions(t *testing.T) {
 	t.Run("Should return empty for no results", func(t *testing.T) {
 		race := Race{}
 
-		actual := race.Positions(1)
+		actual := race.Positions(1, 1)
 		assert.Equal(t, make(map[model.CustID]position.Position), actual)
 	})
 
 	t.Run("Should return positions and points per class and cust", func(t *testing.T) {
 		results := []model.Result{
-			{CarClassID: 1, CustID: 1777, LapsComplete: 13, FinishPositionInClass: 1, CarID: 97},
-			{CarClassID: 3, CustID: 3333, LapsComplete: 6, FinishPositionInClass: 1, CarID: 99},
-			{CarClassID: 1, CustID: 1999, LapsComplete: 12, FinishPositionInClass: 3, CarID: 97},
-			{CarClassID: 2, CustID: 2111, LapsComplete: 10, FinishPositionInClass: 1, CarID: 98},
-			{CarClassID: 1, CustID: 1888, LapsComplete: 13, FinishPositionInClass: 2, CarID: 97},
-			{CarClassID: 2, CustID: 2222, LapsComplete: 9, FinishPositionInClass: 2, CarID: 98},
-			{CarClassID: 2, CustID: 2333, LapsComplete: 9, FinishPositionInClass: 3, CarID: 98},
-			{CarClassID: 3, CustID: 3444, LapsComplete: 6, FinishPositionInClass: 2, CarID: 99},
+			{SubsessionID: 444, CarClassID: 1, CustID: 1777, LapsComplete: 13, FinishPositionInClass: 1, CarID: 97},
+			{SubsessionID: 444, CarClassID: 3, CustID: 3333, LapsComplete: 6, FinishPositionInClass: 1, CarID: 99},
+			{SubsessionID: 444, CarClassID: 1, CustID: 1999, LapsComplete: 12, FinishPositionInClass: 3, CarID: 97},
+			{SubsessionID: 444, CarClassID: 2, CustID: 2111, LapsComplete: 10, FinishPositionInClass: 1, CarID: 98},
+			{SubsessionID: 444, CarClassID: 1, CustID: 1888, LapsComplete: 13, FinishPositionInClass: 2, CarID: 97},
+			{SubsessionID: 444, CarClassID: 2, CustID: 2222, LapsComplete: 9, FinishPositionInClass: 2, CarID: 98},
+			{SubsessionID: 444, CarClassID: 2, CustID: 2333, LapsComplete: 9, FinishPositionInClass: 3, CarID: 98},
+			{SubsessionID: 444, CarClassID: 3, CustID: 3444, LapsComplete: 8, FinishPositionInClass: 2, CarID: 99},
 		}
 
 		race := Race{
@@ -82,27 +82,27 @@ func TestFinishingPositions(t *testing.T) {
 			results:  results,
 		}
 
-		actual := race.Positions(1)
+		actual := race.Positions(1, 10)
 		assert.Equal(t,
 			map[model.CustID]position.Position{
-				1777: position.NewPosition(13, 1, 1, 97),
-				1888: position.NewPosition(13, 1, 2, 97),
-				1999: position.NewPosition(12, 1, 3, 97),
+				1777: position.NewPosition(444, true, 13, 1, 1, 97),
+				1888: position.NewPosition(444, true, 13, 1, 2, 97),
+				1999: position.NewPosition(444, true, 12, 1, 3, 97),
 			}, actual)
 
-		actual = race.Positions(2)
+		actual = race.Positions(2, 20)
 		assert.Equal(t,
 			map[model.CustID]position.Position{
-				2111: position.NewPosition(10, 1, 1, 98),
-				2222: position.NewPosition(9, 1, 2, 98),
-				2333: position.NewPosition(9, 1, 3, 98),
+				2111: position.NewPosition(444, false, 10, 1, 1, 98),
+				2222: position.NewPosition(444, false, 9, 1, 2, 98),
+				2333: position.NewPosition(444, false, 9, 1, 3, 98),
 			}, actual)
 
-		actual = race.Positions(3)
+		actual = race.Positions(3, 10)
 		assert.Equal(t,
 			map[model.CustID]position.Position{
-				3333: position.NewPosition(6, 1, 1, 99),
-				3444: position.NewPosition(6, 1, 2, 99),
+				3333: position.NewPosition(444, false, 6, 1, 1, 99),
+				3444: position.NewPosition(444, true, 8, 1, 2, 99),
 			}, actual)
 	})
 }
