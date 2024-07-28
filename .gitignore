@@ -11,3 +11,7 @@ coverage.out
 
 .vscode/
 
+# Shared library
+/shared_library/client
+/shared_library/ir-standings.so
+/shared_library/ir-standings.h

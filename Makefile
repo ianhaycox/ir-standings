@@ -50,3 +50,6 @@ cover-check: cover
 standalone:
 	CGO_ENABLED=0 GOOS=linux go build -o load ./loader/load/load.go
 
+shared:
+	go build -o shared_library/ir-standings.so -buildmode=c-shared shared_library/main.go
+	gcc -g -o shared_library/client shared_library/client.c shared_library/ir-standings.so
