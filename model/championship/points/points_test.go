@@ -8,11 +8,11 @@ import (
 )
 
 func TestPoints(t *testing.T) {
-	t.Run("Empty structure returns zero", func(t *testing.T) {
+	t.Run("Empty structure returns not counted", func(t *testing.T) {
 		points := PointsPerSplit{}
 
 		ps := NewPointsStructure(points)
-		assert.Equal(t, model.Point(0), ps.Award(0, 10))
+		assert.Equal(t, model.NotCounted, ps.Award(0, 10))
 	})
 
 	t.Run("Structure returns corresponding points", func(t *testing.T) {

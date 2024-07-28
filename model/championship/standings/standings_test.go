@@ -39,44 +39,44 @@ func TestStandingSort(t *testing.T) {
 		assert.Equal(t, expected, cs.Table)
 	})
 
-	t.Run("Tie break should invoke all rounds points", func(t *testing.T) {
+	t.Run("Tie break with equal dropped points should promote results with better non dropped points", func(t *testing.T) {
 		cs := ChampionshipStandings{
 			Table: []ChampionshipTable{
-				{DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 12}}},
-				{DriverName: "second tied better no dropped rounds", DroppedRoundPoints: 23, AllRoundsPoints: 26, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 10}}},
-				{DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 8}}},
-				{DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 31}}},
+				{DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 12}}},
+				{DriverName: "second tied", DroppedRoundPoints: 23, AllRoundsPoints: 26, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 10}}},
+				{DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 8}}},
+				{DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 31}}},
 			},
 		}
 
 		cs.Sort()
 
 		expected := []ChampionshipTable{
-			{Position: 1, DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 8}}},
-			{Position: 2, DriverName: "second tied better no dropped rounds", DroppedRoundPoints: 23, AllRoundsPoints: 26, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 10}}},
-			{Position: 3, DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 12}}},
-			{Position: 4, DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 31}}},
+			{Position: 1, DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 8}}},
+			{Position: 2, DriverName: "second tied", DroppedRoundPoints: 23, AllRoundsPoints: 26, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 10}}},
+			{Position: 3, DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 12}}},
+			{Position: 4, DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 31}}},
 		}
 		assert.Equal(t, expected, cs.Table)
 	})
 
-	t.Run("Tie break should invoke best finishing positions", func(t *testing.T) {
+	t.Run("Tie break with equal dropped and non-dropped points should promote better finishing positions", func(t *testing.T) {
 		cs := ChampionshipStandings{
 			Table: []ChampionshipTable{
-				{DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 12}}},
-				{DriverName: "second tied better finishing", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 10}}},
-				{DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 8}}},
-				{DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 31}}},
+				{DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 12}}},
+				{DriverName: "second tied", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 10}}},
+				{DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 8}}},
+				{DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 31}}},
 			},
 		}
 
 		cs.Sort()
 
 		expected := []ChampionshipTable{
-			{Position: 1, DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 8}}},
-			{Position: 2, DriverName: "second tied better finishing", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 10}}},
-			{Position: 3, DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 12}}},
-			{Position: 4, DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{subsessionID: 1, position: 31}}},
+			{Position: 1, DriverName: "first", DroppedRoundPoints: 30, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 8}}},
+			{Position: 2, DriverName: "second tied", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 10}}},
+			{Position: 3, DriverName: "second", DroppedRoundPoints: 23, AllRoundsPoints: 25, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 12}}},
+			{Position: 4, DriverName: "third", DroppedRoundPoints: 22, TieBreakFinishPositions: []TieBreaker{{SubsessionID: 1, Position: 31}}},
 		}
 		assert.Equal(t, expected, cs.Table)
 	})

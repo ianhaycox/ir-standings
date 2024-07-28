@@ -14,14 +14,14 @@ type ChampionshipStandings struct {
 }
 
 type TieBreaker struct {
-	subsessionID model.SubsessionID
-	position     model.FinishPositionInClass
+	SubsessionID model.SubsessionID
+	Position     model.FinishPositionInClass
 }
 
 func NewTieBreaker(subsessionID model.SubsessionID, position model.FinishPositionInClass) TieBreaker {
 	return TieBreaker{
-		subsessionID: subsessionID,
-		position:     position,
+		SubsessionID: subsessionID,
+		Position:     position,
 	}
 }
 
@@ -79,17 +79,17 @@ func (cs ChampionshipStandings) Sort() ChampionshipStandings {
 		c2Sessions := make(bySession)
 
 		for _, pos := range c1.TieBreakFinishPositions {
-			c1Sessions[pos.subsessionID] = pos.position
+			c1Sessions[pos.SubsessionID] = pos.Position
 		}
 
 		for _, pos := range c2.TieBreakFinishPositions {
-			c2Sessions[pos.subsessionID] = pos.position
+			c2Sessions[pos.SubsessionID] = pos.Position
 		}
 
 		c1Better := betterFinish(c1Sessions, c2Sessions)
 		c2Better := betterFinish(c2Sessions, c1Sessions)
 
-		return c1Better < c2Better // Not less()
+		return c1Better > c2Better // Not less()
 	}
 
 	tieBreakFour := func(c1, c2 *ChampionshipTable) bool {

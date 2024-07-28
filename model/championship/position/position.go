@@ -65,6 +65,7 @@ func (p Positions) BestResults(countBestOf int) Positions {
 	slices.SortFunc(bestResults, func(a, b Position) int {
 		return cmp.Or(
 			cmp.Compare(-a.Points(), -b.Points()),
+			cmp.Compare(-a.LapsComplete(), -b.LapsComplete()),
 			cmp.Compare(a.Position(), b.Position()),
 		)
 	})

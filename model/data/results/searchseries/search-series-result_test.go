@@ -11,7 +11,7 @@ import (
 func TestIsBroadcast(t *testing.T) {
 	var ssr []SearchSeriesResult
 
-	b := files.ReadFile(t, "../../../example/results-search_series-results.json")
+	b := files.ReadFile(t, "../../../fixtures/results-search_series-results-redacted.json")
 
 	err := json.Unmarshal(b, &ssr)
 	assert.NoError(t, err)
