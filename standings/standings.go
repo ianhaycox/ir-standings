@@ -59,7 +59,7 @@ func main() {
 }
 
 func standings(ctx context.Context, ir iracing.IracingService, seasonYear, seasonQuarter int) ([]results.Result, error) {
-	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, iracing.KamelSeriesID)
+	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, int(iracing.KamelSeriesID))
 	if err != nil {
 		return nil, fmt.Errorf("can not get series results:%w", err)
 	}

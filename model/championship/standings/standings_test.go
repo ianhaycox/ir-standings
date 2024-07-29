@@ -21,7 +21,7 @@ func TestStandingSort(t *testing.T) {
 	t.Run("Unique entries should order from high to low for dropped rounds", func(t *testing.T) {
 		cs := ChampionshipStandings{
 			Table: []ChampionshipTable{
-				{DroppedRoundPoints: 23},
+				{DroppedRoundPoints: 23, CustID: 123},
 				{DroppedRoundPoints: 20},
 				{DroppedRoundPoints: 33},
 				{DroppedRoundPoints: 22},
@@ -32,7 +32,7 @@ func TestStandingSort(t *testing.T) {
 
 		expected := []ChampionshipTable{
 			{DroppedRoundPoints: 33, Position: 1},
-			{DroppedRoundPoints: 23, Position: 2},
+			{DroppedRoundPoints: 23, Position: 2, CustID: 123},
 			{DroppedRoundPoints: 22, Position: 3},
 			{DroppedRoundPoints: 20, Position: 4},
 		}

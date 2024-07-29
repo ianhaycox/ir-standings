@@ -27,6 +27,7 @@ func NewTieBreaker(subsessionID model.SubsessionID, position model.FinishPositio
 
 type ChampionshipTable struct {
 	Position                model.FinishPositionInClass
+	CustID                  model.CustID
 	DriverName              string
 	CarNames                string
 	DroppedRoundPoints      model.Point

@@ -6,9 +6,9 @@ int main() {
     printf("Using irStandings lib from C:\n");
 
     GoString xx = {"and goodnight"};
-  struct Results_return ret;
+    struct LiveStandings_return ret;
 
-    ret = Results(xx);
+    ret = LiveStandings(xx);
     printf("msg = %s, val = %lld\n", ret.r0, ret.r1);
     free(ret.r0);
 }

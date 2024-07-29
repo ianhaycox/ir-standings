@@ -19,7 +19,7 @@ import (
 )
 
 type Championship struct {
-	seriesID       int
+	seriesID       model.SeriesID
 	events         map[model.SessionID]event.Event // Events have multiple races in different splits
 	carClasses     car.CarClasses                  // Competing car classes and names
 	excludeTrackID map[int]bool                    // Exclude these candidates from the results
@@ -28,7 +28,7 @@ type Championship struct {
 	countBestOf    int
 }
 
-func NewChampionship(seriesID int, excludeTrackID map[int]bool, awards points.PointsStructure, countBestOf int) *Championship {
+func NewChampionship(seriesID model.SeriesID, excludeTrackID map[int]bool, awards points.PointsStructure, countBestOf int) *Championship {
 	return &Championship{
 		seriesID:       seriesID,
 		events:         make(map[model.SessionID]event.Event),
@@ -37,6 +37,14 @@ func NewChampionship(seriesID int, excludeTrackID map[int]bool, awards points.Po
 		drivers:        make(map[model.CustID]driver.Driver),
 		countBestOf:    countBestOf,
 	}
+}
+
+func (c *Championship) CarClasses() car.CarClasses {
+	return c.carClasses
+}
+
+func (c *Championship) SetCarClasses(carClasses car.CarClasses) {
+	c.carClasses = carClasses
 }
 
 // Events list of events sorted by start time
@@ -80,26 +88,15 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 			if irResult.SessionResults[i].SimsessionName == "RACE" {
 				for _, sessionResult := range irResult.SessionResults[i].Results {
 					sessionResult := result.Result{
-						SessionID:               model.SessionID(irResult.SessionID),
-						SubsessionID:            model.SubsessionID(irResult.SubsessionID),
-						CustID:                  model.CustID(sessionResult.CustID),
-						DisplayName:             sessionResult.DisplayName,
-						FinishPositionInClass:   model.FinishPositionInClass(sessionResult.FinishPositionInClass),
-						LapsLead:                sessionResult.LapsLead,
-						LapsComplete:            model.LapsComplete(sessionResult.LapsComplete),
-						Position:                sessionResult.Position,
-						QualLapTime:             sessionResult.QualLapTime,
-						StartingPosition:        sessionResult.StartingPosition,
-						StartingPositionInClass: sessionResult.StartingPositionInClass,
-						CarClassID:              model.CarClassID(sessionResult.CarClassID),
-						ClubID:                  sessionResult.ClubID,
-						ClubName:                sessionResult.ClubName,
-						ClubShortname:           sessionResult.ClubShortname,
-						Division:                sessionResult.Division,
-						DivisionName:            sessionResult.DivisionName,
-						Incidents:               sessionResult.Incidents,
-						CarID:                   model.CarID(sessionResult.CarID),
-						CarName:                 sessionResult.CarName,
+						SessionID:             model.SessionID(irResult.SessionID),
+						SubsessionID:          model.SubsessionID(irResult.SubsessionID),
+						CustID:                model.CustID(sessionResult.CustID),
+						DisplayName:           sessionResult.DisplayName,
+						FinishPositionInClass: model.FinishPositionInClass(sessionResult.FinishPositionInClass),
+						LapsComplete:          model.LapsComplete(sessionResult.LapsComplete),
+						CarClassID:            model.CarClassID(sessionResult.CarClassID),
+						CarID:                 model.CarID(sessionResult.CarID),
+						CarName:               sessionResult.CarName,
 					}
 
 					sessionResults = append(sessionResults, sessionResult)
@@ -152,6 +149,7 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 		driver := c.drivers[custID]
 
 		cs.Table = append(cs.Table, standings.ChampionshipTable{
+			CustID:                  custID,
 			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(true, len(events)),
 			TieBreakFinishPositions: positions.TieBreakerPositions(true, c.countBestOf),
@@ -184,5 +182,7 @@ func (c *Championship) isExcluded(trackID int) bool {
 }
 
 func (c *Championship) addDriver(custID model.CustID, driver driver.Driver) {
-	c.drivers[custID] = driver
+	if _, ok := c.drivers[custID]; !ok {
+		c.drivers[custID] = driver
+	}
 }

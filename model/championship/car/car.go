@@ -55,6 +55,10 @@ func NewCarClasses(carClasses []results.CarClasses) CarClasses {
 }
 
 func (cc *CarClasses) AddCarName(carID model.CarID, name string) {
+	if name == "" {
+		return
+	}
+
 	if carr, ok := cc.carNames[carID]; ok {
 		carr.name = name
 		cc.carNames[carID] = carr

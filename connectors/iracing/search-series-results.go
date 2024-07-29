@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/data/results/searchseries"
 )
 
 const EventRace = 5
-const KamelSeriesID = 285
+const KamelSeriesID model.SeriesID = 285
 
 func (ir *IracingAPI) SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) ([]searchseries.SearchSeriesResult, error) {
 	queryParams := url.Values{}
