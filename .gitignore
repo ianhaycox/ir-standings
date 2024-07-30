@@ -19,3 +19,6 @@ coverage.out
 /shared_library/irstandings.dll
 /shared_library/irstandings.h
 /shared_library/irstandings.lib
+/windows/goir.dll
+/windows/goir.h
+/windows/goir.lib

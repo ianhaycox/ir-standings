@@ -38,6 +38,7 @@ SOFTWARE.
 #include "Config.h"
 #include "OverlayStandings.h"
 #include "OverlayDebug.h"
+#include "goir.h"
 
 enum class Hotkey
 {
@@ -119,7 +120,7 @@ int main()
 
     ConnectionStatus  status   = ConnectionStatus::UNKNOWN;
     bool              uiEdit   = false;
-    unsigned          frameCnt = 0;
+    unsigned          frameCnt = 1;
 
     while( true )
     {
@@ -149,7 +150,7 @@ int main()
 
         // Update/render overlays
         {
-            if( !g_cfg.getBool("General", "performance_mode_30hz", false) )
+            if( g_cfg.getBool("General", "refresh_every", false) )
             {
                 // Update everything every frame, roughly every 16ms (~60Hz)
                 for( Overlay* o : overlays )
@@ -158,15 +159,15 @@ int main()
             else
             {
                 // To save perf, update half of the (enabled) overlays on even frames and the other half on odd, for ~30Hz overall
-                int cnt = 0;
-                for( Overlay* o : overlays )
-                {
-                    if( o->isEnabled() )
-                        cnt++;
 
-                    if( (cnt & 1) == (frameCnt & 1) )
+                if (frameCnt % 600 == 0) {
+
+                    for( Overlay* o : overlays )
+                    {
                         o->update();
+                    }
                 }
+
             }
         }
 

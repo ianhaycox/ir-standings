@@ -71,28 +71,20 @@
     <ClInclude Include="irsdk\yaml_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="inputs.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="ddu.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="relative.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="standings.png">
-      <Filter>Resource Files</Filter>
-    </Image>
+    <ClInclude Include="goir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />
     <None Include="LICENSE" />
-    <None Include="README.md" />
     <None Include=".gitignore" />
+    <None Include="goir.dll" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sessionYaml.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="goir.lib" />
   </ItemGroup>
 </Project>
