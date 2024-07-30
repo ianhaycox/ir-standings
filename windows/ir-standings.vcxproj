@@ -90,6 +90,21 @@
     <ClInclude Include="picojson.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="ddu.png" />
+    <Image Include="inputs.png" />
+    <Image Include="relative.png" />
+    <Image Include="standings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="config.json" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="sessionYaml.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

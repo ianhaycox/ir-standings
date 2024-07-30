@@ -10,8 +10,12 @@ coverage.nomocks.out
 coverage.out
 
 .vscode/
+.vs/
 
 # Shared library
 /shared_library/client
 /shared_library/ir-standings.so
 /shared_library/ir-standings.h
+/shared_library/irstandings.dll
+/shared_library/irstandings.h
+/shared_library/irstandings.lib

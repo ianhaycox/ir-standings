@@ -72,4 +72,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="inputs.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ddu.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="relative.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="standings.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.json" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
+    <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="sessionYaml.txt" />
+  </ItemGroup>
 </Project>
