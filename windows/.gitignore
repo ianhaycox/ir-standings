@@ -1,0 +1,8 @@
+iron.vcxproj.user
+.vs/
+x64/
+Debug/
+Release/
+sessionYaml.txt
+config.json
+

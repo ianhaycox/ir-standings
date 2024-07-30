@@ -53,4 +53,5 @@ standalone:
 
 shared:
 	go build -o shared_library/ir-standings.so -buildmode=c-shared shared_library/main.go
+	go build -o shared_library/ir-standings.lib -buildmode=c-archive shared_library/main.go
 	gcc -g -o shared_library/client shared_library/client.c shared_library/ir-standings.so
