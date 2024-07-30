@@ -152,7 +152,7 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 			CustID:                  custID,
 			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(true, len(events)),
-			TieBreakFinishPositions: positions.TieBreakerPositions(true, c.countBestOf),
+			TieBreakFinishPositions: positions.TieBreakerPositions(false, len(events)),
 			CarNames:                strings.Join(c.carClasses.Names(positions.CarsDriven(true, c.countBestOf)), ","),
 			DriverName:              driver.DisplayName(),
 			Counted:                 positions.Counted(false, c.countBestOf),

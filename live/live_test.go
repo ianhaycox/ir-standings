@@ -47,7 +47,7 @@ func TestLive(t *testing.T) {
 			Track:        "new",
 			CountBestOf:  10,
 			CarClassID:   84,
-			TopN:         4,
+			TopN:         5,
 			Results: []live.LiveResults{
 				{CustID: 341977, FinishPositionInClass: 0, LapsComplete: 10, CarID: 77},
 				{CustID: 86672, FinishPositionInClass: 1, LapsComplete: 10, CarID: 77},

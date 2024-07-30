@@ -119,8 +119,10 @@ func predictResults(currentStandings, predictedStandings standings.ChampionshipS
 
 	predictedResult := make([]live.LiveStandings, 0, len(liveStandings))
 
-	for i := range liveStandings {
-		predictedResult = append(predictedResult, liveStandings[i])
+	for custID := range liveStandings {
+		ls := liveStandings[custID]
+		ls.Change = ls.CurrentPosition - ls.PredictedPosition
+		predictedResult = append(predictedResult, ls)
 	}
 
 	sort.SliceStable(predictedResult, func(i, j int) bool {
