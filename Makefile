@@ -14,6 +14,7 @@ install:
 ## test: run unit/mock tests
 test: generate
 	go test -v ./...
+	go build -o shared_library/ir-standings.so -buildmode=c-shared shared_library/main.go
 
 ## unit-test-only: run unit tests without any dependent step
 unit-test-only:
