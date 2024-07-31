@@ -51,29 +51,18 @@ enum class SessionType
 static const char* const SessionTypeStr[] = {"UNKNOWN","PRACTICE","QUALIFY","RACE"};
 
 struct Car
-{    
+{
     std::string     userName;
     int             carNumber = 0;
     int             carClassID = 0;
     std::string     carNumberStr;
-    std::string     licenseStr;
-    char            licenseChar = 'R';
-    float           licenseSR = 0;
-    std::string     licenseColStr;
-    float4          licenseCol = float4(0,0,0,1);
     int             irating = 0;
     int             isSelf = 0;
     int             isPaceCar = 0;
     int             isSpectator = 0;
     int             isBuddy = 0;
     int             isFlagged = 0;
-    int             incidentCount = 0;
-    float           carClassEstLapTime = 0;
-    int             practicePosition = 0;
-    int             qualPosition = 0;
-    float           qualTime = 0;
-    int             racePosition = 0;
-    int             lastLapInPits = 0;
+    int             racePositionInClass = 0; // In class
 };
 
 struct Session
@@ -83,16 +72,7 @@ struct Session
     int             driverCarIdx = -1;
     int             sof = 0;
     int             subsessionId = 0;
-    int             isFixedSetup = 0;
-    int             isUnlimitedTime = 0;
-    int             isUnlimitedLaps = 0;
-    float           fuelMaxLtr = 0;
-    float           rpmIdle = 0;
-    float           rpmRedline = 0;
-    float           rpmSLFirst = 0;
-    float           rpmSLShift = 0;
-    float           rpmSLLast = 0;
-    float           rpmSLBlink = 0;
+    int             sessionId = 0;
 };
 
 extern irsdkCVar ir_SessionTime;    // double[1] Seconds since session start (s)
@@ -395,18 +375,8 @@ ConnectionStatus ir_tick();
 // Let the session data tracking know that the config has changed.
 void ir_handleConfigChange();
 
-// Return whether we're in the process of getting in the car, waiting for others
-// to grid, or doing pace laps before the actual race start.
-bool ir_isPreStart();
-
-// Estimate time for a full lap.
-float ir_estimateLaptime();
-
 // Get the best known position, from the latest session we can find.
 int ir_getPosition( int carIdx );
-
-// Get lap delta to P0 car if available.
-int ir_getLapDeltaToLeader( int carIdx, int ldrIdx );
 
 // Print all the variables the sim supports.
 void ir_printVariables();

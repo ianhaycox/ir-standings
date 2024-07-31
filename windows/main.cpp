@@ -97,16 +97,16 @@ int main()
     registerHotkeys();
 
     printf("\n====================================================================================\n");
-    printf("Welcome to iRon! This app provides a few simple overlays for iRacing.\n\n");
-    printf("NOTE: Most overlays are only active when iRacing is running and the car is on track.\n\n");
+    printf("Welcome to ir Standings. This app provides a few simple overlays for iRacing.\n\n");
+    printf("Overlays are only active when iRacing is running a Race session.\n\n");
     printf("Current hotkeys:\n");
     printf("    Move and resize overlays:     %s\n", g_cfg.getString("General","ui_edit_hotkey","").c_str() );
     printf("    Toggle standings overlay:     %s\n", g_cfg.getString("OverlayStandings","toggle_hotkey","").c_str() );
-    printf("\niRon will generate a file called \'config.json\' in its current directory. This file\n"\
-           "stores your settings. You can edit the file at any time, even while iRon is running,\n"\
+    printf("\niR Standings will generate a file called \'config.json\' in its current directory. This file\n"\
+           "stores your settings. You can edit the file at any time, even while iR Standings is running,\n"\
            "to customize your overlays and hotkeys.\n\n");
-    printf("To exit iRon, simply close this console window.\n\n");
-    printf("For the latest version or to submit bug reports, go to:\n\n        https://github.com/lespalt/iRon\n\n");
+    printf("To exit iR Standings, simply close this console window.\n\n");
+    printf("For the latest version or to submit bug reports, go to:\n\n        https://github.com/ianhaycox/ir-standings\n\n");
     printf("\nHappy Racing!\n");
     printf("====================================================================================\n\n");
 
@@ -146,28 +146,18 @@ int main()
                 o->sessionChanged();
         }
 
-        dbg( "connection status: %s, session type: %s, session state: %d, pace mode: %d, on track: %d, flags: 0x%X", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt(), ir_PaceMode.getInt(), (int)ir_IsOnTrackCar.getBool(), ir_SessionFlags.getInt() );
+        dbg( "connection status: %s, session type: %s, session state: %d", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt());
 
         // Update/render overlays
         {
-            if( g_cfg.getBool("General", "refresh_every", false) )
-            {
-                // Update everything every frame, roughly every 16ms (~60Hz)
-                for( Overlay* o : overlays )
-                    o->update();
-            }
-            else
-            {
-                // To save perf, update half of the (enabled) overlays on even frames and the other half on odd, for ~30Hz overall
-
-                if (frameCnt % 600 == 0) {
-
+            int refresh = g_cfg.getInt("General", "refresh_every_n_frames", 600);
+                // To save performance
+                if (frameCnt % refresh == 0) {
                     for( Overlay* o : overlays )
                     {
                         o->update();
                     }
                 }
-
             }
         }
 
@@ -204,14 +194,14 @@ int main()
                         g_cfg.setBool( "OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings","enabled",true) );
                         break;
                     }
-                    
+
                     g_cfg.save();
                     handleConfigChange( overlays, status );
                 }
             }
 
             TranslateMessage(&msg);
-            DispatchMessage(&msg);            
+            DispatchMessage(&msg);
         }
 
         frameCnt++;

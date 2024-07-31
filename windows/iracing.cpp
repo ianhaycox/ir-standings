@@ -397,8 +397,8 @@ ConnectionStatus ir_tick()
         sprintf( path, "WeekendInfo:SubSessionID:" );
         parseYamlInt( sessionYaml, path, &ir_session.subsessionId );
 
-        sprintf( path, "WeekendInfo:WeekendOptions:IsFixedSetup:" );
-        parseYamlInt( sessionYaml, path, &ir_session.isFixedSetup );
+        sprintf( path, "WeekendInfo:SessionID:" );
+        parseYamlInt( sessionYaml, path, &ir_session.sessionId );
 
         // Current session type
         std::string sessionNameStr;
@@ -413,13 +413,6 @@ ConnectionStatus ir_tick()
 
         // Driver/car info
         parseYamlInt( sessionYaml, "DriverInfo:DriverCarIdx:", &ir_session.driverCarIdx );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarFuelMaxLtr:", &ir_session.fuelMaxLtr );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarIdleRPM:", &ir_session.rpmIdle );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarRedLine:", &ir_session.rpmRedline );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarSLFirstRPM:", &ir_session.rpmSLFirst );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarSLShiftRPM:", &ir_session.rpmSLShift );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarSLLastRPM:", &ir_session.rpmSLLast );
-        parseYamlFloat( sessionYaml, "DriverInfo:DriverCarSLBlinkRPM:", &ir_session.rpmSLBlink );
 
         // Per-Driver info
         for( int carIdx=0; carIdx<IR_MAX_CARS; ++carIdx )
@@ -448,52 +441,13 @@ ConnectionStatus ir_tick()
             sprintf(path, "DriverInfo:Drivers:CarIdx:{%d}CarClassID:", carIdx);
             parseYamlInt(sessionYaml, path, &car.carClassID);
 
-            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}LicString:", carIdx );
-            parseYamlStr( sessionYaml, path, car.licenseStr );
-            car.licenseChar = car.licenseStr.empty() ? 'R' : car.licenseStr[0];
-            const std::string SRstr = car.licenseStr.empty() ? "0" : std::string( car.licenseStr.begin()+1, car.licenseStr.end() );
-            car.licenseSR = (float)atof( SRstr.c_str() );
-
-            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}LicColor:", carIdx );
-            parseYamlStr( sessionYaml, path, car.licenseColStr );
-            unsigned licColHex = 0;
-            sscanf( car.licenseColStr.c_str(), "0x%x", &licColHex );
-            car.licenseCol.r = float((licColHex >> 16) & 0xff) / 255.f;
-            car.licenseCol.g = float((licColHex >>  8) & 0xff) / 255.f;
-            car.licenseCol.b = float((licColHex >>  0) & 0xff) / 255.f;
-            car.licenseCol.a = 1;
-
-            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}IRating:", carIdx );
-            parseYamlInt( sessionYaml, path, &car.irating );
-
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CarIsPaceCar:", carIdx );
             parseYamlInt( sessionYaml, path, &car.isPaceCar );
 
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}IsSpectator:", carIdx );
             parseYamlInt( sessionYaml, path, &car.isSpectator );
 
-            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CurDriverIncidentCount:", carIdx );
-            parseYamlInt( sessionYaml, path, &car.incidentCount );
-
-            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CarClassEstLapTime:", carIdx );
-            parseYamlFloat( sessionYaml, path, &car.carClassEstLapTime );
-
-            car.practicePosition = 0;
-            car.qualPosition = 0;
-            car.racePosition = 0;
-        }
-
-        // Qualifying results info
-        for( int pos=0; pos<IR_MAX_CARS; ++pos )
-        {
-            sprintf( path, "QualifyResultsInfo:Results:Position:{%d}CarIdx:", pos );
-            int carIdx = -1;
-            if( parseYamlInt( sessionYaml, path, &carIdx ) ) {
-                ir_session.cars[carIdx].qualPosition = pos + 1;
-
-                sprintf( path, "QualifyResultsInfo:Results:Position:{%d}FastestTime:", pos );
-                parseYamlFloat( sessionYaml, path, &ir_session.cars[carIdx].qualTime );
-            }
+            car.racePositionInClass = 0;
         }
 
         // Session info (may override qual results from above, but that's ok since hopefully they're the same!)
@@ -504,32 +458,19 @@ ConnectionStatus ir_tick()
             if( !parseYamlStr( sessionYaml, path, sessionNameStr ) )
                 break;
 
-            std::string str;
-            sprintf( path, "SessionInfo:Sessions:SessionNum:{%d}SessionTime:", session );
-            parseYamlStr( sessionYaml, path, str );
-            ir_session.isUnlimitedTime = int( str=="unlimited" );
-
-            sprintf( path, "SessionInfo:Sessions:SessionNum:{%d}SessionLaps:", session );
-            parseYamlStr( sessionYaml, path, str );
-            ir_session.isUnlimitedLaps = int( str=="unlimited" );
-
             for( int pos=1; pos<IR_MAX_CARS+1; ++pos )
             {
                 int carIdx = -1;
-                sprintf( path, "SessionInfo:Sessions:SessionNum:{%d}ResultsPositions:Position:{%d}CarIdx:", session, pos );
+                sprintf( path, "SessionInfo:Sessions:SessionNum:{%d}ResultsPositions:ClassPosition:{%d}CarIdx:", session, pos );
                 if( parseYamlInt( sessionYaml, path, &carIdx ) )
                 {
-                    if( sessionNameStr == "PRACTICE" )
-                        ir_session.cars[carIdx].practicePosition = pos;
-                    else if( sessionNameStr == "QUALIFY" )
-                        ir_session.cars[carIdx].qualPosition = pos;
-                    else if( sessionNameStr == "RACE" )
-                        ir_session.cars[carIdx].racePosition = pos;
+                    if( sessionNameStr == "RACE" )
+                        ir_session.cars[carIdx].racePositionInClass = pos;
                 }
             }
         }
 
-        // SoF
+        // SoF - TODO Per Car Class
         double sof = 0;
         int cnt = 0;
         for( int i=0; i<IR_MAX_CARS; ++i )
@@ -548,18 +489,7 @@ ConnectionStatus ir_tick()
 
     } // if session string updated
 
-    // Track cars in pits. Reset every time we're in the 'warmup' phase (just before starting pace laps).
-    const bool resetPitAge = ir_SessionState.getInt() == irsdk_StateWarmup;
-    for( int carIdx=0; carIdx<IR_MAX_CARS; ++carIdx )
-    {
-        Car& car = ir_session.cars[carIdx];
-        if( resetPitAge )
-            car.lastLapInPits = 0;
-        if( ir_SessionState.getInt() >= 0 /* work around getting garbage sometimes (?) */ && ir_CarIdxOnPitRoad.getBool(carIdx) )
-            car.lastLapInPits = ir_CarIdxLap.getInt(carIdx);
-    }
-
-    // Check for both ir_IsOnTrack and ir_IsOnTrackCar, because I've seen iRacing report true for ir_IsOnTrack 
+    // Check for both ir_IsOnTrack and ir_IsOnTrackCar, because I've seen iRacing report true for ir_IsOnTrack
     // (for just a short time) even when we're not in the car in a practice session. Checking both does seem
     // to address that.
     return (ir_IsOnTrack.getBool() && ir_IsOnTrackCar.getBool()) ? ConnectionStatus::DRIVING : ConnectionStatus::CONNECTED;
@@ -588,23 +518,6 @@ void ir_handleConfigChange()
     }
 }
 
-bool ir_isPreStart()
-{
-    // To find out whether we're pacing, it isn't enough to check ir_PaceMode, because
-    // iRacing doesn't set it to irsdk_PaceModeNotPacing as one would expect. So in addition we check
-    // the session state, since initial pacing apparently counts as "parade laps".
-    return (ir_PaceMode.getInt() == irsdk_PaceModeSingleFileStart || ir_PaceMode.getInt() == irsdk_PaceModeDoubleFileStart) &&
-           (ir_SessionState.getInt() == irsdk_StateParadeLaps || ir_SessionState.getInt() == irsdk_StateWarmup || ir_SessionState.getInt() == irsdk_StateGetInCar);
-}
-
-float ir_estimateLaptime()
-{
-    float best = ir_LapBestLapTime.getFloat();
-    if( best > 0 )
-        return best;
-    return ir_session.cars[ir_session.driverCarIdx].carClassEstLapTime;
-}
-
 int ir_getPosition( int carIdx )
 {
     // Try the different sources we have for position data, in descending order of importance
@@ -612,44 +525,11 @@ int ir_getPosition( int carIdx )
     if( pos > 0 )
         return pos;
 
-    pos = ir_session.cars[carIdx].racePosition;
-    if( pos > 0 )
-        return pos;
-
-    pos = ir_session.cars[carIdx].qualPosition;
-    if( pos > 0 )
-        return pos;
-
-    pos = ir_session.cars[carIdx].practicePosition;
+    pos = ir_session.cars[carIdx].racePositionInClass;
     if( pos > 0 )
         return pos;
 
     return 0;
-}
-
-int ir_getLapDeltaToLeader( int carIdx, int ldrIdx )
-{
-    if( ir_session.sessionType!=SessionType::RACE || ir_isPreStart() || carIdx < 0 || ldrIdx < 0 )
-        return 0;
-
-    const int carLapCount = std::max( ir_CarIdxLap.getInt(carIdx), ir_CarIdxLapCompleted.getInt(carIdx) );
-    const int ldrLapCount = std::max( ir_CarIdxLap.getInt(ldrIdx), ir_CarIdxLapCompleted.getInt(ldrIdx) );
-
-   // if( carLapCount < 0 )
-     //   return ir_CarIdxLapCompleted.getInt(carIdx) - ir_CarIdxLapCompleted.getInt(ldrIdx);
-
-    const float carPctAroundLap = ir_CarIdxLapDistPct.getFloat( carIdx );
-    const float ldrPctAroundLap = ir_CarIdxLapDistPct.getFloat( ldrIdx );
-
-    if( carPctAroundLap < 0 || ldrPctAroundLap < 0 )
-        return 0;
-
-    int lapDelta = carLapCount - ldrLapCount;
-
-    if( carPctAroundLap > ldrPctAroundLap )
-        lapDelta += 1;
-
-    return lapDelta;
 }
 
 void ir_printVariables()

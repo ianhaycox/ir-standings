@@ -2,8 +2,9 @@ package main
 
 import (
 	"C"
+
+	"github.com/ianhaycox/ir-standings/live"
 )
-import "github.com/ianhaycox/ir-standings/live"
 
 //export LiveStandings
 func LiveStandings(jsonLivePositions string) (*C.char, int) {

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "Overlay.h"
 #include "Config.h"
 #include "OverlayDebug.h"
+#include "live.h"
 
 class OverlayStandings : public Overlay
 {
@@ -35,7 +36,7 @@ public:
 
     const float DefaultFontSize = 15;
 
-    enum class Columns { CURRENT_STANDING, POSITION, CAR_NUMBER, NAME, EXPECTED_STANDING };
+    enum class Columns { CURRENT_STANDING, POSITION, CAR_NUMBER, NAME, EXPECTED_STANDING, CHANGE };
 
     OverlayStandings(const int selectedClassID)
         : Overlay("OverlayStandings" + std::to_string(selectedClassID))
@@ -86,6 +87,7 @@ protected:
         struct CarInfo {
             int     carIdx = 0;
             int     position = 0;
+            int     change = 0;
         };
         std::vector<CarInfo> carInfo;
         carInfo.reserve( IR_MAX_CARS );
@@ -104,6 +106,12 @@ protected:
 
             carInfo.push_back( ci );
         }
+
+        Live l = new Live(m_selectedClassID);
+
+        LivePositions lp;
+
+        ls = l.LatestStandings(lp);
 
         // Sort by position
         std::sort( carInfo.begin(), carInfo.end(),
@@ -161,6 +169,10 @@ protected:
         swprintf(s, _countof(s), L"Exp.");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
+        clm = m_columns.get((int)Columns::CHANGE);
+        swprintf(s, _countof(s), L"+/-");
+        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+
         // Content
         for( int i=0; i<(int)carInfo.size(); ++i )
         {
@@ -187,7 +199,7 @@ protected:
             float4 textCol = car.isSelf ? selfCol : (car.isBuddy ? buddyCol : (car.isFlagged?flaggedCol:otherCarCol));
             if( isGone )
                 textCol.a *= 0.5f;
-            
+
             {
                 clm = m_columns.get((int)Columns::CURRENT_STANDING);
                 m_brush->SetColor(textCol);
@@ -233,8 +245,14 @@ protected:
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
             }
 
+            {
+                clm = m_columns.get((int)Columns::CHANGE);
+                m_brush->SetColor(textCol);
+                swprintf(s, _countof(s), L"%d", ci.change);
+                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+            }
         }
-        
+
         // Footer
         {
             float trackTemp = ir_TrackTempCrew.getFloat();
@@ -249,7 +267,7 @@ protected:
 
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"SoF: %d      Track Temp: %.1f°%c      Air Temp: %.1f°%c      Setup: %s      Subsession: %d", ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.isFixedSetup?L"fixed":L"open", ir_session.subsessionId );
+            swprintf( s, _countof(s), L"SoF: %d      Track Temp: %.1fï¿½%c      Air Temp: %.1fï¿½%c      Subsession: %d", ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.subsessionId );
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
             m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
