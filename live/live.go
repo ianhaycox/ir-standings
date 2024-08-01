@@ -24,64 +24,64 @@ var (
 		1: {14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 		2: {9, 6, 4, 3, 2, 1},
 	}
-	ps               = points.NewPointsStructure(pointsPerSplit)
-	current          *championship.Championship
-	currentResults   = make([]results.Result, 0)
-	currentStandings standings.ChampionshipStandings
+	ps                = points.NewPointsStructure(pointsPerSplit)
+	previous          *championship.Championship
+	previousResults   = make([]results.Result, 0)
+	previousStandings standings.ChampionshipStandings
 )
 
-func Live(jsonLivePositions string) (string, error) {
-	var livePositions live.LivePositions
+func Live(jsonCurrentPositions string) (string, error) {
+	var currentPositions live.LiveResults
 
-	err := json.Unmarshal([]byte(jsonLivePositions), &livePositions)
+	err := json.Unmarshal([]byte(jsonCurrentPositions), &currentPositions)
 	if err != nil {
 		return "", fmt.Errorf("malformed request %w", err)
 	}
 
-	if current == nil {
+	if previous == nil {
 		buf, err := os.ReadFile("/home/ian/2024-3-285-results.json")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = json.Unmarshal(buf, &currentResults)
+		err = json.Unmarshal(buf, &previousResults)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		current = championship.NewChampionship(model.SeriesID(livePositions.SeriesID), nil, ps, livePositions.CountBestOf)
-		current.LoadRaceData(currentResults)
-		currentStandings = current.Standings(model.CarClassID(livePositions.CarClassID))
+		previous = championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
+		previous.LoadRaceData(previousResults)
+		previousStandings = previous.Standings(model.CarClassID(currentPositions.CarClassID))
 	}
 
-	liveResults := make([]results.Result, 0, len(currentResults))
-	liveResults = append(liveResults, currentResults...)
+	liveResults := make([]results.Result, 0, len(previousResults))
+	liveResults = append(liveResults, previousResults...)
 
 	liveResults = append(liveResults, results.Result{
-		SessionID:     livePositions.SessionID,
-		SubsessionID:  livePositions.SubsessionID,
-		SeriesID:      livePositions.SeriesID,
-		SessionSplits: []results.SessionSplits{{SubsessionID: livePositions.SubsessionID}},
+		SessionID:     currentPositions.SessionID,
+		SubsessionID:  currentPositions.SubsessionID,
+		SeriesID:      currentPositions.SeriesID,
+		SessionSplits: []results.SessionSplits{{SubsessionID: currentPositions.SubsessionID}},
 		StartTime:     time.Now().UTC(),
 		Track:         results.ResultTrack{TrackID: 1, TrackName: "track"},
 		SessionResults: []results.SessionResults{
 			{
 				SimsessionName: "RACE",
-				Results:        buildResults(livePositions.CarClassID, livePositions.Results),
+				Results:        buildResults(currentPositions.CarClassID, currentPositions.Positions),
 			},
 		},
 	})
 
-	predicted := championship.NewChampionship(model.SeriesID(livePositions.SeriesID), nil, ps, livePositions.CountBestOf)
+	predicted := championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
 
 	predicted.LoadRaceData(liveResults)
-	predicted.SetCarClasses(current.CarClasses())
+	predicted.SetCarClasses(previous.CarClasses())
 
-	predictedStandings := predicted.Standings(model.CarClassID(livePositions.CarClassID))
+	predictedStandings := predicted.Standings(model.CarClassID(currentPositions.CarClassID))
 
-	predictedResult := predictResults(currentStandings, predictedStandings)
+	provisionalChampionship := provisionalTable(previousStandings, predictedStandings)
 
-	jsonResult, err := json.MarshalIndent(predictedResult[:livePositions.TopN], "", "  ")
+	jsonResult, err := json.MarshalIndent(provisionalChampionship[:currentPositions.TopN], "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("can not build response, %w", err)
 	}
@@ -89,11 +89,12 @@ func Live(jsonLivePositions string) (string, error) {
 	return string(jsonResult), nil
 }
 
-func predictResults(currentStandings, predictedStandings standings.ChampionshipStandings) []live.LiveStandings {
-	liveStandings := make(map[model.CustID]live.LiveStandings)
+// provisionalTable calculate change between current and predicted championship tables for the Windows overlay
+func provisionalTable(currentStandings, predictedStandings standings.ChampionshipStandings) []live.PredictedStanding {
+	mergedStandings := make(map[model.CustID]live.PredictedStanding)
 
 	for _, entry := range currentStandings.Table {
-		liveStandings[entry.CustID] = live.LiveStandings{
+		mergedStandings[entry.CustID] = live.PredictedStanding{
 			CurrentPosition: int(entry.Position),
 			DriverName:      entry.DriverName,
 			CurrentPoints:   int(entry.DroppedRoundPoints),
@@ -101,15 +102,16 @@ func predictResults(currentStandings, predictedStandings standings.ChampionshipS
 	}
 
 	for _, entry := range predictedStandings.Table {
-		if _, ok := liveStandings[entry.CustID]; ok {
-			ls := liveStandings[entry.CustID]
+		if _, ok := mergedStandings[entry.CustID]; ok {
+			ls := mergedStandings[entry.CustID]
 
 			ls.PredictedPoints = int(entry.DroppedRoundPoints)
 			ls.PredictedPosition = int(entry.Position)
+			ls.CarNumber = entry.CarNumber
 
-			liveStandings[entry.CustID] = ls
+			mergedStandings[entry.CustID] = ls
 		} else {
-			liveStandings[entry.CustID] = live.LiveStandings{
+			mergedStandings[entry.CustID] = live.PredictedStanding{
 				PredictedPosition: int(entry.Position),
 				DriverName:        entry.DriverName,
 				PredictedPoints:   int(entry.DroppedRoundPoints),
@@ -117,10 +119,10 @@ func predictResults(currentStandings, predictedStandings standings.ChampionshipS
 		}
 	}
 
-	predictedResult := make([]live.LiveStandings, 0, len(liveStandings))
+	predictedResult := make([]live.PredictedStanding, 0, len(mergedStandings))
 
-	for custID := range liveStandings {
-		ls := liveStandings[custID]
+	for custID := range mergedStandings {
+		ls := mergedStandings[custID]
 		ls.Change = ls.CurrentPosition - ls.PredictedPosition
 		predictedResult = append(predictedResult, ls)
 	}
@@ -132,7 +134,7 @@ func predictResults(currentStandings, predictedStandings standings.ChampionshipS
 	return predictedResult
 }
 
-func buildResults(carClassID int, liveResults []live.LiveResults) []results.Results {
+func buildResults(carClassID int, liveResults []live.CurrentPosition) []results.Results {
 	res := make([]results.Results, 0, len(liveResults))
 
 	for _, lr := range liveResults {

@@ -394,11 +394,24 @@ ConnectionStatus ir_tick()
         char path[256];
 
         // Weekend info
+        sprintf( path, "WeekendInfo:SeriesID:" );
+        parseYamlInt( sessionYaml, path, &ir_session.seriesId );
+
         sprintf( path, "WeekendInfo:SubSessionID:" );
         parseYamlInt( sessionYaml, path, &ir_session.subsessionId );
 
         sprintf( path, "WeekendInfo:SessionID:" );
         parseYamlInt( sessionYaml, path, &ir_session.sessionId );
+
+        sprintf( path, "WeekendInfo:TrackDisplayName:" );
+        std::string trackDisplayName;
+        parseYamlStr( sessionYaml, path, trackDisplayName );
+
+        sprintf( path, "WeekendInfo:TrackConfigName:" );
+        std::string trackConfigName;
+        parseYamlStr( sessionYaml, path, trackDisplayName );
+
+        ir_session.trackName = trackDisplayName + " " + trackConfigName;
 
         // Current session type
         std::string sessionNameStr;
@@ -446,6 +459,9 @@ ConnectionStatus ir_tick()
 
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}IsSpectator:", carIdx );
             parseYamlInt( sessionYaml, path, &car.isSpectator );
+
+            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}UserID:", carIdx );
+            parseYamlInt( sessionYaml, path, &car.custID );
 
             car.racePositionInClass = 0;
         }

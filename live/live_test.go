@@ -11,7 +11,7 @@ import (
 
 func TestLive(t *testing.T) {
 	t.Run("New standing each lap", func(t *testing.T) {
-		livePositions := live.LivePositions{
+		livePositions := live.LiveResults{
 			SeriesID:     285,
 			SessionID:    999,
 			SubsessionID: 123,
@@ -19,7 +19,7 @@ func TestLive(t *testing.T) {
 			CountBestOf:  10,
 			CarClassID:   84,
 			TopN:         4,
-			Results: []live.LiveResults{
+			Positions: []live.CurrentPosition{
 				{CustID: 341977, FinishPositionInClass: 3, LapsComplete: 10, CarID: 77},
 				{CustID: 86672, FinishPositionInClass: 2, LapsComplete: 10, CarID: 77},
 				{CustID: 667693, FinishPositionInClass: 1, LapsComplete: 10, CarID: 77},
@@ -35,12 +35,12 @@ func TestLive(t *testing.T) {
 
 		fmt.Println(s)
 
-		var prediction1 []live.LivePositions
+		var prediction1 []live.LiveResults
 
 		err = json.Unmarshal([]byte(s), &prediction1)
 		assert.NoError(t, err)
 
-		livePositions2 := live.LivePositions{
+		livePositions2 := live.LiveResults{
 			SeriesID:     285,
 			SessionID:    888,
 			SubsessionID: 321,
@@ -48,7 +48,7 @@ func TestLive(t *testing.T) {
 			CountBestOf:  10,
 			CarClassID:   84,
 			TopN:         5,
-			Results: []live.LiveResults{
+			Positions: []live.CurrentPosition{
 				{CustID: 341977, FinishPositionInClass: 0, LapsComplete: 10, CarID: 77},
 				{CustID: 86672, FinishPositionInClass: 1, LapsComplete: 10, CarID: 77},
 				{CustID: 667693, FinishPositionInClass: 2, LapsComplete: 10, CarID: 77},
@@ -64,7 +64,7 @@ func TestLive(t *testing.T) {
 
 		fmt.Println(s)
 
-		var prediction2 []live.LivePositions
+		var prediction2 []live.LiveResults
 
 		err = json.Unmarshal([]byte(s), &prediction2)
 		assert.NoError(t, err)

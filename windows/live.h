@@ -3,31 +3,32 @@
 #include <string>
 #include <vector>
 
-struct LivePositions {
-	int SeriesID;
-	int SessionID;
-	int SubsessionID;
-	std::string Track;
-	int CountBestOf;
-	int CarClassID;
-	int TopN;
-	std::vector<LiveResults> Results;
-};
-
 struct LiveResults {
-	int CustID;
-	int FinishPositionInClass;
-	int LapsComplete;
-	int CarID;
+	int seriesID;                              // "series_id"
+	int sessionID;                             // "session_id"
+	int subsessionID;                          // "subsession_id"
+	std::string track;                         // "track"
+	int countBestOf;                           // "count_best_of"
+	int carClassID;                            // "car_class_id"
+	int topN;                                  // "top_n"
+	std::vector<CurrentPosition> positions;   // "positions"
 };
 
-struct LiveStandings {
-	std::string DriverName;
-	int         CurrentPosition;
-	int         PredictedPosition;
-	int         CurrentPoints;
-	int         PredictedPoints;
-	int         Change;
+struct CurrentPosition {
+	int custID;                       // "cust_id"
+	int finishPositionInClass;        // "finish_position_in_class"
+	int lapsComplete;                 // "laps_complete"
+	int carID;                        // "car_id"
+};
+
+struct PredictedStanding {
+	std::string driverName;           // "driver_name"
+	std::string carNumber;            // "car_number"
+	int         currentPosition;      // "current_position"
+	int         predictedPosition;    // "predicted_position"
+	int         currentPoints;        // "current_points"
+	int         predictedPoints;      // "predicted_points"
+	int         change;               // "change"
 };
 
 
@@ -38,7 +39,7 @@ public:
         m_selectedClassID = selectedClassID;
     }
 
-    std::vector<LiveStandings> LatestStandings(LivePositions lp);
+    std::vector<struct PredictedStanding> LatestStandings(LiveResults lr);
 
 private:
     int m_selectedClassID;

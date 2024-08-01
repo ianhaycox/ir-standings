@@ -35,6 +35,7 @@ type ChampionshipTable struct {
 	TieBreakFinishPositions []TieBreaker // then: higher number of better positions., i.e. promote drivre with more 1st, then 2nd, etc.
 	Counted                 int
 	TotalLaps               model.LapsComplete
+	CarNumber               string
 }
 
 func (cs ChampionshipStandings) orderedBy(less ...lessFunc) *multiSorter {

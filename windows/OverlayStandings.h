@@ -42,6 +42,7 @@ public:
         : Overlay("OverlayStandings" + std::to_string(selectedClassID))
     {
         m_selectedClassID = selectedClassID;
+        m_name = "OverlayStandings" + std::to_string(selectedClassID);
     }
 
 protected:
@@ -103,23 +104,37 @@ protected:
             CarInfo ci;
             ci.carIdx       = i;
             ci.position     = ir_getPosition(i);
+            ci.lapsComplete = ir_CarIdxLapCompleted.getInt(i);
 
             carInfo.push_back( ci );
         }
 
         Live l = new Live(m_selectedClassID);
 
-        LivePositions lp;
+        struct LiveResults lr;
+        lr.seriesID = ir_session.seriesId;
+        lr.sessionID = ir_session.sessionId;
+        lr.subsessionID = ir_session.subsessionId;
+        lr.track = ir_session.trackName;
+        lr.countBestOf = g_cfg.getInt(m_name, "count_best_of", 12);
+        lr.carClassID = m_selectedClassID;
+        lr.topN = g_cfg.getInt(m_name, "top_n", 8);
 
-        ls = l.LatestStandings(lp);
+        for (int i = 0; i<carInfo.size(); ++i) {
+            struct CurrentPosition cp;
 
-        // Sort by position
-        std::sort( carInfo.begin(), carInfo.end(),
-            []( const CarInfo& a, const CarInfo& b ) {
-                const int ap = a.position<=0 ? INT_MAX : a.position;
-                const int bp = b.position<=0 ? INT_MAX : b.position;
-                return ap < bp;
-            } );
+            const Car&  car = ir_session.cars[carInfo[i].carIdx];
+
+            cp.carID = car.carID;
+            cp.finishPositionInClass = carInfo[i].position;
+            cp.lapsComplete = carInfo[i].lapsComplete;
+            cp.custID = car.custID;
+
+            lr.positions.push_back(cp);
+        }
+
+
+        predictedStandings = l.LatestStandings(lr);
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );
@@ -174,7 +189,7 @@ protected:
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         // Content
-        for( int i=0; i<(int)carInfo.size(); ++i )
+        for( int i=0; i<predictedStandings.size(); ++i )
         {
             y = 2*yoff + lineHeight/2 + (i+1)*lineHeight;
 
@@ -189,37 +204,17 @@ protected:
                 m_renderTarget->FillRectangle( &r, m_brush.Get() );
             }
 
-            const CarInfo&  ci  = carInfo[i];
-            const Car&      car = ir_session.cars[ci.carIdx];
-
-            // Dim color if player is disconnected.
-            // TODO: this isn't 100% accurate, I think, because a car might be "not in world" while the player
-            // is still connected? I haven't been able to find a better way to do this, though.
-            const bool isGone = !car.isSelf && ir_CarIdxTrackSurface.getInt(ci.carIdx) == irsdk_NotInWorld;
-            float4 textCol = car.isSelf ? selfCol : (car.isBuddy ? buddyCol : (car.isFlagged?flaggedCol:otherCarCol));
-            if( isGone )
-                textCol.a *= 0.5f;
-
             {
-                clm = m_columns.get((int)Columns::CURRENT_STANDING);
+                clm = m_columns.get((int)Columns::EXPECTED_STANDING);
                 m_brush->SetColor(textCol);
-                swprintf(s, _countof(s), L"P%d", car.carClassID);
+                swprintf(s, _countof(s), L"P%d", predictedStandings[i].predictedPosition);
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-            }
-
-            // Position
-            if( ci.position > 0 )
-            {
-                clm = m_columns.get( (int)Columns::POSITION );
-                m_brush->SetColor( textCol );
-                swprintf( s, _countof(s), L"P%d", ci.position );
-                m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
             }
 
             // Car number
             {
                 clm = m_columns.get( (int)Columns::CAR_NUMBER );
-                swprintf( s, _countof(s), L"#%S", car.carNumberStr.c_str() );
+                swprintf( s, _countof(s), L"#%S", predictedStandings[i].carNumber );
                 r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                 rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
                 rr.radiusX = 3;
@@ -234,21 +229,21 @@ protected:
             {
                 clm = m_columns.get( (int)Columns::NAME );
                 m_brush->SetColor( textCol );
-                swprintf( s, _countof(s), L"%S", car.userName.c_str() );
+                swprintf( s, _countof(s), L"%S", predictedStandings[i].driverName );
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 
             {
-                clm = m_columns.get((int)Columns::EXPECTED_STANDING);
+                clm = m_columns.get((int)Columns::CURRENT_STANDING);
                 m_brush->SetColor(textCol);
-                swprintf(s, _countof(s), L"P%d", ci.position);
+                swprintf(s, _countof(s), L"P%d", predictedStandings[i].currentPosition);
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
             }
 
             {
                 clm = m_columns.get((int)Columns::CHANGE);
                 m_brush->SetColor(textCol);
-                swprintf(s, _countof(s), L"%d", ci.change);
+                swprintf(s, _countof(s), L"%d", predictedStandings[i].change);
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
             }
         }

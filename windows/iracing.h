@@ -63,6 +63,7 @@ struct Car
     int             isBuddy = 0;
     int             isFlagged = 0;
     int             racePositionInClass = 0; // In class
+    int             custID = 0;
 };
 
 struct Session
@@ -71,8 +72,10 @@ struct Session
     Car             cars[IR_MAX_CARS];
     int             driverCarIdx = -1;
     int             sof = 0;
-    int             subsessionId = 0;
     int             sessionId = 0;
+    int             subsessionId = 0;
+    int             seriesId = 0;
+    std::string     trackName;
 };
 
 extern irsdkCVar ir_SessionTime;    // double[1] Seconds since session start (s)
