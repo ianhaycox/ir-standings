@@ -122,81 +122,80 @@ int main()
     bool              uiEdit   = false;
     unsigned          frameCnt = 1;
 
-    while( true )
+    while (true)
     {
-        ConnectionStatus prevStatus       = status;
-        SessionType      prevSessionType  = ir_session.sessionType;
+        ConnectionStatus prevStatus = status;
+        SessionType      prevSessionType = ir_session.sessionType;
 
         // Refresh connection and session info
         status = ir_tick();
-        if( status != prevStatus )
+        if (status != prevStatus)
         {
-            if( status == ConnectionStatus::DISCONNECTED )
+            if (status == ConnectionStatus::DISCONNECTED)
                 printf("Waiting for iRacing connection...\n");
             else
                 printf("iRacing connected (%s)\n", ConnectionStatusStr[(int)status]);
 
             // Enable user-selected overlays, but only if we're driving
-            handleConfigChange( overlays, status );
+            handleConfigChange(overlays, status);
         }
 
-        if( ir_session.sessionType != prevSessionType )
+        if (ir_session.sessionType != prevSessionType)
         {
-            for( Overlay* o : overlays )
+            for (Overlay* o : overlays)
                 o->sessionChanged();
         }
 
-        dbg( "connection status: %s, session type: %s, session state: %d", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt());
+        dbg("connection status: %s, session type: %s, session state: %d", ConnectionStatusStr[(int)status], SessionTypeStr[(int)ir_session.sessionType], ir_SessionState.getInt());
 
         // Update/render overlays
         {
             int refresh = g_cfg.getInt("General", "refresh_every_n_frames", 600);
-                // To save performance
-                if (frameCnt % refresh == 0) {
-                    for( Overlay* o : overlays )
-                    {
-                        o->update();
-                    }
+            // To save performance
+            if (frameCnt % refresh == 0) {
+                for (Overlay* o : overlays)
+                {
+                    o->update();
                 }
             }
         }
 
         // Watch for config change signal
-        if( g_cfg.hasChanged() )
+        if (g_cfg.hasChanged())
         {
             g_cfg.load();
-            handleConfigChange( overlays, status );
+            handleConfigChange(overlays, status);
         }
 
         // Message pump
         MSG msg = {};
-        while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
             // Handle hotkeys
-            if( msg.message == WM_HOTKEY )
+            if (msg.message == WM_HOTKEY)
             {
-                if( msg.wParam == (int)Hotkey::UiEdit )
+                if (msg.wParam == (int)Hotkey::UiEdit)
                 {
                     uiEdit = !uiEdit;
-                    for( Overlay* o : overlays )
-                        o->enableUiEdit( uiEdit );
+                    for (Overlay* o : overlays)
+                        o->enableUiEdit(uiEdit);
 
                     // When we're exiting edit mode, attempt to make iRacing the foreground window again for best perf
                     // without the user having to manually click into iRacing.
-                    if( !uiEdit )
+                    if (!uiEdit)
                         giveFocusToIracing();
                 }
                 else
                 {
-                    switch( msg.wParam )
+                    switch (msg.wParam)
                     {
                     case (int)Hotkey::Standings:
-                        g_cfg.setBool( "OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings","enabled",true) );
+                        g_cfg.setBool("OverlayStandings", "enabled", !g_cfg.getBool("OverlayStandings", "enabled", true));
                         break;
                     }
 
                     g_cfg.save();
-                    handleConfigChange( overlays, status );
+                    handleConfigChange(overlays, status);
                 }
             }
 
@@ -205,7 +204,7 @@ int main()
         }
 
         frameCnt++;
-    }
+    };
 
     for( Overlay* o : overlays )
         delete o;

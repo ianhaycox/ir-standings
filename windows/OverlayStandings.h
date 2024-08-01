@@ -89,6 +89,7 @@ protected:
             int     carIdx = 0;
             int     position = 0;
             int     change = 0;
+            int     lapsComplete = 0;
         };
         std::vector<CarInfo> carInfo;
         carInfo.reserve( IR_MAX_CARS );
@@ -109,7 +110,7 @@ protected:
             carInfo.push_back( ci );
         }
 
-        Live l = new Live(m_selectedClassID);
+        Live l = Live::Live(m_selectedClassID);
 
         struct LiveResults lr;
         lr.seriesID = ir_session.seriesId;
@@ -134,7 +135,7 @@ protected:
         }
 
 
-        predictedStandings = l.LatestStandings(lr);
+        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(lr);
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );
@@ -188,6 +189,8 @@ protected:
         swprintf(s, _countof(s), L"+/-");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
+        float4 textCol = otherCarCol;
+
         // Content
         for( int i=0; i<predictedStandings.size(); ++i )
         {
@@ -214,7 +217,7 @@ protected:
             // Car number
             {
                 clm = m_columns.get( (int)Columns::CAR_NUMBER );
-                swprintf( s, _countof(s), L"#%S", predictedStandings[i].carNumber );
+                swprintf( s, _countof(s), L"#%S", predictedStandings[i].carNumber.c_str() );
                 r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                 rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
                 rr.radiusX = 3;
@@ -229,7 +232,7 @@ protected:
             {
                 clm = m_columns.get( (int)Columns::NAME );
                 m_brush->SetColor( textCol );
-                swprintf( s, _countof(s), L"%S", predictedStandings[i].driverName );
+                swprintf( s, _countof(s), L"%S", predictedStandings[i].driverName.c_str() );
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
             }
 

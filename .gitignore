@@ -16,9 +16,8 @@ coverage.out
 /shared_library/client
 /shared_library/ir-standings.so
 /shared_library/ir-standings.h
-/shared_library/irstandings.dll
-/shared_library/irstandings.h
-/shared_library/irstandings.lib
+/shared_library/ir-standings.dll
+/shared_library/ir-standings.lib
 /windows/goir.dll
 /windows/goir.h
 /windows/goir.lib

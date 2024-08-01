@@ -64,6 +64,7 @@ struct Car
     int             isFlagged = 0;
     int             racePositionInClass = 0; // In class
     int             custID = 0;
+    int             carID = 0;
 };
 
 struct Session

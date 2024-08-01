@@ -3,6 +3,13 @@
 #include <string>
 #include <vector>
 
+struct CurrentPosition {
+	int custID;                       // "cust_id"
+	int finishPositionInClass;        // "finish_position_in_class"
+	int lapsComplete;                 // "laps_complete"
+	int carID;                        // "car_id"
+};
+
 struct LiveResults {
 	int seriesID;                              // "series_id"
 	int sessionID;                             // "session_id"
@@ -12,13 +19,6 @@ struct LiveResults {
 	int carClassID;                            // "car_class_id"
 	int topN;                                  // "top_n"
 	std::vector<CurrentPosition> positions;   // "positions"
-};
-
-struct CurrentPosition {
-	int custID;                       // "cust_id"
-	int finishPositionInClass;        // "finish_position_in_class"
-	int lapsComplete;                 // "laps_complete"
-	int carID;                        // "car_id"
 };
 
 struct PredictedStanding {

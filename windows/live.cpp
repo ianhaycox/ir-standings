@@ -25,7 +25,7 @@ SOFTWARE.
 #pragma once
 
 #include <string>
-#include "ir-standings.h"
+#include "goir.h"
 #include "picojson.h"
 #include "live.h"
 
