@@ -39,7 +39,7 @@ public:
         m_selectedClassID = selectedClassID;
     }
 
-    std::vector<struct PredictedStanding> LatestStandings(LiveResults lr);
+    std::vector<struct PredictedStanding> LatestStandings(std::string filename, LiveResults lr);
 
 private:
     int m_selectedClassID;

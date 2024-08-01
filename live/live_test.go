@@ -11,6 +11,8 @@ import (
 
 func TestLive(t *testing.T) {
 	t.Run("New standing each lap", func(t *testing.T) {
+		filename := "/home/ian/2024-3-285-results.json"
+
 		livePositions := live.LiveResults{
 			SeriesID:     285,
 			SessionID:    999,
@@ -30,7 +32,7 @@ func TestLive(t *testing.T) {
 		b, err := json.MarshalIndent(livePositions, "", "  ")
 		assert.NoError(t, err)
 
-		s, err := Live(string(b))
+		s, err := Live(filename, string(b))
 		assert.NoError(t, err)
 
 		fmt.Println(s)
@@ -59,7 +61,7 @@ func TestLive(t *testing.T) {
 		b, err = json.MarshalIndent(livePositions2, "", "  ")
 		assert.NoError(t, err)
 
-		s, err = Live(string(b))
+		s, err = Live(filename, string(b))
 		assert.NoError(t, err)
 
 		fmt.Println(s)

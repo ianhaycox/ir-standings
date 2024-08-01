@@ -29,7 +29,7 @@ SOFTWARE.
 #include "picojson.h"
 #include "live.h"
 
-std::vector<struct PredictedStanding> Live::LatestStandings(LiveResults lr) {
+std::vector<struct PredictedStanding> Live::LatestStandings(std::string fn, LiveResults lr) {
     picojson::object liveResults;
 
     liveResults["series_id"] = picojson::value(static_cast<double>(lr.seriesID));
@@ -60,6 +60,7 @@ std::vector<struct PredictedStanding> Live::LatestStandings(LiveResults lr) {
     const std::string json = value.serialize(true);
 
     GoString goJSON = {json.c_str()};
+    GoString filename = {fn.c_str()}
     struct LiveStandings_return ret;
 
     ret = LiveStandings(goJSON);

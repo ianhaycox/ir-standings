@@ -105,7 +105,7 @@ protected:
             CarInfo ci;
             ci.carIdx       = i;
             ci.position     = ir_getPosition(i);
-            ci.lapsComplete = ir_CarIdxLapCompleted.getInt(i);
+            ci.lapsComplete = ir_CarIdxLapsCompleted.getInt(i);
 
             carInfo.push_back( ci );
         }
@@ -134,8 +134,9 @@ protected:
             lr.positions.push_back(cp);
         }
 
+        std::string fn = g_cfg.getString("General", "filename", "285-results.json");
 
-        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(lr);
+        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );

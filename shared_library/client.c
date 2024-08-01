@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ir-standings.h"
+#include "libir.h"
 
 int main() {
     printf("Using irStandings lib from C:\n");
 
-    GoString xx = {"and goodnight"};
+    GoString filename = {"foo.json"};
+    GoString livePositions = {"{}"};
     struct LiveStandings_return ret;
 
-    ret = LiveStandings(xx);
+    ret = LiveStandings(filename, livePositions);
     printf("msg = %s, val = %lld\n", ret.r0, ret.r1);
     free(ret.r0);
 }

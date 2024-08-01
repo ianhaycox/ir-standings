@@ -4,7 +4,6 @@ package live
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"time"
@@ -30,7 +29,7 @@ var (
 	previousStandings standings.ChampionshipStandings
 )
 
-func Live(jsonCurrentPositions string) (string, error) {
+func Live(filename string, jsonCurrentPositions string) (string, error) {
 	var currentPositions live.LiveResults
 
 	err := json.Unmarshal([]byte(jsonCurrentPositions), &currentPositions)
@@ -39,17 +38,18 @@ func Live(jsonCurrentPositions string) (string, error) {
 	}
 
 	if previous == nil {
-		buf, err := os.ReadFile("/home/ian/2024-3-285-results.json")
+		previous = championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
+
+		buf, err := os.ReadFile(filename) //nolint:gosec // ok
 		if err != nil {
-			log.Fatal(err)
+			return "", fmt.Errorf("can open file %s", filename)
 		}
 
 		err = json.Unmarshal(buf, &previousResults)
 		if err != nil {
-			log.Fatal(err)
+			return "", fmt.Errorf("can open parse file %s", filename)
 		}
 
-		previous = championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
 		previous.LoadRaceData(previousResults)
 		previousStandings = previous.Standings(model.CarClassID(currentPositions.CarClassID))
 	}
