@@ -2,6 +2,7 @@ package live
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestGenerateTestData(t *testing.T) {
 		},
 	}
 
-	_, err := json.MarshalIndent(s, "", "  ")
+	b, err := json.Marshal(s)
 	assert.NoError(t, err)
-	// fmt.Println(string(b))
+	fmt.Println(string(b))
 }

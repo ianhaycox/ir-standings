@@ -32,6 +32,8 @@ var (
 func Live(filename string, jsonCurrentPositions string) (string, error) {
 	var currentPositions live.LiveResults
 
+	fmt.Println("file:", filename, "JSON:", jsonCurrentPositions)
+
 	err := json.Unmarshal([]byte(jsonCurrentPositions), &currentPositions)
 	if err != nil {
 		return "", fmt.Errorf("malformed request %w", err)
