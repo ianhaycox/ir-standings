@@ -152,12 +152,12 @@ int main()
         {
             int refresh = g_cfg.getInt("General", "refresh_every_n_frames", 600);
             // To save performance
-            if (frameCnt % refresh == 0) {
+//            if (frameCnt % refresh == 0) {
                 for (Overlay* o : overlays)
                 {
                     o->update();
                 }
-            }
+//            }
         }
 
         // Watch for config change signal

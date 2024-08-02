@@ -21,8 +21,10 @@
   },
   "General": {
     "buddies": [],
+    "filename": "285-results.json",
     "flagged": [],
     "performance_mode_30hz": false,
+    "refresh_every_n_frames": 600,
     "ui_edit_hotkey": "alt-j"
   },
   "OverlayDebug": {
@@ -67,6 +69,7 @@
     "buddy_col": [0.20,0.75,0,1],
     "car_number_text_col": [0,0,0,0.90],
     "corner_radius": 6,
+    "count_best_of": 12,
     "enabled": true,
     "flagged_col": [0.68,0.42,0.20,1],
     "font": "Microsoft YaHei UI",
@@ -76,6 +79,7 @@
     "line_spacing": 8,
     "other_car_col": [1,1,1,0.90],
     "self_col": [0.94,0.67,0.13,1],
+    "top_n": 8,
     "window_pos_x": -1826,
     "window_pos_y": 351,
     "window_size_x": 668,
@@ -87,6 +91,7 @@
     "buddy_col": [0.20,0.75,0,1],
     "car_number_text_col": [0,0,0,0.90],
     "corner_radius": 6,
+    "count_best_of": 12,
     "enabled": true,
     "flagged_col": [0.68,0.42,0.20,1],
     "font": "Microsoft YaHei UI",
@@ -96,9 +101,10 @@
     "line_spacing": 8,
     "other_car_col": [1,1,1,0.90],
     "self_col": [0.94,0.67,0.13,1],
-    "window_pos_x": -1833,
-    "window_pos_y": 669,
-    "window_size_x": 839,
-    "window_size_y": 306
+    "top_n": 8,
+    "window_pos_x": -1596,
+    "window_pos_y": 663,
+    "window_size_x": 921,
+    "window_size_y": 342
   }
 }

@@ -36,7 +36,7 @@ public:
 
     const float DefaultFontSize = 15;
 
-    enum class Columns { CURRENT_STANDING, POSITION, CAR_NUMBER, NAME, EXPECTED_STANDING, CHANGE };
+    enum class Columns { PREDICTED_STANDING, CAR_NUMBER, NAME, CURRENT_STANDING, POINTS, CHANGE };
 
     OverlayStandings(const int selectedClassID)
         : Overlay("OverlayStandings" + std::to_string(selectedClassID))
@@ -76,11 +76,12 @@ protected:
 
         // Determine widths of text columns
         m_columns.reset();
-        m_columns.add( (int)Columns::CURRENT_STANDING,  computeTextExtent(L"C99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
-        m_columns.add( (int)Columns::POSITION,          computeTextExtent( L"P99", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
-        m_columns.add( (int)Columns::CAR_NUMBER,        computeTextExtent( L"#999", m_dwriteFactory.Get(), m_textFormat.Get() ).x, fontSize/2 );
-        m_columns.add( (int)Columns::NAME,              0, fontSize/2 );
-        m_columns.add( (int)Columns::EXPECTED_STANDING, computeTextExtent(L"E99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::PREDICTED_STANDING, computeTextExtent(L"E99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::CAR_NUMBER, computeTextExtent(L"#999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::NAME, 0, fontSize / 2);
+        m_columns.add((int)Columns::CURRENT_STANDING,  computeTextExtent(L"C99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::POINTS, computeTextExtent(L"999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::CHANGE,            computeTextExtent(L"999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
     }
 
     virtual void onUpdate()
@@ -105,7 +106,7 @@ protected:
             CarInfo ci;
             ci.carIdx       = i;
             ci.position     = ir_getPosition(i);
-            ci.lapsComplete = ir_CarIdxLapsCompleted.getInt(i);
+            ci.lapsComplete = ir_CarIdxLapCompleted.getInt(i);
 
             carInfo.push_back( ci );
         }
@@ -136,7 +137,11 @@ protected:
 
         std::string fn = g_cfg.getString("General", "filename", "285-results.json");
 
-        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
+        // std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
+
+        std::vector<PredictedStanding> predictedStandings;
+
+        predictedStandings.push_back(PredictedStanding{"Driver", "10", 1, 0, 10, 20, 1});
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );
@@ -166,25 +171,25 @@ protected:
         m_brush->SetColor( headerCol );
 
         // Headers
+        clm = m_columns.get((int)Columns::PREDICTED_STANDING);
+        swprintf(s, _countof(s), L"Exp.");
+        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        clm = m_columns.get((int)Columns::CAR_NUMBER);
+        swprintf(s, _countof(s), L"No.");
+        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+
+        clm = m_columns.get((int)Columns::NAME);
+        swprintf(s, _countof(s), L"Driver");
+        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+
         clm = m_columns.get((int)Columns::CURRENT_STANDING);
         swprintf(s, _countof(s), L"Champ");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
-        clm = m_columns.get( (int)Columns::POSITION );
+        clm = m_columns.get( (int)Columns::POINTS );
         swprintf( s, _countof(s), L"Pos." );
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-
-        clm = m_columns.get( (int)Columns::CAR_NUMBER );
-        swprintf( s, _countof(s), L"No." );
-        m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
-
-        clm = m_columns.get( (int)Columns::NAME );
-        swprintf( s, _countof(s), L"Driver" );
-        m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING );
-
-        clm = m_columns.get((int)Columns::EXPECTED_STANDING);
-        swprintf(s, _countof(s), L"Exp.");
-        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         clm = m_columns.get((int)Columns::CHANGE);
         swprintf(s, _countof(s), L"+/-");
@@ -209,7 +214,7 @@ protected:
             }
 
             {
-                clm = m_columns.get((int)Columns::EXPECTED_STANDING);
+                clm = m_columns.get((int)Columns::PREDICTED_STANDING);
                 m_brush->SetColor(textCol);
                 swprintf(s, _countof(s), L"P%d", predictedStandings[i].predictedPosition);
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
@@ -245,6 +250,13 @@ protected:
             }
 
             {
+                clm = m_columns.get((int)Columns::POINTS);
+                m_brush->SetColor(textCol);
+                swprintf(s, _countof(s), L"%d", predictedStandings[i].predictedPoints);
+                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+            }
+
+            {
                 clm = m_columns.get((int)Columns::CHANGE);
                 m_brush->SetColor(textCol);
                 swprintf(s, _countof(s), L"%d", predictedStandings[i].change);
@@ -254,19 +266,9 @@ protected:
 
         // Footer
         {
-            float trackTemp = ir_TrackTempCrew.getFloat();
-            float airTemp   = ir_AirTemp.getFloat();
-            char  tempUnit  = 'C';
-
-            if( imperial ) {
-                trackTemp = celsiusToFahrenheit( trackTemp );
-                airTemp   = celsiusToFahrenheit( airTemp );
-                tempUnit  = 'F';
-            }
-
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"SoF: %d      Track Temp: %.1f�%c      Air Temp: %.1f�%c      Subsession: %d", ir_session.sof, trackTemp, tempUnit, airTemp, tempUnit, ir_session.subsessionId );
+            swprintf( s, _countof(s), L"%S  SoF: %d  Subsession: %d", ir_session.trackName.c_str(), ir_session.sof, ir_session.subsessionId);
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
             m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
