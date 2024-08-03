@@ -31,17 +31,5 @@ struct PredictedStanding {
 	int         change;               // "change"
 };
 
+std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResults lr);
 
-class Live
-{
-public:
-    Live(const int selectedClassID) {
-        m_selectedClassID = selectedClassID;
-    }
-
-    std::vector<struct PredictedStanding> LatestStandings(std::string filename, LiveResults lr);
-
-private:
-    int m_selectedClassID;
-
-};

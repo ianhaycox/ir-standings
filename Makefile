@@ -51,10 +51,10 @@ cover-check: cover
 standalone:
 	CGO_ENABLED=0 GOOS=linux go build -o load ./loader/load/load.go
 
-## You may need to export LD_LIBRARY_PATH=. to run the client
+## Shared library to statically link
 shared:
-	go build -o shared_library/libir.so -buildmode=c-shared shared_library/main.go
-	gcc -g -o shared_library/client shared_library/client.c shared_library/libir.so
+	go build -o shared_library/libgoir.a -buildmode=c-archive shared_library/main.go
+	gcc -g -o shared_library/client shared_library/client.c shared_library/latest-standings.c  shared_library/libgoir.a
 
 ## Windows
 

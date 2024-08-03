@@ -44,12 +44,12 @@ func Live(filename string, jsonCurrentPositions string) (string, error) {
 
 		buf, err := os.ReadFile(filename) //nolint:gosec // ok
 		if err != nil {
-			return "", fmt.Errorf("can open file %s", filename)
+			return "", fmt.Errorf("can not open file %s", filename)
 		}
 
 		err = json.Unmarshal(buf, &previousResults)
 		if err != nil {
-			return "", fmt.Errorf("can open parse file %s", filename)
+			return "", fmt.Errorf("can not parse file %s", filename)
 		}
 
 		previous.LoadRaceData(previousResults)

@@ -14,8 +14,6 @@ coverage.out
 
 # Shared library
 /shared_library/client
-/shared_library/libir.so
-/shared_library/libir.h
-/windows/goir.dll
-/windows/goir.h
-/windows/goir.lib
+/shared_library/libgoir.a
+/shared_library/libgoir.h
+/windows/libgoir.lib

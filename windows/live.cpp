@@ -25,12 +25,12 @@ SOFTWARE.
 #pragma once
 
 #include <string>
-#include "goir.h"
 #include "picojson.h"
 #include "live.h"
-//#include "cgo.cpp"
+#include ""
 
-std::vector<struct PredictedStanding> Live::LatestStandings(std::string fn, LiveResults lr) {
+
+std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResults lr) {
     picojson::object liveResults;
 
     liveResults["series_id"] = picojson::value(static_cast<double>(lr.seriesID));
@@ -60,11 +60,7 @@ std::vector<struct PredictedStanding> Live::LatestStandings(std::string fn, Live
     const picojson::value value = picojson::value(liveResults);
     const std::string json = value.serialize(true);
 
-    GoString goJSON = {json.c_str()};
-    GoString filename = { fn.c_str() };
-    struct LiveStandings_return ret;
-
-    ret = LiveStandings(filename, goJSON);
+    ret = GoLatestStandings(filename, goJSON);
 
     picojson::value result;
 
