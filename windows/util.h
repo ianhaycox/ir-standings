@@ -30,6 +30,7 @@ SOFTWARE.
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <cstdint>
 #include <d2d1_3.h>
 #include <dwrite.h>
 #include <unordered_map>
@@ -103,17 +104,6 @@ inline bool saveFile( const std::string& fname, const std::string& s )
 inline std::wstring toWide( const std::string& narrow )
 {
     return std::wstring(narrow.begin(),narrow.end());
-}
-
-inline std::string formatLaptime( float secs )
-{
-    char s[32];
-    const int mins = int(secs/60.0f);
-    if( mins )
-        sprintf( s, "%d:%06.3f", mins, fmodf(secs,60.0f) );
-    else
-        sprintf( s, "%.03f", secs );
-    return std::string( s );
 }
 
 class ColumnLayout

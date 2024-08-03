@@ -346,7 +346,7 @@ static bool parseYamlFloat(const char *yamlStr, const char *path, float *dest)
     return false;
 }
 
-static bool parseYamlStr(const char *yamlStr, const char *path, std::string& dest)
+static bool parseYamlStr(const char *yamlStr, const char *path, std::string &dest)
 {
     int count = 0;
     const char *s = nullptr;
@@ -385,7 +385,7 @@ ConnectionStatus ir_tick()
     {
         const char* sessionYaml = irsdk.getSessionStr();
 #ifdef _DEBUG
-        //printf("%s\n", sessionYaml);
+        printf("New session\n");
         FILE* fp = fopen("sessionYaml.txt","ab");
         fprintf(fp,"\n\n==== NEW SESSION STRING ======================================\n");
         fprintf(fp,"%s",sessionYaml);
@@ -409,7 +409,7 @@ ConnectionStatus ir_tick()
 
         sprintf( path, "WeekendInfo:TrackConfigName:" );
         std::string trackConfigName;
-        parseYamlStr( sessionYaml, path, trackDisplayName );
+        parseYamlStr( sessionYaml, path, trackConfigName);
 
         ir_session.trackName = trackDisplayName + " " + trackConfigName;
 

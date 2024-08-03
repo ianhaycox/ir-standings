@@ -1,0 +1,5 @@
+ g++ -o test   -D PICOJSON_USE_RVALUE_REFERENCE=0 -D NOMINMAX -D _CRT_SECURE_NO_WARNINGS -D _DEBUG -D _CONSOLE main.cpp .\Config.cpp .\iracing.cpp .\live.cpp .\Overlay.cpp .\OverlayDebug.cpp  .\irsdk\irsdk_client.cpp .\irsdk\irsdk_utils.cpp .\irsdk\yaml_parser.cpp .\libgoir.dll C:\Windows\System32\d2d1.dll C:\Windows\System32\d3d11.dll C:\Windows\System32\DWrite.dll  C:\Windows\System32\dcomp.dll
+
+
+
+g++ -o test   -D PICOJSON_USE_RVALUE_REFERENCE=0 -D NOMINMAX -D _CRT_SECURE_NO_WARNINGS -D _DEBUG -D _CONSOLE main.cpp .\Config.cpp .\iracing.cpp .\live.cpp .\Overlay.cpp .\OverlayDebug.cpp  .\irsdk\irsdk_client.cpp .\irsdk\irsdk_utils.cpp .\irsdk\yaml_parser.cpp .\libgoir.dll C:\Windows\System32\d2d1.dll C:\Windows\System32\d3d11.dll C:\Windows\System32\DWrite.dll  C:\Windows\System32\dcomp.dll  C:\Windows\System32\dxgi.dll -lgdi32

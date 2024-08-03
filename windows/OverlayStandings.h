@@ -111,7 +111,7 @@ protected:
             carInfo.push_back( ci );
         }
 
-        Live l = Live::Live(m_selectedClassID);
+        Live l = Live(m_selectedClassID);
 
         struct LiveResults lr;
         lr.seriesID = ir_session.seriesId;
@@ -137,11 +137,11 @@ protected:
 
         std::string fn = g_cfg.getString("General", "filename", "285-results.json");
 
-        // std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
+        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
 
-        std::vector<PredictedStanding> predictedStandings;
+        //std::vector<PredictedStanding> predictedStandings;
 
-        predictedStandings.push_back(PredictedStanding{"Driver", "10", 1, 0, 10, 20, 1});
+        //predictedStandings.push_back(PredictedStanding{"Driver", "10", 1, 0, 10, 20, 1});
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );
@@ -172,7 +172,7 @@ protected:
 
         // Headers
         clm = m_columns.get((int)Columns::PREDICTED_STANDING);
-        swprintf(s, _countof(s), L"Exp.");
+        swprintf(s, _countof(s), L"Pos.");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         clm = m_columns.get((int)Columns::CAR_NUMBER);
@@ -184,11 +184,11 @@ protected:
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         clm = m_columns.get((int)Columns::CURRENT_STANDING);
-        swprintf(s, _countof(s), L"Champ");
+        swprintf(s, _countof(s), L"Prev.");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         clm = m_columns.get( (int)Columns::POINTS );
-        swprintf( s, _countof(s), L"Pos." );
+        swprintf( s, _countof(s), L"Pts." );
         m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         clm = m_columns.get((int)Columns::CHANGE);
