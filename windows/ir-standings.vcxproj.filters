@@ -42,9 +42,6 @@
     <ClCompile Include="live.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cgo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
@@ -77,12 +74,6 @@
     <ClInclude Include="irsdk\yaml_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="live.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="goir.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />
@@ -91,8 +82,5 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="sessionYaml.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="goir.lib" />
   </ItemGroup>
 </Project>
