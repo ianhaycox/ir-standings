@@ -1,2 +1,2 @@
 
-extern const char* GoLatestStandings(const char* fn, const char* json);
+const char* GoLatestStandings(const char* fn, const char* json);

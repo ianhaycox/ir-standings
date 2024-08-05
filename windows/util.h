@@ -157,7 +157,7 @@ class ColumnLayout
                 {
                     fixedWidth += clm.textWidth + clm.borderL + clm.borderR;
                 }
-            }
+            };
 
             const float autoTextWidth = std::max( 0.0f, (totalWidth - fixedWidth) / autoWidthCnt );
 

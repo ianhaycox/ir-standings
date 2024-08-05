@@ -111,8 +111,6 @@ protected:
             carInfo.push_back( ci );
         }
 
-        Live l = Live(m_selectedClassID);
-
         struct LiveResults lr;
         lr.seriesID = ir_session.seriesId;
         lr.sessionID = ir_session.sessionId;
@@ -137,11 +135,7 @@ protected:
 
         std::string fn = g_cfg.getString("General", "filename", "285-results.json");
 
-        std::vector<PredictedStanding> predictedStandings  = l.LatestStandings(fn, lr);
-
-        //std::vector<PredictedStanding> predictedStandings;
-
-        //predictedStandings.push_back(PredictedStanding{"Driver", "10", 1, 0, 10, 20, 1});
+        std::vector<PredictedStanding> predictedStandings  = LatestStandings(fn, lr);
 
         const float  fontSize           = g_cfg.getFloat( m_name, "font_size", DefaultFontSize );
         const float  lineSpacing        = g_cfg.getFloat( m_name, "line_spacing", 8 );

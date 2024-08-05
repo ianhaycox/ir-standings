@@ -3,3 +3,16 @@
 
 
 g++ -o test   -D PICOJSON_USE_RVALUE_REFERENCE=0 -D NOMINMAX -D _CRT_SECURE_NO_WARNINGS -D _DEBUG -D _CONSOLE main.cpp .\Config.cpp .\iracing.cpp .\live.cpp .\Overlay.cpp .\OverlayDebug.cpp  .\irsdk\irsdk_client.cpp .\irsdk\irsdk_utils.cpp .\irsdk\yaml_parser.cpp .\libgoir.dll C:\Windows\System32\d2d1.dll C:\Windows\System32\d3d11.dll C:\Windows\System32\DWrite.dll  C:\Windows\System32\dcomp.dll  C:\Windows\System32\dxgi.dll -lgdi32
+
+
+
+ g++ -D NOMINMAX -D PICOJSON_USE_RVALUE_REFERENCE=0  -o test.exe Config.cpp iracing.cpp live.cpp main.cpp Overlay.cpp OverlayDebug.cpp .\irsdk\irsdk_client.cpp .\irsdk\irsdk_utils.cpp .\irsdk\yaml_parser.cpp .\latest-standings.cpp ..\shared_library\libgoir.lib  -ld2d1 -ld3d11 -lDwrite  -ldcomp  -ldxgi -lgdi32
+.\latest-standings.cpp: In function 'const char* GoLatestStandings(const char*, const char*)':
+.\latest-standings.cpp:7:37: warning: narrowing conversion of 'strlen(fn)' from 'size_t' {aka 'long long unsigned int'} to 'ptrdiff_t' {aka 'long long int'} [-Wnarrowing]
+    7 |     GoString filename = { fn, strlen(fn) };
+      |                               ~~~~~~^~~~
+.\latest-standings.cpp:8:43: warning: narrowing conversion of 'strlen(json)' from 'size_t' {aka 'long long unsigned int'} to 'ptrdiff_t' {aka 'long long int'} [-Wnarrowing]
+    8 |     GoString livePositions = {json, strlen(json)};
+      |                                     ~~~~~~^~~~~~
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\Ian\AppData\Local\Temp\cc6mVex5.o:Overlay.cpp:(.text+0xa49): undefined reference to `_GUID const& __mingw_uuidof<Microsoft::WRL::ComPtr<ID2D1Factory2> >()'
+collect2.exe: error: ld returned 1 exit status

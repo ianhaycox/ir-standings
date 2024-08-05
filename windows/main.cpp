@@ -38,7 +38,6 @@ SOFTWARE.
 #include "Config.h"
 #include "OverlayStandings.h"
 #include "OverlayDebug.h"
-#include "goir.h"
 
 enum class Hotkey
 {

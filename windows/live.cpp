@@ -27,7 +27,7 @@ SOFTWARE.
 #include <string>
 #include "picojson.h"
 #include "live.h"
-#include ""
+#include "latest-standings.h"
 
 
 std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResults lr) {
@@ -60,12 +60,14 @@ std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResult
     const picojson::value value = picojson::value(liveResults);
     const std::string json = value.serialize(true);
 
-    ret = GoLatestStandings(filename, goJSON);
+    //const char* ret = GoLatestStandings(fn.c_str(), json.c_str());
+
+    const char* ret = "[]";
 
     picojson::value result;
 
-    std::string err = picojson::parse(result, ret.r0);
-    free(ret.r0);
+    std::string err = picojson::parse(result, ret);
+//    free(ret);
     if (!err.empty()) {
         printf("Live response is not valid JSON!\n%s\n", err.c_str());
 
