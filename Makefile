@@ -58,3 +58,21 @@ shared:
 
 ## Windows
 
+#  go build -o libgoir.lib -buildmode=c-archive .\main.go
+#  gcc -g -c .\latest-standings.c
+#  lib libgoir.lib latest-standings.o
+#  cp libgoir.lib windows/
+#  dumpbin /symbols libgoir.lib | findstr "Stand"
+# PS C:\Users\Ian\ir-standings\shared_library> dumpbin /symbols .\libgoir.lib | findstr "Stand"
+# 002 00000000 SECT1  notype ()    External     | LiveStandings
+# 005 00000000 SECT10 notype       Static       | .rdata$.refptr._cgoexp_fc2f6fae3e8a_LiveStandings
+# 026 00000000 SECT10 notype       External     | .refptr._cgoexp_fc2f6fae3e8a_LiveStandings
+# 02B 00000000 UNDEF  notype       External     | _cgoexp_fc2f6fae3e8a_LiveStandings
+# 4F0 00066000 SECT1  notype ()    External     | _cgoexp_fc2f6fae3e8a_LiveStandings
+# 002 00000000 SECT1  notype ()    External     | GoLatestStandings
+# 020 00000000 UNDEF  notype ()    External     | LiveStandings
+#           10 .rdata$.refptr._cgoexp_fc2f6fae3e8a_LiveStandings
+# PS C:\Users\Ian\ir-standings\shared_library>
+#
+# Add libgoir.lib to linker options
+# Needed to add msvcrt.lib and remove libcmt.lib  (d suffixes for debug)

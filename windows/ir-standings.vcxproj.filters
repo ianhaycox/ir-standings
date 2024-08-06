@@ -42,6 +42,9 @@
     <ClCompile Include="live.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="latest-standings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
@@ -80,11 +83,15 @@
     <ClInclude Include="latest-standings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libgoir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />
     <None Include="LICENSE" />
     <None Include=".gitignore" />
+    <None Include="libgoir.dll" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sessionYaml.txt" />

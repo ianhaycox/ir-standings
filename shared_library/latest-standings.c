@@ -4,8 +4,8 @@
 
 const char* GoLatestStandings(const char* fn, const char* json) {
 
-    GoString filename = { fn, strlen(fn) };
-    GoString livePositions = {json, strlen(json)};
+    GoString filename = { fn, (ptrdiff_t)strlen(fn) };
+    GoString livePositions = {json, (ptrdiff_t)strlen(json)};
     struct LiveStandings_return ret;
 
     printf("name: %s %lld\n", filename.p, filename.n);

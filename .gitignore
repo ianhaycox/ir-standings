@@ -13,7 +13,12 @@ coverage.out
 .vs/
 
 # Shared library
-/shared_library/client
-/shared_library/libgoir.a
+*.o
+*.lib
+*.dll
+*.a
+*.obj
+/windows/libgoir.h
 /shared_library/libgoir.h
-/windows/libgoir.lib
+
+/windows/test-results.json

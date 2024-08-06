@@ -31,10 +31,10 @@
     "background_col": [0,0,0,0.70],
     "corner_radius": 6,
     "enabled": true,
-    "window_pos_x": -1830,
-    "window_pos_y": 98,
-    "window_size_x": 990,
-    "window_size_y": 192
+    "window_pos_x": -801,
+    "window_pos_y": 23,
+    "window_size_x": 676,
+    "window_size_y": 171
   },
   "OverlayStandings": {
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
@@ -82,8 +82,8 @@
     "top_n": 8,
     "window_pos_x": -1826,
     "window_pos_y": 351,
-    "window_size_x": 668,
-    "window_size_y": 278
+    "window_size_x": 1110,
+    "window_size_y": 283
   },
   "OverlayStandings84": {
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
@@ -104,7 +104,7 @@
     "top_n": 8,
     "window_pos_x": -1596,
     "window_pos_y": 663,
-    "window_size_x": 921,
-    "window_size_y": 342
+    "window_size_x": 1133,
+    "window_size_y": 319
   }
 }
