@@ -60,10 +60,7 @@ std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResult
     const picojson::value value = picojson::value(liveResults);
     const std::string json = value.serialize(true);
 
-    // const char* ret = GoLatestStandings(fn.c_str(), json.c_str());
     char* ret = GoLatestStandings("test-results.json", json.c_str());
-
-    // const char* ret = "[]";
 
     picojson::value result;
 

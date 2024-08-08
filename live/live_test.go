@@ -120,6 +120,11 @@ func TestLive(t *testing.T) {
 	t.Run("New standing each lap", func(t *testing.T) {
 		filename := "../windows/test-results.json"
 
+		s, err := Live(filename, ex)
+		assert.NoError(t, err)
+
+		fmt.Println(s)
+
 		livePositions := live.LiveResults{
 			SeriesID:     285,
 			SessionID:    999,
@@ -139,11 +144,10 @@ func TestLive(t *testing.T) {
 		b, err := json.MarshalIndent(livePositions, "", "  ")
 		assert.NoError(t, err)
 
-		s, err := Live(filename, string(ex))
+		s, err = Live(filename, string(b))
 		assert.NoError(t, err)
 
 		fmt.Println(s)
-
 		var prediction1 []live.LiveResults
 
 		err = json.Unmarshal([]byte(s), &prediction1)

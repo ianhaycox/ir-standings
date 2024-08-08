@@ -121,9 +121,9 @@ protected:
         lr.sessionID = ir_session.sessionId;
         lr.subsessionID = ir_session.subsessionId;
         lr.track = ir_session.trackName;
-        lr.countBestOf = g_cfg.getInt(m_name, "count_best_of", 12);
+        lr.countBestOf = g_cfg.getInt(m_name, "count_best_of", 10);
         lr.carClassID = m_selectedClassID;
-        lr.topN = g_cfg.getInt(m_name, "top_n", 8);
+        lr.topN = g_cfg.getInt(m_name, "top_n", 20);
 
         for (int i = 0; i<carInfo.size(); ++i) {
             struct CurrentPosition cp;
@@ -194,11 +194,15 @@ protected:
         swprintf(s, _countof(s), L"+/-");
         m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
-        float4 textCol = otherCarCol;
-
         // Content
         for( int i=0; i<predictedStandings.size(); ++i )
         {
+            float4 textCol = otherCarCol;
+            const bool notPresent = carNumbers[predictedStandings[i].custID].empty();
+            if (notPresent) {
+                textCol.a *= 0.5f;
+            }
+
             y = 2*yoff + lineHeight/2 + (i+1)*lineHeight;
 
             if( y+lineHeight/2 > ybottom )
@@ -222,14 +226,19 @@ protected:
             // Car number
             {
                 clm = m_columns.get( (int)Columns::CAR_NUMBER );
-                swprintf( s, _countof(s), L"#%S",  carNumbers[predictedStandings[i].custID].c_str() );
-                r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
-                rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
-                rr.radiusX = 3;
-                rr.radiusY = 3;
-                m_brush->SetColor( textCol );
-                m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
-                m_brush->SetColor( carNumberTextCol );
+                if (carNumbers[predictedStandings[i].custID].empty()) {
+                    m_brush->SetColor( textCol );
+                    swprintf( s, _countof(s), L"#%S",  "--" );
+                } else {
+                    swprintf( s, _countof(s), L"#%S",  carNumbers[predictedStandings[i].custID].c_str() );
+                    r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
+                    rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
+                    rr.radiusX = 3;
+                    rr.radiusY = 3;
+                    m_brush->SetColor( textCol );
+                    m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
+                    m_brush->SetColor( carNumberTextCol );
+                }
                 m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
             }
 

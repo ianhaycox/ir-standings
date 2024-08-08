@@ -3,8 +3,6 @@ package main
 // #cgo CFLAGS: -g
 import "C"
 import (
-	"os"
-
 	"github.com/ianhaycox/ir-standings/live"
 )
 
@@ -14,9 +12,6 @@ func LiveStandings(filename string, jsonLivePositions string) (*C.char, int) {
 	if err != nil {
 		return C.CString(err.Error()), 1
 	}
-
-	os.WriteFile("gls.log", []byte(jsonLivePositions), 0700)
-	os.WriteFile("gls2.log", []byte(jsonLiveStandings), 0700)
 
 	return C.CString(jsonLiveStandings), 0
 }
