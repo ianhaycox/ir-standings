@@ -3,25 +3,31 @@
 #include "windows.h"
 #include "libgoir.h"
 
+typedef struct LiveStandings_return LSR;
+typedef LSR(CALLBACK* LPFNDLLFUNC1)(GoString, GoString);
+
+static HINSTANCE hDLL = NULL;               // Handle to DLL
+static LPFNDLLFUNC1 lpfnDllFunc1 = NULL;    // Function pointer
+
 char* GoLatestStandings(const char* fn, const char* json) {
 
     GoString filename = { fn, (ptrdiff_t)strlen(fn) };
     GoString livePositions = {json, (ptrdiff_t)strlen(json)};
-    typedef struct LiveStandings_return LSR;
 
     printf("name: %s %lld\n", filename.p, filename.n);
 
-    typedef LSR(CALLBACK* LPFNDLLFUNC1)(GoString, GoString);
-
-    HINSTANCE hDLL;               // Handle to DLL
-    LPFNDLLFUNC1 lpfnDllFunc1;    // Function pointer
     LSR hrReturnVal;
 
-    hDLL = LoadLibrary("libgoir");
+    if (hDLL == NULL) {
+        hDLL = LoadLibrary("libgoir");
+    }
+
     if (NULL != hDLL)
     {
+        if (NULL == lpfnDllFunc1) {
+            lpfnDllFunc1 = (LPFNDLLFUNC1)GetProcAddress(hDLL, "LiveStandings");
+        }
 
-        lpfnDllFunc1 = (LPFNDLLFUNC1)GetProcAddress(hDLL, "LiveStandings");
         if (NULL != lpfnDllFunc1)
         {
             // call the function
@@ -32,7 +38,6 @@ char* GoLatestStandings(const char* fn, const char* json) {
             // report the error
             return "Error";
         }
-        FreeLibrary(hDLL);
     }
     else
     {

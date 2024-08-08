@@ -45,9 +45,10 @@ public:
         m_name = "OverlayStandings" + std::to_string(selectedClassID);
     }
 
-protected:
-
+private:
     int m_selectedClassID;
+
+protected:
 
     virtual void onEnable()
     {
@@ -92,7 +93,10 @@ protected:
             int     change = 0;
             int     lapsComplete = 0;
         };
+
         std::vector<CarInfo> carInfo;
+        std::map<int,std::string> carNumbers;
+
         carInfo.reserve( IR_MAX_CARS );
 
         // Init array
@@ -107,6 +111,7 @@ protected:
             ci.carIdx       = i;
             ci.position     = ir_getPosition(i);
             ci.lapsComplete = ir_CarIdxLapCompleted.getInt(i);
+            carNumbers[car.custID] = car.carNumberStr;
 
             carInfo.push_back( ci );
         }
@@ -217,7 +222,7 @@ protected:
             // Car number
             {
                 clm = m_columns.get( (int)Columns::CAR_NUMBER );
-                swprintf( s, _countof(s), L"#%S", predictedStandings[i].carNumber.c_str() );
+                swprintf( s, _countof(s), L"#%S",  carNumbers[predictedStandings[i].custID].c_str() );
                 r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                 rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
                 rr.radiusX = 3;

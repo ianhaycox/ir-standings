@@ -13,7 +13,6 @@ type Result struct {
 	CarClassID            model.CarClassID            `json:"car_class_id"`
 	CarID                 model.CarID                 `json:"car_id"`
 	CarName               string                      `json:"car_name"`
-	CarNumber             string                      `json:"car_number,omitempty"`
 	// Livery                Livery `json:"livery"`
 	// Helmet                Helmet `json:"helmet"`
 }

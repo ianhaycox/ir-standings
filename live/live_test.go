@@ -9,9 +9,116 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var ex = `{
+  "car_class_id": 83,
+  "count_best_of": 12,
+  "results": [{
+      "car_id": 76,
+      "cust_id": 141372,
+      "finish_position_in_class": 6,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 321008,
+      "finish_position_in_class": 2,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 467784,
+      "finish_position_in_class": 1,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 637832,
+      "finish_position_in_class": 4,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 851509,
+      "finish_position_in_class": 3,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 173387,
+      "finish_position_in_class": 5,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 390264,
+      "finish_position_in_class": 17,
+      "laps_complete": -1
+    },{
+      "car_id": 76,
+      "cust_id": 203536,
+      "finish_position_in_class": 7,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 374674,
+      "finish_position_in_class": 9,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 175720,
+      "finish_position_in_class": 14,
+      "laps_complete": 11
+    },{
+      "car_id": 76,
+      "cust_id": 411930,
+      "finish_position_in_class": 8,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 424252,
+      "finish_position_in_class": 18,
+      "laps_complete": -1
+    },{
+      "car_id": 76,
+      "cust_id": 36256,
+      "finish_position_in_class": 11,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 899576,
+      "finish_position_in_class": 19,
+      "laps_complete": -1
+    },{
+      "car_id": 76,
+      "cust_id": 231698,
+      "finish_position_in_class": 12,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 756538,
+      "finish_position_in_class": 10,
+      "laps_complete": 12
+    },{
+      "car_id": 76,
+      "cust_id": 731520,
+      "finish_position_in_class": 15,
+      "laps_complete": 9
+    },{
+      "car_id": 76,
+      "cust_id": 1021885,
+      "finish_position_in_class": 13,
+      "laps_complete": 11
+    },{
+      "car_id": 76,
+      "cust_id": 268321,
+      "finish_position_in_class": 16,
+      "laps_complete": 4
+    }],
+  "season_id": 244591934,
+  "series_id": 285,
+  "subsession_id": 70230671,
+  "top_n": 20,
+  "track": "Long Beach "
+}
+`
+
 func TestLive(t *testing.T) {
 	t.Run("New standing each lap", func(t *testing.T) {
-		filename := "/home/ian/2024-3-285-results.json"
+		filename := "../windows/test-results.json"
 
 		livePositions := live.LiveResults{
 			SeriesID:     285,
@@ -32,7 +139,7 @@ func TestLive(t *testing.T) {
 		b, err := json.MarshalIndent(livePositions, "", "  ")
 		assert.NoError(t, err)
 
-		s, err := Live(filename, string(b))
+		s, err := Live(filename, string(ex))
 		assert.NoError(t, err)
 
 		fmt.Println(s)

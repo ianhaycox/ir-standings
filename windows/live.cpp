@@ -55,7 +55,7 @@ std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResult
 
     picojson::value v;
     v.set(picojson::array(positions));
-    liveResults["results"] = v;
+    liveResults["positions"] = v;
 
     const picojson::value value = picojson::value(liveResults);
     const std::string json = value.serialize(true);
@@ -82,8 +82,8 @@ std::vector<struct PredictedStanding> LatestStandings(std::string fn, LiveResult
     for (int i = 0; i < (int)a.size(); ++i)
     {
         PredictedStanding ls = {
+            (int)a.at(i).get("cust_id").get<double>(),
             a.at(i).get("driver_name").to_str(),
-            a.at(i).get("car_number").to_str(),
             (int)a.at(i).get("current_position").get<double>(),
             (int)a.at(i).get("predicted_position").get<double>(),
             (int)a.at(i).get("current_points").get<double>(),

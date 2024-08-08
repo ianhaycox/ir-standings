@@ -97,7 +97,6 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 						CarClassID:            model.CarClassID(sessionResult.CarClassID),
 						CarID:                 model.CarID(sessionResult.CarID),
 						CarName:               sessionResult.CarName,
-						CarNumber:             sessionResult.Livery.CarNumber,
 					}
 
 					sessionResults = append(sessionResults, sessionResult)

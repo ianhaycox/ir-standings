@@ -53,7 +53,6 @@ static const char* const SessionTypeStr[] = {"UNKNOWN","PRACTICE","QUALIFY","RAC
 struct Car
 {
     std::string     userName;
-    int             carNumber = 0;
     int             carClassID = 0;
     std::string     carNumberStr;
     int             irating = 0;

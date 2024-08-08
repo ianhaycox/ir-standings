@@ -79,11 +79,11 @@
     "line_spacing": 8,
     "other_car_col": [1,1,1,0.90],
     "self_col": [0.94,0.67,0.13,1],
-    "top_n": 8,
+    "top_n": 20,
     "window_pos_x": -1826,
     "window_pos_y": 351,
-    "window_size_x": 1110,
-    "window_size_y": 283
+    "window_size_x": 1213,
+    "window_size_y": 593
   },
   "OverlayStandings84": {
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
@@ -101,7 +101,7 @@
     "line_spacing": 8,
     "other_car_col": [1,1,1,0.90],
     "self_col": [0.94,0.67,0.13,1],
-    "top_n": 8,
+    "top_n": 20,
     "window_pos_x": -1596,
     "window_pos_y": 663,
     "window_size_x": 1133,

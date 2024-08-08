@@ -22,8 +22,8 @@ struct LiveResults {
 };
 
 struct PredictedStanding {
+	int         custID;               // "cust_id"
 	std::string driverName;           // "driver_name"
-	std::string carNumber;            // "car_number"
 	int         currentPosition;      // "current_position"
 	int         predictedPosition;    // "predicted_position"
 	int         currentPoints;        // "current_points"

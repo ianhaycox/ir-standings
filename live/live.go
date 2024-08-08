@@ -98,6 +98,7 @@ func provisionalTable(currentStandings, predictedStandings standings.Championshi
 	for _, entry := range currentStandings.Table {
 		mergedStandings[entry.CustID] = live.PredictedStanding{
 			CurrentPosition: int(entry.Position),
+			CustID:          int(entry.CustID),
 			DriverName:      entry.DriverName,
 			CurrentPoints:   int(entry.DroppedRoundPoints),
 		}
@@ -109,12 +110,12 @@ func provisionalTable(currentStandings, predictedStandings standings.Championshi
 
 			ls.PredictedPoints = int(entry.DroppedRoundPoints)
 			ls.PredictedPosition = int(entry.Position)
-			ls.CarNumber = entry.CarNumber
 
 			mergedStandings[entry.CustID] = ls
 		} else {
 			mergedStandings[entry.CustID] = live.PredictedStanding{
 				PredictedPosition: int(entry.Position),
+				CustID:            int(entry.CustID),
 				DriverName:        entry.DriverName,
 				PredictedPoints:   int(entry.DroppedRoundPoints),
 			}

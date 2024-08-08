@@ -2,8 +2,8 @@ package live
 
 // PredictedStanding response to Windows Overlay
 type PredictedStanding struct {
+	CustID            int    `json:"cust_id"`
 	DriverName        string `json:"driver_name"`
-	CarNumber         string `json:"car_number"`
 	CurrentPosition   int    `json:"current_position"`
 	PredictedPosition int    `json:"predicted_position"`
 	CurrentPoints     int    `json:"current_points"`
