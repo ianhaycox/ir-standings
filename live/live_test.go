@@ -117,10 +117,12 @@ var ex = `{
 `
 
 func TestLive(t *testing.T) {
+	var champ SafeChamp
+
 	t.Run("New standing each lap", func(t *testing.T) {
 		filename := "../windows/test-results.json"
 
-		s, err := Live(filename, ex)
+		s, err := champ.Live(filename, ex)
 		assert.NoError(t, err)
 
 		fmt.Println(s)
@@ -144,7 +146,7 @@ func TestLive(t *testing.T) {
 		b, err := json.MarshalIndent(livePositions, "", "  ")
 		assert.NoError(t, err)
 
-		s, err = Live(filename, string(b))
+		s, err = champ.Live(filename, string(b))
 		assert.NoError(t, err)
 
 		fmt.Println(s)
@@ -172,7 +174,7 @@ func TestLive(t *testing.T) {
 		b, err = json.MarshalIndent(livePositions2, "", "  ")
 		assert.NoError(t, err)
 
-		s, err = Live(filename, string(b))
+		s, err = champ.Live(filename, string(b))
 		assert.NoError(t, err)
 
 		fmt.Println(s)

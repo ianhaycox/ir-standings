@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/ianhaycox/ir-standings/model"
@@ -23,13 +24,43 @@ var (
 		1: {14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
 		2: {9, 6, 4, 3, 2, 1},
 	}
-	ps                = points.NewPointsStructure(pointsPerSplit)
-	previous          *championship.Championship
-	previousResults   = make([]results.Result, 0)
-	previousStandings standings.ChampionshipStandings
 )
 
-func Live(filename string, jsonCurrentPositions string) (string, error) {
+type SafeChamp struct {
+	mu                sync.Mutex
+	previous          *championship.Championship
+	previousResults   []results.Result
+	previousStandings standings.ChampionshipStandings
+	ps                points.PointsStructure
+}
+
+func (c *SafeChamp) load(seriesID model.SeriesID, carClassID model.CarClassID, filename string, countBestOf int) error {
+	if c.previous == nil {
+		c.previous = championship.NewChampionship(seriesID, nil, c.ps, countBestOf)
+
+		buf, err := os.ReadFile(filename) //nolint:gosec // ok
+		if err != nil {
+			return fmt.Errorf("can not open file %s", filename)
+		}
+
+		err = json.Unmarshal(buf, &c.previousResults)
+		if err != nil {
+			return fmt.Errorf("can not parse file %s", filename)
+		}
+
+		c.previous.LoadRaceData(c.previousResults)
+		c.previousStandings = c.previous.Standings(carClassID)
+	}
+
+	return nil
+}
+
+func (c *SafeChamp) Live(filename string, jsonCurrentPositions string) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.ps = points.NewPointsStructure(pointsPerSplit)
+
 	var currentPositions live.LiveResults
 
 	fmt.Println("file:", filename, "JSON:", jsonCurrentPositions)
@@ -39,25 +70,13 @@ func Live(filename string, jsonCurrentPositions string) (string, error) {
 		return "", fmt.Errorf("malformed request %w", err)
 	}
 
-	if previous == nil {
-		previous = championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
-
-		buf, err := os.ReadFile(filename) //nolint:gosec // ok
-		if err != nil {
-			return "", fmt.Errorf("can not open file %s", filename)
-		}
-
-		err = json.Unmarshal(buf, &previousResults)
-		if err != nil {
-			return "", fmt.Errorf("can not parse file %s", filename)
-		}
-
-		previous.LoadRaceData(previousResults)
-		previousStandings = previous.Standings(model.CarClassID(currentPositions.CarClassID))
+	err = c.load(model.SeriesID(currentPositions.SeriesID), model.CarClassID(currentPositions.CarClassID), filename, currentPositions.CountBestOf)
+	if err != nil {
+		return "", fmt.Errorf("can load previous results, err:%w", err)
 	}
 
-	liveResults := make([]results.Result, 0, len(previousResults))
-	liveResults = append(liveResults, previousResults...)
+	liveResults := make([]results.Result, 0, len(c.previousResults))
+	liveResults = append(liveResults, c.previousResults...)
 
 	liveResults = append(liveResults, results.Result{
 		SessionID:     currentPositions.SessionID,
@@ -74,14 +93,14 @@ func Live(filename string, jsonCurrentPositions string) (string, error) {
 		},
 	})
 
-	predicted := championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, ps, currentPositions.CountBestOf)
+	predicted := championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, c.ps, currentPositions.CountBestOf)
 
 	predicted.LoadRaceData(liveResults)
-	predicted.SetCarClasses(previous.CarClasses())
+	predicted.SetCarClasses(c.previous.CarClasses())
 
 	predictedStandings := predicted.Standings(model.CarClassID(currentPositions.CarClassID))
 
-	provisionalChampionship := provisionalTable(previousStandings, predictedStandings)
+	provisionalChampionship := provisionalTable(c.previousStandings, predictedStandings)
 
 	jsonResult, err := json.MarshalIndent(provisionalChampionship[:currentPositions.TopN], "", "  ")
 	if err != nil {

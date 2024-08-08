@@ -6,9 +6,11 @@ import (
 	"github.com/ianhaycox/ir-standings/live"
 )
 
+var champ live.SafeChamp
+
 //export LiveStandings
 func LiveStandings(filename string, jsonLivePositions string) (*C.char, int) {
-	jsonLiveStandings, err := live.Live(filename, jsonLivePositions)
+	jsonLiveStandings, err := champ.Live(filename, jsonLivePositions)
 	if err != nil {
 		return C.CString(err.Error()), 1
 	}
