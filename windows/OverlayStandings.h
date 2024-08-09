@@ -153,6 +153,8 @@ protected:
         const float4 carNumberTextCol   = g_cfg.getFloat4( m_name, "car_number_text_col", float4(0,0,0,0.9f) );
         const float4 carNumberBgCol     = g_cfg.getFloat4(m_name,  "car_number_background_col", float4(0, 0, 0, 0.7f));
         const float4 alternateLineBgCol = g_cfg.getFloat4( m_name, "alternate_line_background_col", float4(0.5f,0.5f,0.5f,0.1f) );
+        const float4 changePlusBgCol    = g_cfg.getFloat4( m_name, "change_plus_background_col", float4(0.19f,0.58f,0.12f,1) );
+        const float4 changeMinusBgCol   = g_cfg.getFloat4( m_name, "change_minus_background_col", float4(0.65f,0.11f,0.11f,1) );
         const bool   imperial           = ir_DisplayUnits.getInt() == 0;
 
         const float xoff = 10.0f;
@@ -267,8 +269,30 @@ protected:
 
             {
                 clm = m_columns.get((int)Columns::CHANGE);
-                m_brush->SetColor(textCol);
-                swprintf(s, _countof(s), L"%d", predictedStandings[i].change);
+                r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
+                rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
+                rr.radiusX = 3;
+                rr.radiusY = 3;
+
+                if (predictedStandings[i].change > 0) {
+                    swprintf(s, _countof(s), L"▲ %s", predictedStandings[i].change);
+                    m_brush->SetColor(changePlusBgCol);
+                    m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
+                }
+
+                if (predictedStandings[i].change < 0) {
+                    swprintf(s, _countof(s), L"▼ %d", predictedStandings[i].change*-1);
+                    m_brush->SetColor(changeMinusBgCol);
+                    m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
+                }
+
+                if (predictedStandings[i].change == 0) {
+                    swprintf(s, _countof(s), L"► %s", "-");
+                    m_brush->SetColor(textCol.a *= 0.5f);
+                    m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
+                }
+
+                m_brush->SetColor( textCol );
                 m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
             }
         }
@@ -277,7 +301,7 @@ protected:
         {
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"%S  SoF: %d  Subsession: %d", ir_session.trackName.c_str(), ir_session.sof, ir_session.subsessionId);
+            swprintf( s, _countof(s), L"%S  SoF: %d  Subsession: %d", ir_session.trackName.c_str(), ir_session.sofByCarClass[m_selectedClassID], ir_session.subsessionId);
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
             m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );

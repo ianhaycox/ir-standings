@@ -71,11 +71,11 @@ struct Session
     SessionType     sessionType = SessionType::UNKNOWN;
     Car             cars[IR_MAX_CARS];
     int             driverCarIdx = -1;
-    int             sof = 0;
     int             sessionId = 0;
     int             subsessionId = 0;
     int             seriesId = 0;
     std::string     trackName;
+    std::map<int,int> sofByCarClass;
 };
 
 extern irsdkCVar ir_SessionTime;    // double[1] Seconds since session start (s)

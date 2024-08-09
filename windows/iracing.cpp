@@ -453,6 +453,9 @@ ConnectionStatus ir_tick()
             sprintf(path, "DriverInfo:Drivers:CarIdx:{%d}CarID:", carIdx);
             parseYamlInt(sessionYaml, path, &car.carID);
 
+            sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}IRating:", carIdx );
+            parseYamlInt( sessionYaml, path, &car.irating );
+
             sprintf( path, "DriverInfo:Drivers:CarIdx:{%d}CarIsPaceCar:", carIdx );
             parseYamlInt( sessionYaml, path, &car.isPaceCar );
 
@@ -485,9 +488,9 @@ ConnectionStatus ir_tick()
             }
         }
 
-        // SoF - TODO Per Car Class
-        double sof = 0;
-        int cnt = 0;
+        // SoF - Per Car Class
+        std::map<int,double> sof;
+        std::map<int,int> cnt;
         for( int i=0; i<IR_MAX_CARS; ++i )
         {
             const Car& car = ir_session.cars[i];
@@ -495,10 +498,13 @@ ConnectionStatus ir_tick()
             if( car.isPaceCar || car.isSpectator || car.userName.empty() )
                 continue;
 
-            sof += car.irating;
-            cnt++;
+            sof[car.carClassID] += car.irating;
+            cnt[car.carClassID]++;
         }
-        ir_session.sof = int(sof / cnt);
+
+        for (auto const& perClass : sof) {
+            ir_session[perClass.first].sof = int(perClass.second / cnt[perClass.first]);
+        }
 
         ir_handleConfigChange();
 
