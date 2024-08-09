@@ -58,22 +58,32 @@ func (c *SafeChamp) load(seriesID model.SeriesID, carClassID model.CarClassID, f
 func (c *SafeChamp) Live(filename string, jsonCurrentPositions string) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	/*
+		f, err := os.OpenFile("gls.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		if err != nil {
+			return "", fmt.Errorf("opps")
+		}
 
+		f.WriteString(fmt.Sprintf("%s Live:%t\n", time.Now(), c.previous == nil))
+	*/
 	c.ps = points.NewPointsStructure(pointsPerSplit)
 
 	var currentPositions live.LiveResults
-
-	fmt.Println("file:", filename, "JSON:", jsonCurrentPositions)
 
 	err := json.Unmarshal([]byte(jsonCurrentPositions), &currentPositions)
 	if err != nil {
 		return "", fmt.Errorf("malformed request %w", err)
 	}
 
-	err = c.load(model.SeriesID(currentPositions.SeriesID), model.CarClassID(currentPositions.CarClassID), filename, currentPositions.CountBestOf)
+	carClassID := model.CarClassID(currentPositions.CarClassID)
+	seriesID := model.SeriesID(currentPositions.SeriesID)
+
+	err = c.load(seriesID, carClassID, filename, currentPositions.CountBestOf)
 	if err != nil {
 		return "", fmt.Errorf("can load previous results, err:%w", err)
 	}
+
+	//	f.WriteString(fmt.Sprintf("%s Live:%d, %s\n", time.Now(), carClassID, jsonCurrentPositions))
 
 	liveResults := make([]results.Result, 0, len(c.previousResults))
 	liveResults = append(liveResults, c.previousResults...)
@@ -88,24 +98,30 @@ func (c *SafeChamp) Live(filename string, jsonCurrentPositions string) (string, 
 		SessionResults: []results.SessionResults{
 			{
 				SimsessionName: "RACE",
-				Results:        buildResults(currentPositions.CarClassID, currentPositions.Positions),
+				Results:        buildResults(carClassID, currentPositions.Positions),
 			},
 		},
 	})
 
-	predicted := championship.NewChampionship(model.SeriesID(currentPositions.SeriesID), nil, c.ps, currentPositions.CountBestOf)
+	predicted := championship.NewChampionship(seriesID, nil, c.ps, currentPositions.CountBestOf)
 
 	predicted.LoadRaceData(liveResults)
 	predicted.SetCarClasses(c.previous.CarClasses())
 
-	predictedStandings := predicted.Standings(model.CarClassID(currentPositions.CarClassID))
+	predictedStandings := predicted.Standings(carClassID)
 
-	provisionalChampionship := provisionalTable(c.previousStandings, predictedStandings)
+	//	f.WriteString(fmt.Sprintf("%s Predicted:%d %+v\n\n", time.Now(), carClassID, predictedStandings))
+
+	currentStandings := c.previous.Standings(carClassID)
+
+	provisionalChampionship := provisionalTable(currentStandings, predictedStandings)
 
 	jsonResult, err := json.MarshalIndent(provisionalChampionship[:currentPositions.TopN], "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("can not build response, %w", err)
 	}
+
+	//	f.WriteString(fmt.Sprintf("%s End Live:%d %s\n\n", time.Now(), carClassID, string(jsonResult)))
 
 	return string(jsonResult), nil
 }
@@ -156,7 +172,7 @@ func provisionalTable(currentStandings, predictedStandings standings.Championshi
 	return predictedResult
 }
 
-func buildResults(carClassID int, liveResults []live.CurrentPosition) []results.Results {
+func buildResults(carClassID model.CarClassID, liveResults []live.CurrentPosition) []results.Results {
 	res := make([]results.Results, 0, len(liveResults))
 
 	for _, lr := range liveResults {
@@ -165,7 +181,7 @@ func buildResults(carClassID int, liveResults []live.CurrentPosition) []results.
 			FinishPositionInClass: lr.FinishPositionInClass,
 			LapsComplete:          lr.LapsComplete,
 			CarID:                 lr.CarID,
-			CarClassID:            carClassID,
+			CarClassID:            int(carClassID),
 		})
 	}
 

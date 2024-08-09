@@ -151,6 +151,7 @@ protected:
         const float4 otherCarCol        = g_cfg.getFloat4( m_name, "other_car_col", float4(1,1,1,0.9f) );
         const float4 headerCol          = g_cfg.getFloat4( m_name, "header_col", float4(0.7f,0.7f,0.7f,0.9f) );
         const float4 carNumberTextCol   = g_cfg.getFloat4( m_name, "car_number_text_col", float4(0,0,0,0.9f) );
+        const float4 carNumberBgCol     = g_cfg.getFloat4(m_name,  "car_number_background_col", float4(0, 0, 0, 0.7f));
         const float4 alternateLineBgCol = g_cfg.getFloat4( m_name, "alternate_line_background_col", float4(0.5f,0.5f,0.5f,0.1f) );
         const bool   imperial           = ir_DisplayUnits.getInt() == 0;
 
@@ -228,14 +229,14 @@ protected:
                 clm = m_columns.get( (int)Columns::CAR_NUMBER );
                 if (carNumbers[predictedStandings[i].custID].empty()) {
                     m_brush->SetColor( textCol );
-                    swprintf( s, _countof(s), L"#%S",  "--" );
+                    swprintf( s, _countof(s), L"#%S",  "---" );
                 } else {
                     swprintf( s, _countof(s), L"#%S",  carNumbers[predictedStandings[i].custID].c_str() );
                     r = { xoff+clm->textL, y-lineHeight/2, xoff+clm->textR, y+lineHeight/2 };
                     rr.rect = { r.left-2, r.top+1, r.right+2, r.bottom-1 };
                     rr.radiusX = 3;
                     rr.radiusY = 3;
-                    m_brush->SetColor( textCol );
+                    m_brush->SetColor(carNumberBgCol);
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                     m_brush->SetColor( carNumberTextCol );
                 }

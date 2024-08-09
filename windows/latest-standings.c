@@ -14,8 +14,6 @@ char* GoLatestStandings(const char* fn, const char* json) {
     GoString filename = { fn, (ptrdiff_t)strlen(fn) };
     GoString livePositions = {json, (ptrdiff_t)strlen(json)};
 
-    printf("name: %s %lld\n", filename.p, filename.n);
-
     LSR hrReturnVal;
 
     if (hDLL == NULL) {
@@ -43,9 +41,6 @@ char* GoLatestStandings(const char* fn, const char* json) {
     {
         return "DLL not found";
     }
-
-
-//    printf("msg = %s, val = %lld\n", ret.r0, ret.r1);
 
     return hrReturnVal.r0;
 } 

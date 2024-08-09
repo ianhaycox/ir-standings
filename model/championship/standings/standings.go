@@ -32,7 +32,7 @@ type ChampionshipTable struct {
 	CarNames                string
 	DroppedRoundPoints      model.Point
 	AllRoundsPoints         model.Point  // Tie-breaker: points without drops
-	TieBreakFinishPositions []TieBreaker // then: higher number of better positions., i.e. promote drivre with more 1st, then 2nd, etc.
+	TieBreakFinishPositions []TieBreaker // then: higher number of better positions., i.e. promote driver with more 1st, then 2nd, etc.
 	Counted                 int
 	TotalLaps               model.LapsComplete
 }

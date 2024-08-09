@@ -385,7 +385,6 @@ ConnectionStatus ir_tick()
     {
         const char* sessionYaml = irsdk.getSessionStr();
 #ifdef _DEBUG
-        printf("New session\n");
         FILE* fp = fopen("sessionYaml.txt","ab");
         fprintf(fp,"\n\n==== NEW SESSION STRING ======================================\n");
         fprintf(fp,"%s",sessionYaml);

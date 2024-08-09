@@ -21,10 +21,10 @@
   },
   "General": {
     "buddies": [],
-    "filename": "285-results.json",
+    "filename": "test-results.json",
     "flagged": [],
     "performance_mode_30hz": false,
-    "refresh_every_n_frames": 600,
+    "refresh_every_n_frames": 200,
     "ui_edit_hotkey": "alt-j"
   },
   "OverlayDebug": {
@@ -67,7 +67,8 @@
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
     "background_col": [0,0,0,0.70],
     "buddy_col": [0.20,0.75,0,1],
-    "car_number_text_col": [0,0,0,0.90],
+    "car_number_background_col": [0.20,0.81,1,1],
+    "car_number_text_col": [0,0,0,1],
     "corner_radius": 6,
     "count_best_of": 12,
     "enabled": true,
@@ -82,14 +83,15 @@
     "top_n": 20,
     "window_pos_x": -1826,
     "window_pos_y": 351,
-    "window_size_x": 1213,
-    "window_size_y": 593
+    "window_size_x": 717,
+    "window_size_y": 553
   },
   "OverlayStandings84": {
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
     "background_col": [0,0,0,0.70],
     "buddy_col": [0.20,0.75,0,1],
-    "car_number_text_col": [0,0,0,0.90],
+    "car_number_background_col": [1,0.85,0.35,1],
+    "car_number_text_col": [0,0,0,1],
     "corner_radius": 6,
     "count_best_of": 12,
     "enabled": true,
@@ -102,9 +104,9 @@
     "other_car_col": [1,1,1,0.90],
     "self_col": [0.94,0.67,0.13,1],
     "top_n": 20,
-    "window_pos_x": -1596,
-    "window_pos_y": 663,
-    "window_size_x": 1133,
-    "window_size_y": 319
+    "window_pos_x": -1082,
+    "window_pos_y": 351,
+    "window_size_x": 693,
+    "window_size_y": 552
   }
 }

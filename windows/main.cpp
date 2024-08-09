@@ -112,7 +112,7 @@ int main()
     // Create overlays
     std::vector<Overlay*> overlays;
     overlays.push_back( new OverlayStandings(83) ); // Audi
-//    overlays.push_back(new OverlayStandings(84)); // Nissan
+    overlays.push_back(new OverlayStandings(84)); // Nissan
 #ifdef _DEBUG
     overlays.push_back( new OverlayDebug() );
 #endif
