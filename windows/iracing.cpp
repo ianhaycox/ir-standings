@@ -503,7 +503,7 @@ ConnectionStatus ir_tick()
         }
 
         for (auto const& perClass : sof) {
-            ir_session[perClass.first].sof = int(perClass.second / cnt[perClass.first]);
+            ir_session.sofByCarClass[perClass.first] = int(perClass.second / cnt[perClass.first]);
         }
 
         ir_handleConfigChange();

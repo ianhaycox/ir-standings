@@ -28,6 +28,7 @@ SOFTWARE.
 #include "irsdk/irsdk_client.h"
 #include "irsdk/yaml_parser.h"
 #include <string>
+#include <map>
 #include "util.h"
 
 #define IR_MAX_CARS 64

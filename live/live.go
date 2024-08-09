@@ -43,6 +43,8 @@ func (c *SafeChamp) load(seriesID model.SeriesID, carClassID model.CarClassID, f
 			return fmt.Errorf("can not open file %s", filename)
 		}
 
+		fmt.Println(string(buf))
+
 		err = json.Unmarshal(buf, &c.previousResults)
 		if err != nil {
 			return fmt.Errorf("can not parse file %s", filename)

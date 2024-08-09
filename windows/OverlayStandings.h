@@ -275,7 +275,7 @@ protected:
                 rr.radiusY = 3;
 
                 if (predictedStandings[i].change > 0) {
-                    swprintf(s, _countof(s), L"▲ %s", predictedStandings[i].change);
+                    swprintf(s, _countof(s), L"▲ %d", predictedStandings[i].change);
                     m_brush->SetColor(changePlusBgCol);
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 }
@@ -287,8 +287,10 @@ protected:
                 }
 
                 if (predictedStandings[i].change == 0) {
-                    swprintf(s, _countof(s), L"► %s", "-");
-                    m_brush->SetColor(textCol.a *= 0.5f);
+                    swprintf(s, _countof(s), L"► %S", "-");
+                    float4 dim = textCol;
+                    dim.a *= 0.5f;
+                    m_brush->SetColor(dim);
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 }
 
