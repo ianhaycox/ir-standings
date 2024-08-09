@@ -275,19 +275,19 @@ protected:
                 rr.radiusY = 3;
 
                 if (predictedStandings[i].change > 0) {
-                    swprintf(s, _countof(s), L"▲ %d", predictedStandings[i].change);
+                    swprintf(s, _countof(s), L"^ %d", predictedStandings[i].change);
                     m_brush->SetColor(changePlusBgCol);
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 }
 
                 if (predictedStandings[i].change < 0) {
-                    swprintf(s, _countof(s), L"▼ %d", predictedStandings[i].change*-1);
+                    swprintf(s, _countof(s), L"v %d", predictedStandings[i].change*-1);
                     m_brush->SetColor(changeMinusBgCol);
                     m_renderTarget->FillRoundedRectangle( &rr, m_brush.Get() );
                 }
 
                 if (predictedStandings[i].change == 0) {
-                    swprintf(s, _countof(s), L"► %S", "-");
+                    swprintf(s, _countof(s), L"%S", "--");
                     float4 dim = textCol;
                     dim.a *= 0.5f;
                     m_brush->SetColor(dim);

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,7 +44,10 @@ func (c *SafeChamp) load(seriesID model.SeriesID, carClassID model.CarClassID, f
 			return fmt.Errorf("can not open file %s", filename)
 		}
 
-		fmt.Println(string(buf))
+		x := string(buf)
+		l := strings.Index(x, "Dustin")
+
+		fmt.Println(x[l-10 : l+20])
 
 		err = json.Unmarshal(buf, &c.previousResults)
 		if err != nil {
