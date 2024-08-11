@@ -35,7 +35,7 @@ Shows the standings of the entire field, including safety rating, iRating, and n
 
 This will highlight buddies in green (Dale Jr. in the example below).
 
-![standings](https://github.com/lespalt/iRon/blob/main/standings.png?raw=true)
+![standings](https://github.com/ianhaycox/ir-standings/blob/develop/live-standings.png?raw=true)
 
 ---
 
