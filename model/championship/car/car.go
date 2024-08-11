@@ -13,7 +13,7 @@ type car struct {
 	carID model.CarID
 }
 
-type carClass struct {
+type CarClass struct {
 	name        string
 	shortName   string
 	carClassID  model.CarClassID
@@ -21,20 +21,20 @@ type carClass struct {
 }
 
 type CarClasses struct {
-	carClassNames map[model.CarClassID]carClass
+	carClassNames map[model.CarClassID]CarClass
 	carNames      map[model.CarID]car
 }
 
 func NewCarClasses(carClasses []results.CarClasses) CarClasses {
 	cc := CarClasses{
-		carClassNames: make(map[model.CarClassID]carClass),
+		carClassNames: make(map[model.CarClassID]CarClass),
 		carNames:      make(map[model.CarID]car),
 	}
 
 	for i := range carClasses {
 		carClassID := model.CarClassID(carClasses[i].CarClassID)
 
-		carClass := carClass{
+		carClass := CarClass{
 			name:       carClasses[i].Name,
 			shortName:  carClasses[i].ShortName,
 			carClassID: carClassID,
@@ -77,7 +77,7 @@ func (cc *CarClasses) AddCarName(carID model.CarID, name string) {
 
 		cic := cc.carClassNames[carClassID].carsInClass
 		cic = append(cic, car{carID: carID, name: name})
-		cc.carClassNames[carClassID] = carClass{carsInClass: cic}
+		cc.carClassNames[carClassID] = CarClass{carsInClass: cic}
 	}
 }
 
@@ -97,4 +97,8 @@ func (cc *CarClasses) Names(carsDriven []model.CarID) []string {
 	sort.SliceStable(names, func(i, j int) bool { return names[i] < names[j] })
 
 	return names
+}
+
+func (cc *CarClasses) ClassNames() map[model.CarClassID]CarClass {
+	return cc.carClassNames
 }

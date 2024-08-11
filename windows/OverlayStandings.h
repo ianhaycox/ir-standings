@@ -77,11 +77,11 @@ protected:
 
         // Determine widths of text columns
         m_columns.reset();
-        m_columns.add((int)Columns::PREDICTED_STANDING, computeTextExtent(L"E99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
-        m_columns.add((int)Columns::CAR_NUMBER, computeTextExtent(L"#999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::PREDICTED_STANDING, computeTextExtent(L"E9999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::CAR_NUMBER, computeTextExtent(L"#9999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
         m_columns.add((int)Columns::NAME, 0, fontSize / 2);
-        m_columns.add((int)Columns::CURRENT_STANDING,  computeTextExtent(L"C99999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
-        m_columns.add((int)Columns::POINTS, computeTextExtent(L"999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::CURRENT_STANDING,  computeTextExtent(L"C9999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
+        m_columns.add((int)Columns::POINTS, computeTextExtent(L"9999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
         m_columns.add((int)Columns::CHANGE,            computeTextExtent(L"999", m_dwriteFactory.Get(), m_textFormat.Get()).x, fontSize / 2);
     }
 
@@ -96,6 +96,7 @@ protected:
 
         std::vector<CarInfo> carInfo;
         std::map<int,std::string> carNumbers;
+        int classLeaderLapsComplete = 0;
 
         carInfo.reserve( IR_MAX_CARS );
 
@@ -134,6 +135,10 @@ protected:
             cp.finishPositionInClass = carInfo[i].position;
             cp.lapsComplete = carInfo[i].lapsComplete;
             cp.custID = car.custID;
+
+            if (cp.lapsComplete > classLeaderLapsComplete) {
+                classLeaderLapsComplete = cp.lapsComplete;
+            }
 
             lr.positions.push_back(cp);
         }
@@ -175,7 +180,7 @@ protected:
         // Headers
         clm = m_columns.get((int)Columns::PREDICTED_STANDING);
         swprintf(s, _countof(s), L"Pos.");
-        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
 
         clm = m_columns.get((int)Columns::CAR_NUMBER);
         swprintf(s, _countof(s), L"No.");
@@ -191,7 +196,7 @@ protected:
 
         clm = m_columns.get( (int)Columns::POINTS );
         swprintf( s, _countof(s), L"Pts." );
-        m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff+clm->textL, xoff+clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
 
         clm = m_columns.get((int)Columns::CHANGE);
         swprintf(s, _countof(s), L"+/-");
@@ -255,9 +260,11 @@ protected:
 
             {
                 clm = m_columns.get((int)Columns::CURRENT_STANDING);
-                m_brush->SetColor(textCol);
+                float4 dim = textCol;
+                dim.a *= 0.5f;
+                m_brush->SetColor(dim);
                 swprintf(s, _countof(s), L"P%d", predictedStandings[i].currentPosition);
-                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
             }
 
             {
@@ -287,7 +294,7 @@ protected:
                 }
 
                 if (predictedStandings[i].change == 0) {
-                    swprintf(s, _countof(s), L"%S", "--");
+                    swprintf(s, _countof(s), L"%S", "---");
                     float4 dim = textCol;
                     dim.a *= 0.5f;
                     m_brush->SetColor(dim);
@@ -295,7 +302,7 @@ protected:
                 }
 
                 m_brush->SetColor( textCol );
-                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+                m_text.render(m_renderTarget.Get(), s, m_textFormat.Get(), xoff + clm->textL, xoff + clm->textR, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
             }
         }
 
@@ -303,7 +310,7 @@ protected:
         {
             m_brush->SetColor(float4(1,1,1,0.4f));
             m_renderTarget->DrawLine( float2(0,ybottom),float2((float)m_width,ybottom),m_brush.Get() );
-            swprintf( s, _countof(s), L"%S  SoF: %d  Subsession: %d", ir_session.trackName.c_str(), ir_session.sofByCarClass[m_selectedClassID], ir_session.subsessionId);
+            swprintf( s, _countof(s), L"%S  Best Of: %d  SoF: %d  Laps: %d", ir_session.trackName.c_str(), lr.countBestOf, ir_session.sofByCarClass[m_selectedClassID], classLeaderLapsComplete);
             y = m_height - (m_height-ybottom)/2;
             m_brush->SetColor( headerCol );
             m_text.render( m_renderTarget.Get(), s, m_textFormat.Get(), xoff, (float)m_width-2*xoff, y, m_brush.Get(), DWRITE_TEXT_ALIGNMENT_CENTER );
