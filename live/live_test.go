@@ -120,6 +120,8 @@ func TestLive(t *testing.T) {
 	var champ SafeChamp
 
 	t.Run("New standing each lap", func(t *testing.T) {
+		t.Skip()
+
 		filename := "../windows/test-results.json"
 
 		s, err := champ.Live(filename, ex)

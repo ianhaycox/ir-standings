@@ -1,0 +1,33 @@
+#logo {
+    display: block;
+    width: 50%;
+    height: 50%;
+    margin: auto;
+    padding: 10% 0 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-origin: content-box;
+}
+
+
+.irc-change-up {
+    border-radius: 5px;
+    width:2.5em;
+    padding: 0 0.2em 0 0.5em;
+    background: transparent linear-gradient(180deg, #527e41 0%, #256433 58%, #194428 100%) 0% 0% no-repeat;
+}
+
+.irc-change-down {
+    border-radius: 5px;
+    width:2.5em;
+    padding: 0 0.2em 0 0.5em;
+    background: transparent linear-gradient(180deg, #bd1919 0%, #a02c1d 58%, #c9521a 100%) 0% 0% no-repeat;
+}
+
+.irc-change-none {
+    border-radius: 5px;
+    width:2.5em;
+    padding: 0 0.2em 0 0.5em;
+    background: transparent linear-gradient(180deg, #6b7069 0%, #818582 58%, #3d3f3d 100%) 0% 0% no-repeat;
+}

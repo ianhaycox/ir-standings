@@ -323,7 +323,7 @@ func TestFixture2024S2(t *testing.T) {
 func TestFixture2024S3(t *testing.T) {
 	t.Run("Latest", func(t *testing.T) {
 		t.Skip("for testing real data")
-		exampleData := files.ReadResultsFixture(t, "../../standings/2024-3-285-results.json")
+		exampleData := files.ReadResultsFixture(t, "../../2024-3-285-results.json")
 
 		pointsPerSplit := points.PointsPerSplit{
 			//   0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
@@ -334,11 +334,11 @@ func TestFixture2024S3(t *testing.T) {
 
 		ps := points.NewPointsStructure(pointsPerSplit)
 
-		champ := NewChampionship(iracing.KamelSeriesID, nil, ps, 12)
+		champ := NewChampionship(iracing.KamelSeriesID, nil, ps, 10)
 
 		champ.LoadRaceData(exampleData)
 
-		cs := champ.Standings(83)
+		cs := champ.Standings(84)
 
 		for _, entry := range cs.Table {
 			fmt.Printf("%-2d %-30s %-20s %-4d %-4d", entry.Position, entry.DriverName, entry.CarNames, entry.DroppedRoundPoints, entry.Counted)

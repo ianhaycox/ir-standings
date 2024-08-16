@@ -5,7 +5,13 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
+
+type Cooker interface {
+	http.CookieJar
+	HasExpired(host, name string) bool
+}
 
 type Cookies struct {
 	sync.Mutex
@@ -13,7 +19,7 @@ type Cookies struct {
 	persister Persister
 }
 
-func NewCookieJar(persister Persister) http.CookieJar {
+func NewCookieJar(persister Persister) Cooker {
 	return &Cookies{
 		cookies:   nil,
 		persister: persister,
@@ -48,6 +54,22 @@ func (c *Cookies) Cookies(u *url.URL) []*http.Cookie {
 	}
 
 	return c.cookies[u.Host]
+}
+
+func (c *Cookies) HasExpired(host, name string) bool {
+	cookies := c.Cookies(&url.URL{Host: host})
+
+	if len(cookies) == 0 {
+		return true
+	}
+
+	for i := range cookies {
+		if cookies[i].Name == name {
+			return !cookies[i].Expires.After(time.Now().UTC())
+		}
+	}
+
+	return true
 }
 
 func (c *Cookies) merge(host string, cookies []*http.Cookie) []*http.Cookie {
