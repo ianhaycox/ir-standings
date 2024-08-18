@@ -1,8 +1,8 @@
 import type { Action, ThunkAction } from "@reduxjs/toolkit"
 import { configureStore, combineReducers } from "@reduxjs/toolkit"
-import standingsReducer from "../features/standings/standingsSlice"
-import loginReducer from "../features/login/loginSlice"
-import alertReducer from "../features/alert/alertSlice"
+import standingsReducer from "../components/standings/standingsSlice"
+import loginReducer from "../components/login/loginSlice"
+import alertReducer from "../components/alert/alertSlice"
 
 export const rootReducer = combineReducers({
     standings: standingsReducer,

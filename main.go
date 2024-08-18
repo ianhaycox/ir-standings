@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	defaultHeight = 400
+	defaultWidth  = 800
+	defaultHeight = 600
 )
 
 //go:embed all:frontend/dist
@@ -22,7 +23,7 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "iRacing Championship Standings",
-		Width:  0,
+		Width:  defaultWidth,
 		Height: defaultHeight,
 		AssetServer: &assetserver.Options{
 			Assets: assets,

@@ -8,6 +8,7 @@ import (
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
+	"github.com/ianhaycox/ir-standings/model"
 )
 
 // App struct
@@ -62,21 +63,92 @@ func (a *App) Login(username string, password string) bool {
 	return true
 }
 
-type PredictedStanding struct {
-	CustID            int    `json:"cust_id"`
-	DriverName        string `json:"driver_name"`
-	CarNumber         string `json:"car_number,omitempty"`       // May be blank if not in the session
-	CurrentPosition   int    `json:"current_position,omitempty"` // May be first race in the current session
-	PredictedPosition int    `json:"predicted_position"`
-	CurrentPoints     int    `json:"current_points"`
-	PredictedPoints   int    `json:"predicted_points"`
-	Change            int    `json:"change"` // +/- change from current position
-}
+// {CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
+// {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 
 type PredictedStandings struct {
-	Items []PredictedStanding `json:"items"`
+	TrackName   string                        `json:"track_name"`
+	CountBestOf int                           `json:"count_best_of"`
+	Standings   map[model.CarClassID]Standing `json:"standings"`
 }
 
+type Standing struct {
+	SoFByCarClass           int              `json:"sof_by_car_class"`
+	CarClassID              model.CarClassID `json:"car_class_id"`
+	CarClassName            string
+	ClassLeaderLapsComplete model.LapsComplete  `json:"class_leader_laps_complete"`
+	Items                   []PredictedStanding `json:"items"`
+}
+
+type PredictedStanding struct {
+	CustID            model.CustID                `json:"cust_id"`                    // Key for React
+	DriverName        string                      `json:"driver_name"`                // Driver
+	CarNumber         string                      `json:"car_number,omitempty"`       // May be blank if not in the session
+	CurrentPosition   model.FinishPositionInClass `json:"current_position,omitempty"` // May be first race in the current session
+	PredictedPosition model.FinishPositionInClass `json:"predicted_position"`         // Championship position as is
+	CurrentPoints     model.Point                 `json:"current_points"`             // Championship position before race
+	PredictedPoints   model.Point                 `json:"predicted_points"`           // Championship points as is
+	Change            int                         `json:"change"`                     // +/- change from current position
+	CarNames          []string                    `json:"car_names"`                  // Cars driven in this class
+}
+
+//nolint:mnd,lll,dupl // ok
 func (a *App) PredictedStandings() PredictedStandings {
-	return PredictedStandings{Items: make([]PredictedStanding, 0)}
+	i83 := []PredictedStanding{
+		{CustID: 1, DriverName: "Audi 1", CarNumber: "1", CurrentPosition: 1, PredictedPosition: 2, CurrentPoints: 100, PredictedPoints: 100, Change: -1, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 2, DriverName: "Audi 2", CarNumber: "2", CurrentPosition: 2, PredictedPosition: 1, CurrentPoints: 95, PredictedPoints: 110, Change: 1, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 3, DriverName: "Audi 3", CarNumber: "3", CurrentPosition: 3, PredictedPosition: 3, CurrentPoints: 90, PredictedPoints: 90, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 4, DriverName: "Audi 4", CarNumber: "4", CurrentPosition: 4, PredictedPosition: 4, CurrentPoints: 85, PredictedPoints: 85, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 5, DriverName: "Audi 5", CarNumber: "5", CurrentPosition: 5, PredictedPosition: 5, CurrentPoints: 80, PredictedPoints: 80, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 6, DriverName: "Audi 6", CarNumber: "6", CurrentPosition: 6, PredictedPosition: 7, CurrentPoints: 75, PredictedPoints: 75, Change: -1, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 7, DriverName: "Audi 7", CarNumber: "7", CurrentPosition: 7, PredictedPosition: 6, CurrentPoints: 70, PredictedPoints: 78, Change: 1, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 8, DriverName: "Audi 8", CarNumber: "8", CurrentPosition: 8, PredictedPosition: 8, CurrentPoints: 65, PredictedPoints: 65, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 9, DriverName: "Audi 9", CarNumber: "9", CurrentPosition: 9, PredictedPosition: 9, CurrentPoints: 60, PredictedPoints: 60, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		{CustID: 10, DriverName: "Audi 10", CarNumber: "10", CurrentPosition: 10, PredictedPosition: 10, CurrentPoints: 55, PredictedPoints: 55, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+	}
+
+	i84 := []PredictedStanding{
+		{CustID: 11, DriverName: "Nissan 1", CarNumber: "1", CurrentPosition: 1, PredictedPosition: 2, CurrentPoints: 100, PredictedPoints: 100, Change: -1, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 12, DriverName: "Nissan 2", CarNumber: "2", CurrentPosition: 2, PredictedPosition: 1, CurrentPoints: 95, PredictedPoints: 110, Change: 1, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 13, DriverName: "Nissan 3", CarNumber: "3", CurrentPosition: 3, PredictedPosition: 3, CurrentPoints: 90, PredictedPoints: 90, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 14, DriverName: "Nissan 4", CarNumber: "4", CurrentPosition: 4, PredictedPosition: 4, CurrentPoints: 85, PredictedPoints: 85, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 15, DriverName: "Nissan 5", CarNumber: "5", CurrentPosition: 5, PredictedPosition: 5, CurrentPoints: 80, PredictedPoints: 80, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 16, DriverName: "Nissan 6", CarNumber: "6", CurrentPosition: 6, PredictedPosition: 7, CurrentPoints: 75, PredictedPoints: 75, Change: -1, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 17, DriverName: "Nissan 7", CarNumber: "7", CurrentPosition: 7, PredictedPosition: 6, CurrentPoints: 70, PredictedPoints: 78, Change: 1, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 18, DriverName: "Nissan 8", CarNumber: "8", CurrentPosition: 8, PredictedPosition: 8, CurrentPoints: 65, PredictedPoints: 65, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 19, DriverName: "Nissan 9", CarNumber: "9", CurrentPosition: 9, PredictedPosition: 9, CurrentPoints: 60, PredictedPoints: 60, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+		{CustID: 20, DriverName: "Nissan 10", CarNumber: "10", CurrentPosition: 10, PredictedPosition: 10, CurrentPoints: 55, PredictedPoints: 55, Change: 0, CarNames: []string{"Nissan ZX-T"}},
+	}
+
+	s83 := Standing{
+		SoFByCarClass:           2087,
+		CarClassID:              83,
+		CarClassName:            "GTO",
+		ClassLeaderLapsComplete: 10,
+		Items:                   i83,
+	}
+
+	s84 := Standing{
+		SoFByCarClass:           3025,
+		CarClassID:              84,
+		CarClassName:            "GTP",
+		ClassLeaderLapsComplete: 12,
+		Items:                   i84,
+	}
+
+	ps := PredictedStandings{
+		TrackName:   "Motegi Resort",
+		CountBestOf: 10,
+		Standings:   map[model.CarClassID]Standing{84: s84, 83: s83},
+	}
+
+	return ps
+}
+
+func (a *App) SendTelemetry(telemetryJSON string) {
+	log.Println("Telemetry:", telemetryJSON)
+}
+
+func (a *App) SendSessionInfo(sessionJSON string) {
+	log.Println("SessionInfo:", sessionJSON)
 }

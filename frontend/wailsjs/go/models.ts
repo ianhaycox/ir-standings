@@ -9,6 +9,7 @@ export namespace main {
 	    current_points: number;
 	    predicted_points: number;
 	    change: number;
+	    car_names: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new PredictedStanding(source);
@@ -24,10 +25,49 @@ export namespace main {
 	        this.current_points = source["current_points"];
 	        this.predicted_points = source["predicted_points"];
 	        this.change = source["change"];
+	        this.car_names = source["car_names"];
 	    }
 	}
-	export class PredictedStandings {
+	export class Standing {
+	    sof_by_car_class: number;
+	    car_class_id: number;
+	    class_leader_laps_complete: number;
 	    items: PredictedStanding[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Standing(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.sof_by_car_class = source["sof_by_car_class"];
+	        this.car_class_id = source["car_class_id"];
+	        this.class_leader_laps_complete = source["class_leader_laps_complete"];
+	        this.items = this.convertValues(source["items"], PredictedStanding);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PredictedStandings {
+	    track_name: string;
+	    count_best_of: number;
+	    standings: {[key: number]: Standing};
 	
 	    static createFrom(source: any = {}) {
 	        return new PredictedStandings(source);
@@ -35,7 +75,9 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.items = this.convertValues(source["items"], PredictedStanding);
+	        this.track_name = source["track_name"];
+	        this.count_best_of = source["count_best_of"];
+	        this.standings = this.convertValues(source["standings"], Standing, true);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -28,13 +28,13 @@ export const Login = () => {
             <div className="card-body">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="mb-3">
-                        <label className="form-label">Username</label>
-                        <input type="text" {...register('username')} className={`form-control ${errors.username ? 'is-invalid' : ''}`} />
+                        <label htmlFor="username" className="form-label">Username</label>
+                        <input id="username" type="text" autoComplete="username" {...register('username')} className={`form-control ${errors.username ? 'is-invalid' : ''}`} />
                         <div className="invalid-feedback">{errors.username?.message}</div>
                     </div>
                     <div className="mb-3">
-                        <label className="form-label">Password</label>
-                        <input type="password" {...register('password')} className={`form-control ${errors.password ? 'is-invalid' : ''}`} />
+                        <label  htmlFor="password" className="form-label">Password</label>
+                        <input id="password" type="password" autoComplete="current-password" {...register('password')} className={`form-control ${errors.password ? 'is-invalid' : ''}`} />
                         <div className="invalid-feedback">{errors.password?.message}</div>
                     </div>
                     <button disabled={isSubmitting} className="btn btn-primary">

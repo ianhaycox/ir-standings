@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "../../app/store"
-import { error, success, clear } from "../../features/alert/alertSlice"
+import { error, success, clear } from "../../components/alert/alertSlice"
+import { fetchAsync } from "../../components/standings/standingsSlice"
 
 import { login } from "./loginAPI"
 
@@ -56,9 +57,7 @@ export const loginAsync = createAsyncThunk(
         const { username, password } = credentials;
         const response = await login(username, password)
 
-        if (response) {
-            thunkAPI.dispatch(success("Logged in"))
-        } else {
+        if (!response) {
             thunkAPI.dispatch(error("Invalid username or password"))
         }
 

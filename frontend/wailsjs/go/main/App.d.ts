@@ -5,3 +5,7 @@ import {main} from '../models';
 export function Login(arg1:string,arg2:string):Promise<boolean>;
 
 export function PredictedStandings():Promise<main.PredictedStandings>;
+
+export function SendSessionInfo(arg1:string):Promise<void>;
+
+export function SendTelemetry(arg1:string):Promise<void>;

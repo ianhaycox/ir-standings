@@ -9,3 +9,11 @@ export function Login(arg1, arg2) {
 export function PredictedStandings() {
   return window['go']['main']['App']['PredictedStandings']();
 }
+
+export function SendSessionInfo(arg1) {
+  return window['go']['main']['App']['SendSessionInfo'](arg1);
+}
+
+export function SendTelemetry(arg1) {
+  return window['go']['main']['App']['SendTelemetry'](arg1);
+}
