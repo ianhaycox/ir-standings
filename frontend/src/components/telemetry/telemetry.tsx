@@ -7,21 +7,10 @@ export const Telemetry = () => {
 
   useEffect(() => {
     // Create a new web worker
-    const myWorker = new Worker(new URL('./iracing.js', import.meta.url));
-
-    // Set up event listener for messages from the worker
-    myWorker.onmessage = function (event) {
-      console.log('Received result from worker:', event.data);
-      SendSessionInfo("session");
-      SendTelemetry("telementry");
-
-      setResult(event.data);
-    };
+    const myWorker = new Worker(new URL('./irsdk-node.ts', import.meta.url));
 
     // Save the worker instance to state
     setWorker(myWorker);
-
-    myWorker.postMessage("start");
 
     // Clean up the worker when the component unmounts
     return () => {
