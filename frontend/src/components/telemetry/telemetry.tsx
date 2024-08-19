@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { SendTelemetry, SendSessionInfo } from '../../../wailsjs/go/main/App';
+import { useState, useEffect } from 'react';
+import worker_func from './irsdk';
 
 export const Telemetry = () => {
   const [result, setResult] = useState(null);
@@ -7,7 +7,7 @@ export const Telemetry = () => {
 
   useEffect(() => {
     // Create a new web worker
-    const myWorker = new Worker(new URL('./irsdk-node.ts', import.meta.url));
+    const myWorker = new Worker(URL.createObjectURL(new Blob(["("+worker_func.toString()+")()"], {type: 'text/javascript'})));
 
     // Save the worker instance to state
     setWorker(myWorker);

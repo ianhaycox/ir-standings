@@ -31,8 +31,8 @@
     "background_col": [0,0,0,0.70],
     "corner_radius": 6,
     "enabled": true,
-    "window_pos_x": -801,
-    "window_pos_y": 23,
+    "window_pos_x": -2514,
+    "window_pos_y": 867,
     "window_size_x": 676,
     "window_size_y": 171
   },
@@ -80,13 +80,13 @@
     "font_weight": 500,
     "header_col": [0.70,0.70,0.70,0.90],
     "line_spacing": 8,
-    "other_car_col": [1,1,1,0.90],
+    "other_car_col": [1,1,1,0.95],
     "self_col": [0.94,0.67,0.13,1],
     "top_n": 20,
-    "window_pos_x": -1772,
-    "window_pos_y": 20,
-    "window_size_x": 553,
-    "window_size_y": 542
+    "window_pos_x": -1887,
+    "window_pos_y": 10,
+    "window_size_x": 593,
+    "window_size_y": 540
   },
   "OverlayStandings84": {
     "alternate_line_background_col": [0.50,0.50,0.50,0.10],
@@ -105,12 +105,12 @@
     "font_weight": 500,
     "header_col": [0.70,0.70,0.70,0.90],
     "line_spacing": 8,
-    "other_car_col": [1,1,1,0.90],
+    "other_car_col": [1,1,1,0.95],
     "self_col": [0.94,0.67,0.13,1],
     "top_n": 20,
-    "window_pos_x": -1203,
-    "window_pos_y": 20,
-    "window_size_x": 553,
-    "window_size_y": 542
+    "window_pos_x": -1267,
+    "window_pos_y": 10,
+    "window_size_x": 605,
+    "window_size_y": 539
   }
 }

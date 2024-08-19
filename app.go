@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
+
+	irsdk "github.com/Sj-Si/iracing-sdk"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
@@ -25,6 +28,7 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	go ir()
 }
 
 func (a *App) Login(username string, password string) bool {
@@ -151,4 +155,66 @@ func (a *App) SendTelemetry(telemetryJSON string) {
 
 func (a *App) SendSessionInfo(sessionJSON string) {
 	log.Println("SessionInfo:", sessionJSON)
+}
+
+func ir() {
+
+	log.Println("Start IR")
+	/*
+		reader, err := os.Open("C:/Users/Ian/audi90gto.ibt")
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+	sdk := irsdk.Init(nil)
+	defer sdk.Close()
+
+	online := true
+	for {
+		sdk.WaitForData(5000 * time.Millisecond)
+
+		/*session := sdk.GetSession()
+
+		vars, err := sdk.GetVars()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println()
+		log.Println("Session")
+		log.Printf("%+v", session)
+
+		log.Println()
+		log.Println("Vars")
+		for i := range vars {
+			fmt.Printf("%s\n", vars[i].Name)
+		}
+
+		//		log.Printf("%+v", vars)
+		*/
+		varValues, err := sdk.GetVar("CarIdxClassPosition")
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println()
+		log.Println("Vars values")
+
+		log.Printf("%+v", varValues.Values)
+		log.Println()
+
+		if sdk.IsConnected() {
+			time.Sleep(50 * time.Millisecond)
+			if !online {
+				log.Println("iRacing connected!")
+			}
+			online = true
+		} else {
+			time.Sleep(5 * time.Second)
+			if online {
+				log.Println("Waiting for iRacing connection...")
+			}
+			online = false
+		}
+
+	}
 }
