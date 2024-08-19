@@ -2,16 +2,23 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"runtime"
+	"strconv"
 	"time"
-
-	irsdk "github.com/Sj-Si/iracing-sdk"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
+	"github.com/ianhaycox/ir-standings/irsdk"
 	"github.com/ianhaycox/ir-standings/model"
+)
+
+const (
+	defaultRefreshSeconds = 5
 )
 
 // App struct
@@ -28,7 +35,15 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	go ir()
+
+	refresh := os.Getenv("IR_STANDINGS_REFRESH_SECONDS")
+
+	refreshSeconds, err := strconv.Atoi(refresh)
+	if err != nil {
+		refreshSeconds = defaultRefreshSeconds
+	}
+
+	go irTelemetry(refreshSeconds)
 }
 
 func (a *App) Login(username string, password string) bool {
@@ -157,64 +172,82 @@ func (a *App) SendSessionInfo(sessionJSON string) {
 	log.Println("SessionInfo:", sessionJSON)
 }
 
-func ir() {
+// Runs as a Go routine reading the Windows shared memory to get session and telemetry data
+func irTelemetry(refreshSeconds int) {
+	const (
+		connectionPauseMilli = 50
+		waitForDataMilli     = 100
+	)
 
-	log.Println("Start IR")
-	/*
-		reader, err := os.Open("C:/Users/Ian/audi90gto.ibt")
+	var sdk irsdk.SDK
+
+	log.Println("Starting iRacing telemetry...")
+
+	if runtime.GOOS == "windows" {
+		sdk = irsdk.Init(nil)
+	} else {
+		reader, err := os.Open("/tmp/test.ibt")
 		if err != nil {
 			log.Fatal(err)
 		}
-	*/
-	sdk := irsdk.Init(nil)
+
+		sdk = irsdk.Init(reader)
+	}
+
 	defer sdk.Close()
 
-	online := true
 	for {
-		sdk.WaitForData(5000 * time.Millisecond)
+		if !sdk.IsConnected() {
+			log.Println("Waiting for iRacing connection...")
+			time.Sleep(time.Duration(refreshSeconds) * time.Second)
 
-		/*session := sdk.GetSession()
-
-		vars, err := sdk.GetVars()
-		if err != nil {
-			log.Fatal(err)
+			continue
 		}
 
-		log.Println()
-		log.Println("Session")
-		log.Printf("%+v", session)
+		time.Sleep(connectionPauseMilli * time.Millisecond)
+		log.Println("iRacing connected")
 
-		log.Println()
-		log.Println("Vars")
-		for i := range vars {
-			fmt.Printf("%s\n", vars[i].Name)
-		}
+		for {
+			sdk.WaitForData(waitForDataMilli * time.Millisecond)
 
-		//		log.Printf("%+v", vars)
-		*/
-		varValues, err := sdk.GetVar("CarIdxClassPosition")
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println()
-		log.Println("Vars values")
+			if !sdk.IsConnected() {
+				log.Println("iRacing disconnected")
 
-		log.Printf("%+v", varValues.Values)
-		log.Println()
-
-		if sdk.IsConnected() {
-			time.Sleep(50 * time.Millisecond)
-			if !online {
-				log.Println("iRacing connected!")
+				break
 			}
-			online = true
-		} else {
-			time.Sleep(5 * time.Second)
-			if online {
-				log.Println("Waiting for iRacing connection...")
-			}
-			online = false
-		}
 
+			session := sdk.GetSession()
+
+			vars, err := sdk.GetVars()
+			if err != nil {
+				log.Println("can not get iRacing telemetry vars", err)
+				return
+			}
+
+			log.Println()
+			log.Println("Session")
+			log.Printf("%+v", session)
+
+			log.Println()
+			log.Println("Vars")
+
+			for i := range vars {
+				fmt.Printf("%s\n", vars[i].Name)
+			}
+
+			//		log.Printf("%+v", vars)
+
+			varValues, err := sdk.GetVar("CarIdxClassPosition")
+			if err != nil {
+				log.Println("can not get iRacing telemetry var", err)
+				return
+			}
+
+			log.Println()
+			log.Println("Vars values")
+
+			log.Printf("%+v", varValues.Values)
+			log.Println()
+		}
 	}
 }

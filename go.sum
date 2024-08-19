@@ -1,5 +1,3 @@
-github.com/Sj-Si/iracing-sdk v0.0.0-20240210190927-ab6d27d8b60c h1:ZhpNx+LwTjoHjfLJSd+1xtCUdj/UQwF/8vxV/Cye7SE=
-github.com/Sj-Si/iracing-sdk v0.0.0-20240210190927-ab6d27d8b60c/go.mod h1:OFyyeJWNLOg/lXgUPX4Sp9o8AGRg5R/6ClSy92rPkQk=
 github.com/bep/debounce v1.2.1 h1:v67fRdBA9UQu2NhLFXrSg0Brw7CexQekrBwDMM8bzeY=
 github.com/bep/debounce v1.2.1/go.mod h1:H8yggRPQKLUhUoqrJC1bO2xNya7vanpDl7xR3ISbCJ0=
 github.com/containerd/log v0.1.0 h1:TCJt7ioM2cr/tfR8GPbGf9/VRAX8D2B4PjzCpfX540I=

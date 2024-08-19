@@ -21,17 +21,17 @@ require (
 )
 
 require (
-	github.com/Sj-Si/iracing-sdk v0.0.0-20240210190927-ab6d27d8b60c
+	github.com/go-yaml/yaml v2.1.0+incompatible
+	github.com/hidez8891/shm v0.0.0-20200313135933-0ec4df5f28c7
 	github.com/wailsapp/wails/v2 v2.9.1
+	golang.org/x/text v0.15.0
 )
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hidez8891/shm v0.0.0-20200313135933-0ec4df5f28c7 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/labstack/echo/v4 v4.10.2 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -53,5 +53,4 @@ require (
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
 )
