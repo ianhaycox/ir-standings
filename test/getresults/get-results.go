@@ -42,9 +42,9 @@ func main() {
 		nil,
 	)
 
-	seasonResults, err := standings(ctx, ir, seasonYear, seasonQuarter)
+	seasonResults, err := getResults(ctx, ir, seasonYear, seasonQuarter)
 	if err != nil {
-		log.Fatal("Can not get standings:", err.Error())
+		log.Fatal("Can not get results:", err.Error())
 	}
 
 	b, err := json.MarshalIndent(seasonResults, "", "  ")
@@ -58,7 +58,7 @@ func main() {
 	}
 }
 
-func standings(ctx context.Context, ir iracing.IracingService, seasonYear, seasonQuarter int) ([]results.Result, error) {
+func getResults(ctx context.Context, ir iracing.IracingService, seasonYear, seasonQuarter int) ([]results.Result, error) {
 	searchSeriesResults, err := ir.SearchSeriesResults(ctx, seasonYear, seasonQuarter, int(iracing.KamelSeriesID))
 	if err != nil {
 		return nil, fmt.Errorf("can not get series results:%w", err)

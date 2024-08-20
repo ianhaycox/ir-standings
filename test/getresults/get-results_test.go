@@ -13,7 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestStandings(t *testing.T) {
+func TestGetResults(t *testing.T) {
 	t.Run("should call the SearchSeriesResults and SeasonBroadcastResults services without error", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -24,7 +24,7 @@ func TestStandings(t *testing.T) {
 		irServiceMock.EXPECT().SearchSeriesResults(ctx, 2024, 2, 285).Return([]searchseries.SearchSeriesResult{{SessionID: 123}}, nil)
 		irServiceMock.EXPECT().SeasonBroadcastResults(ctx, []searchseries.SearchSeriesResult{{SessionID: 123}}).Return([]results.Result{{SeasonID: 285}}, nil)
 
-		actual, err := standings(ctx, irServiceMock, 2024, 2)
+		actual, err := getResults(ctx, irServiceMock, 2024, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, []results.Result{{SeasonID: 285}}, actual)
 	})
@@ -38,7 +38,7 @@ func TestStandings(t *testing.T) {
 		irServiceMock := iracing.NewMockIracingService(ctrl)
 		irServiceMock.EXPECT().SearchSeriesResults(ctx, 2024, 2, 285).Return(nil, fmt.Errorf("opps"))
 
-		_, err := standings(ctx, irServiceMock, 2024, 2)
+		_, err := getResults(ctx, irServiceMock, 2024, 2)
 		assert.ErrorContains(t, err, "opps")
 	})
 
@@ -52,12 +52,12 @@ func TestStandings(t *testing.T) {
 		irServiceMock.EXPECT().SearchSeriesResults(ctx, 2024, 2, 285).Return([]searchseries.SearchSeriesResult{{SessionID: 123}}, nil)
 		irServiceMock.EXPECT().SeasonBroadcastResults(ctx, []searchseries.SearchSeriesResult{{SessionID: 123}}).Return(nil, fmt.Errorf("failed"))
 
-		_, err := standings(ctx, irServiceMock, 2024, 2)
+		_, err := getResults(ctx, irServiceMock, 2024, 2)
 		assert.ErrorContains(t, err, "failed")
 	})
 }
 
-func TestStandingsArgs(t *testing.T) {
+func TestGetResultsArgs(t *testing.T) {
 	t.Run("args should return year and quarter", func(t *testing.T) {
 		os.Args = []string{"", "2024", "2"}
 
