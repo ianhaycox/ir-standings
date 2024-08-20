@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
 	"github.com/ianhaycox/ir-standings/irsdk"
+	"github.com/ianhaycox/ir-standings/irsdk/iryaml"
 	"github.com/ianhaycox/ir-standings/model"
 )
 
@@ -24,12 +26,17 @@ const (
 // App struct
 type App struct {
 	ctx context.Context
+	sync.Mutex
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
+
+var (
+	cleanCRLF = strings.NewReplacer("\r", "", "\n", "")
+)
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
@@ -86,15 +93,16 @@ func (a *App) Login(username string, password string) bool {
 // {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 
 type PredictedStandings struct {
+	Status      string                        `json:"status"` // iRacing connection status/session, Race, Qualifying,...
 	TrackName   string                        `json:"track_name"`
 	CountBestOf int                           `json:"count_best_of"`
 	Standings   map[model.CarClassID]Standing `json:"standings"`
 }
 
 type Standing struct {
-	SoFByCarClass           int              `json:"sof_by_car_class"`
-	CarClassID              model.CarClassID `json:"car_class_id"`
-	CarClassName            string
+	SoFByCarClass           int                 `json:"sof_by_car_class"`
+	CarClassID              model.CarClassID    `json:"car_class_id"`
+	CarClassName            string              `json:"car_class_name"`
 	ClassLeaderLapsComplete model.LapsComplete  `json:"class_leader_laps_complete"`
 	Items                   []PredictedStanding `json:"items"`
 }
@@ -172,14 +180,44 @@ func (a *App) SendSessionInfo(sessionJSON string) {
 	log.Println("SessionInfo:", sessionJSON)
 }
 
+const irMaxCars = 64
+
+type CarInfo struct {
+	CarClassID          int
+	CarID               int
+	CarName             string
+	CarNumber           string
+	CustID              int
+	DriverName          string
+	IRating             int
+	IsPaceCar           bool
+	IsSelf              bool
+	IsSpectator         bool
+	LapComplete         int
+	RacePositionInClass int
+}
+
+type TelemetryData struct {
+	SeriesID     int
+	SessionID    int
+	SubsessionID int
+	SessionType  string // PRACTICE, QUALIFY, RACE
+	Status       string // Connected, Driving
+	TrackName    string
+	DriverCarIdx int
+	Cars         [irMaxCars]CarInfo
+}
+
 // Runs as a Go routine reading the Windows shared memory to get session and telemetry data
 func irTelemetry(refreshSeconds int) {
 	const (
-		connectionPauseMilli = 50
-		waitForDataMilli     = 100
+		connectionRetrySecs = 5
+		waitForDataMilli    = 100
 	)
 
-	var sdk irsdk.SDK
+	var (
+		sdk irsdk.SDK
+	)
 
 	log.Println("Starting iRacing telemetry...")
 
@@ -199,15 +237,18 @@ func irTelemetry(refreshSeconds int) {
 	for {
 		if !sdk.IsConnected() {
 			log.Println("Waiting for iRacing connection...")
-			time.Sleep(time.Duration(refreshSeconds) * time.Second)
+			time.Sleep(time.Duration(connectionRetrySecs) * time.Second)
 
 			continue
 		}
 
-		time.Sleep(connectionPauseMilli * time.Millisecond)
 		log.Println("iRacing connected")
 
+		telemetryData := TelemetryData{Status: "Connected"}
+
 		for {
+			time.Sleep(time.Duration(refreshSeconds) * time.Second)
+
 			sdk.WaitForData(waitForDataMilli * time.Millisecond)
 
 			if !sdk.IsConnected() {
@@ -216,38 +257,96 @@ func irTelemetry(refreshSeconds int) {
 				break
 			}
 
-			session := sdk.GetSession()
+			if sdk.SessionChanged() {
+				session := sdk.GetSession()
+
+				updateSession(sdk, &session, &telemetryData)
+			}
 
 			vars, err := sdk.GetVars()
 			if err != nil {
 				log.Println("can not get iRacing telemetry vars", err)
-				return
+				continue
 			}
 
-			log.Println()
-			log.Println("Session")
-			log.Printf("%+v", session)
+			updateTelemetry(vars, &telemetryData)
 
-			log.Println()
-			log.Println("Vars")
-
-			for i := range vars {
-				fmt.Printf("%s\n", vars[i].Name)
-			}
-
-			//		log.Printf("%+v", vars)
-
-			varValues, err := sdk.GetVar("CarIdxClassPosition")
-			if err != nil {
-				log.Println("can not get iRacing telemetry var", err)
-				return
-			}
-
-			log.Println()
-			log.Println("Vars values")
-
-			log.Printf("%+v", varValues.Values)
-			log.Println()
+			log.Println(telemetryData)
 		}
 	}
+}
+
+// Updated often
+func updateTelemetry(vars map[string]irsdk.Variable, telemetryData *TelemetryData) {
+	var (
+		carIdxPositionsByClass [irMaxCars]int
+		carIdxLaps             [irMaxCars]int
+	)
+
+	carIdxPositionByClass := vars["CarIdxClassPosition"].Values
+	if carIdxPositionByClass != nil {
+		carIdxPositionsByClass = carIdxPositionByClass.([irMaxCars]int)
+	}
+
+	carIdxLap := vars["CarIdxLap"].Values
+	if carIdxLap != nil {
+		carIdxLaps = carIdxLap.([irMaxCars]int)
+	}
+
+	for i := 0; i < irMaxCars; i++ {
+		telemetryData.Cars[i].RacePositionInClass = carIdxPositionsByClass[i]
+		telemetryData.Cars[i].LapComplete = carIdxLaps[i]
+	}
+}
+
+// Updated rarely
+func updateSession(sdk irsdk.SDK, session *iryaml.IRSession, telemetryData *TelemetryData) {
+	telemetryData.SeriesID = session.WeekendInfo.SeriesID
+	telemetryData.SessionID = session.WeekendInfo.SessionID
+	telemetryData.SubsessionID = session.WeekendInfo.SubSessionID
+
+	sessionNum, err := sdk.GetVar("SessionNum")
+	if err == nil {
+		telemetryData.SessionType = session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName
+	}
+
+	telemetryData.TrackName = session.WeekendInfo.TrackDisplayName + " " + session.WeekendInfo.TrackConfigName
+	telemetryData.DriverCarIdx = session.DriverInfo.DriverCarIdx
+
+	for i := range session.DriverInfo.Drivers {
+		carIdx := session.DriverInfo.Drivers[i].CarIdx
+
+		telemetryData.Cars[carIdx].CarClassID = session.DriverInfo.Drivers[i].CarClassID
+		telemetryData.Cars[carIdx].CarID = session.DriverInfo.Drivers[i].CarID
+		telemetryData.Cars[carIdx].CarName = session.DriverInfo.Drivers[i].CarScreenName
+		telemetryData.Cars[carIdx].CarNumber = session.DriverInfo.Drivers[i].CarNumber
+		telemetryData.Cars[carIdx].CustID = session.DriverInfo.Drivers[i].UserID
+		telemetryData.Cars[carIdx].DriverName = cleanCRLF.Replace(session.DriverInfo.Drivers[i].UserName)
+		telemetryData.Cars[carIdx].IRating = session.DriverInfo.Drivers[i].IRating
+		telemetryData.Cars[carIdx].IsPaceCar = session.DriverInfo.Drivers[i].CarIsPaceCar == 1
+		telemetryData.Cars[carIdx].IsSelf = carIdx == telemetryData.DriverCarIdx
+		telemetryData.Cars[carIdx].IsSpectator = session.DriverInfo.Drivers[i].IsSpectator == 1
+	}
+}
+
+func sofByCarClass(td *TelemetryData) map[int]int {
+	total := make(map[int]int)
+	count := make(map[int]int)
+
+	for i := range td.Cars {
+		if td.Cars[i].IsPaceCar || td.Cars[i].IsSpectator || td.Cars[i].DriverName == "" {
+			continue
+		}
+
+		count[td.Cars[i].CarClassID]++
+		total[td.Cars[i].CarClassID] += td.Cars[i].IRating
+	}
+
+	sof := make(map[int]int)
+
+	for carClassID := range total {
+		sof[carClassID] = total[carClassID] / count[carClassID]
+	}
+
+	return sof
 }

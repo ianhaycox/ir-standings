@@ -31,6 +31,7 @@ export namespace main {
 	export class Standing {
 	    sof_by_car_class: number;
 	    car_class_id: number;
+	    car_class_name: string;
 	    class_leader_laps_complete: number;
 	    items: PredictedStanding[];
 	
@@ -42,6 +43,7 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.sof_by_car_class = source["sof_by_car_class"];
 	        this.car_class_id = source["car_class_id"];
+	        this.car_class_name = source["car_class_name"];
 	        this.class_leader_laps_complete = source["class_leader_laps_complete"];
 	        this.items = this.convertValues(source["items"], PredictedStanding);
 	    }
@@ -65,6 +67,7 @@ export namespace main {
 		}
 	}
 	export class PredictedStandings {
+	    status: string;
 	    track_name: string;
 	    count_best_of: number;
 	    standings: {[key: number]: Standing};
@@ -75,6 +78,7 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
 	        this.track_name = source["track_name"];
 	        this.count_best_of = source["count_best_of"];
 	        this.standings = this.convertValues(source["standings"], Standing, true);

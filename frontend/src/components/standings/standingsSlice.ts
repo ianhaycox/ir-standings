@@ -21,11 +21,13 @@ export interface SerializablePredictedStanding {
 export interface SerializableStanding {
   sof_by_car_class: number;
   car_class_id: number;
+  car_class_name: string;
   class_leader_laps_complete: number;
   items: SerializablePredictedStanding[];
 }
 
 export interface SerializablePredictedStandings {
+  status: string;
   track_name: string;
   count_best_of: number;
   standings: {[key: number]: SerializableStanding}; // By Car Class ID
@@ -68,14 +70,14 @@ export const standingsSlice = createSlice({
     builder
       // Handle the action types defined by the `incrementAsync` thunk defined below.
       // This lets the slice reducer update the state with request status and results.
-      .addCase(fetchAsync.pending, state => {
+      .addCase(getPastResults.pending, state => {
         state.status = "loading"
       })
-      .addCase(fetchAsync.fulfilled, (state, action) => {
+      .addCase(getPastResults.fulfilled, (state, action) => {
         state.status = "idle"
         state.standings = action.payload //  serialize(action.payload)
       })
-      .addCase(fetchAsync.rejected, state => {
+      .addCase(getPastResults.rejected, state => {
         state.status = "failed"
       })
   },
@@ -84,19 +86,10 @@ export const standingsSlice = createSlice({
 // Export the slice reducer for use in the store configuration
 export default standingsSlice.reducer
 
-// Selector functions allows us to select a value from the Redux root state.
-// Selectors can also be defined inline in the `useSelector` call
-// in a component, or inside the `createSlice.selectors` field.
 export const selectStandings = (state: RootState) => state.standings.standings
 export const selectStatus = (state: RootState) => state.standings.status
 
-// Thunks are commonly used for async logic like fetching data.
-// The `createAsyncThunk` method is used to generate thunks that
-// dispatch pending/fulfilled/rejected actions based on a promise.
-// In this example, we make a mock async request and return the result.
-// The `createSlice.extraReducers` field can handle these actions
-// and update the state with the results.
-export const fetchAsync = createAsyncThunk(
+export const getPastResults = createAsyncThunk(
   "standings/fetchStandings",
   async (isLoggedIn:boolean) => {
 

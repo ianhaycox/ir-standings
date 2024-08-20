@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "../../app/store"
 import { error, success, clear } from "../../components/alert/alertSlice"
-import { fetchAsync } from "../../components/standings/standingsSlice"
+import { getPastResults } from "../../components/standings/standingsSlice"
 
 import { login } from "./loginAPI"
 

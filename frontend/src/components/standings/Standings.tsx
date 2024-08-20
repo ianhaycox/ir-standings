@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import {
     selectStandings,
     selectStatus,
-    fetchAsync,
+    getPastResults,
 } from "./standingsSlice"
 
 export const Standings = () => {
