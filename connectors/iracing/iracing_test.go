@@ -12,7 +12,7 @@ func TestIRacing(t *testing.T) {
 		i := NewIracingService(
 			api.NewHTTPClient(api.NewConfiguration(nil, "")),
 			NewIracingDataService(api.NewHTTPClient(api.NewConfiguration(nil, "")), nil),
-			api.NewAuthenticationService("", ""),
+			api.NewAuthenticationService(),
 		)
 		assert.NotNil(t, i)
 	})

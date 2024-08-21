@@ -118,9 +118,8 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 
 func (c *Championship) Standings(carClassID model.CarClassID) standings.ChampionshipStandings {
 	cs := standings.ChampionshipStandings{
-		BestOf:       c.countBestOf,
-		CarClassName: "GTP",
-		Table:        make([]standings.ChampionshipTable, 0),
+		BestOf: c.countBestOf,
+		Table:  make([]standings.ChampionshipTable, 0),
 	}
 
 	events := c.Events()

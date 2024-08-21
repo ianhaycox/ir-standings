@@ -1,4 +1,4 @@
-export namespace main {
+export namespace live {
 	
 	export class PredictedStanding {
 	    cust_id: number;
@@ -9,7 +9,7 @@ export namespace main {
 	    current_points: number;
 	    predicted_points: number;
 	    change: number;
-	    car_names: string[];
+	    car_names: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new PredictedStanding(source);

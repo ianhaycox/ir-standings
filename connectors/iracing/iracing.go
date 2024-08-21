@@ -30,7 +30,7 @@ type APIErrorResponse struct {
 }
 
 type IracingService interface {
-	Authenticate(ctx context.Context) error
+	Authenticate(ctx context.Context, email, password string) error
 	ResultLink(ctx context.Context, subsessionID int) (*results.ResultLink, error)
 	SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) ([]searchseries.SearchSeriesResult, error)
 	SeasonBroadcastResults(ctx context.Context, ssResults []searchseries.SearchSeriesResult) ([]results.Result, error)

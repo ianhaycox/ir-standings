@@ -33,12 +33,12 @@ func main() {
 	cfg.AddDefaultHeader("Accept", "application/json")
 	cfg.AddDefaultHeader("Content-Type", "application/json")
 
-	auth := api.NewAuthenticationService(flag.Arg(0), flag.Arg(1))
+	auth := api.NewAuthenticationService()
 	client := api.NewHTTPClient(cfg)
 
 	ir := iracing.NewIracingService(client, nil, auth)
 
-	err := ir.Authenticate(ctx)
+	err := ir.Authenticate(ctx, flag.Arg(0), flag.Arg(1))
 	if err != nil {
 		log.Fatal("Can not login: ", err)
 	}

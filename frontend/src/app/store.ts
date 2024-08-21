@@ -3,11 +3,13 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit"
 import standingsReducer from "../components/standings/standingsSlice"
 import loginReducer from "../components/login/loginSlice"
 import alertReducer from "../components/alert/alertSlice"
+import telemetryReducer from "../components/telemetry/telemetrySlice"
 
 export const rootReducer = combineReducers({
     standings: standingsReducer,
     login: loginReducer,
     alert: alertReducer,
+    telemetry: telemetryReducer,
 })
 
 export const store = configureStore({

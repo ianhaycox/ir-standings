@@ -3,35 +3,57 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
-	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
 	"github.com/ianhaycox/ir-standings/irsdk"
 	"github.com/ianhaycox/ir-standings/irsdk/iryaml"
-	"github.com/ianhaycox/ir-standings/model"
+	"github.com/ianhaycox/ir-standings/model/championship/points"
+	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/model/live"
+	"github.com/ianhaycox/ir-standings/model/telemetry"
+	"github.com/ianhaycox/ir-standings/predictor"
 )
 
 const (
-	defaultRefreshSeconds = 5
+	connectionRetrySecs = 5
+	waitForDataMilli    = 100
 )
 
 // App struct
 type App struct {
 	ctx context.Context
 	sync.Mutex
+
+	irAPI            iracing.IracingService  // iRacing API
+	pointsPerSplit   points.PointsPerSplit   // Points structure
+	refreshSeconds   int                     // How often to read telemetry
+	countBestOf      int                     // Count best of n races in season
+	seriesID         int                     // iRacing series ID
+	seasonYear       int                     // E.g. 2024, 2025
+	seasonQuarter    int                     // E.g. 1,2,3
+	triedPastResults bool                    // Guard against call API too much
+	pastResults      []results.Result        // Previous weeks results for this season from the iRacing API
+	telemetryData    telemetry.TelemetryData // Shared memory updated every `refreshSeconds`
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, seasonYear, seasonQuarter int) *App {
+	return &App{
+		irAPI:            irAPI,
+		refreshSeconds:   refreshSeconds,
+		seriesID:         seriesID,
+		seasonYear:       seasonYear,
+		seasonQuarter:    seasonQuarter,
+		telemetryData:    telemetry.TelemetryData{Status: "Disconnected"},
+		pointsPerSplit:   pointsPerSplit,
+		triedPastResults: true,
+		countBestOf:      countBestOf,
+	}
 }
 
 var (
@@ -43,43 +65,15 @@ var (
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	refresh := os.Getenv("IR_STANDINGS_REFRESH_SECONDS")
-
-	refreshSeconds, err := strconv.Atoi(refresh)
-	if err != nil {
-		refreshSeconds = defaultRefreshSeconds
-	}
-
-	go irTelemetry(refreshSeconds)
+	go a.irTelemetry(a.refreshSeconds)
 }
 
-func (a *App) Login(username string, password string) bool {
-	if username == "test" {
+func (a *App) Login(email string, password string) bool {
+	if email == "test" {
 		return true
 	}
 
-	ctx := context.Background()
-	httpClient := http.DefaultClient
-	cookieStore := cookiejar.NewStore(iracing.CookiesFile)
-	jar := cookiejar.NewCookieJar(cookieStore)
-
-	if !jar.HasExpired("members-ng.iracing.com", "authtoken_members") {
-		log.Println("Using cached login token")
-
-		return true
-	}
-
-	httpClient.Jar = jar
-	cfg := api.NewConfiguration(httpClient, api.UserAgent)
-	cfg.AddDefaultHeader("Accept", "application/json")
-	cfg.AddDefaultHeader("Content-Type", "application/json")
-
-	auth := api.NewAuthenticationService(username, password)
-	client := api.NewHTTPClient(cfg)
-
-	ir := iracing.NewIracingService(client, nil, auth)
-
-	err := ir.Authenticate(ctx)
+	err := a.irAPI.Authenticate(a.ctx, email, password)
 	if err != nil {
 		log.Println("Can not login: ", err)
 
@@ -89,131 +83,45 @@ func (a *App) Login(username string, password string) bool {
 	return true
 }
 
-// {CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
-// {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
+func (a *App) PastResults() bool {
+	log.Println("PastResults")
 
-type PredictedStandings struct {
-	Status      string                        `json:"status"` // iRacing connection status/session, Race, Qualifying,...
-	TrackName   string                        `json:"track_name"`
-	CountBestOf int                           `json:"count_best_of"`
-	Standings   map[model.CarClassID]Standing `json:"standings"`
-}
+	if !a.triedPastResults {
+		searchSeriesResults, err := a.irAPI.SearchSeriesResults(a.ctx, a.seasonYear, a.seasonQuarter, a.seriesID)
+		if err != nil {
+			log.Println("can not get series results:", err)
+		}
 
-type Standing struct {
-	SoFByCarClass           int                 `json:"sof_by_car_class"`
-	CarClassID              model.CarClassID    `json:"car_class_id"`
-	CarClassName            string              `json:"car_class_name"`
-	ClassLeaderLapsComplete model.LapsComplete  `json:"class_leader_laps_complete"`
-	Items                   []PredictedStanding `json:"items"`
-}
+		a.pastResults, err = a.irAPI.SeasonBroadcastResults(a.ctx, searchSeriesResults)
+		if err != nil {
+			log.Println("can not get series results:", err)
+		}
 
-type PredictedStanding struct {
-	CustID            model.CustID                `json:"cust_id"`                    // Key for React
-	DriverName        string                      `json:"driver_name"`                // Driver
-	CarNumber         string                      `json:"car_number,omitempty"`       // May be blank if not in the session
-	CurrentPosition   model.FinishPositionInClass `json:"current_position,omitempty"` // May be first race in the current session
-	PredictedPosition model.FinishPositionInClass `json:"predicted_position"`         // Championship position as is
-	CurrentPoints     model.Point                 `json:"current_points"`             // Championship position before race
-	PredictedPoints   model.Point                 `json:"predicted_points"`           // Championship points as is
-	Change            int                         `json:"change"`                     // +/- change from current position
-	CarNames          []string                    `json:"car_names"`                  // Cars driven in this class
-}
+		log.Println("Done")
 
-//nolint:mnd,lll,dupl // ok
-func (a *App) PredictedStandings() PredictedStandings {
-	i83 := []PredictedStanding{
-		{CustID: 1, DriverName: "Audi 1", CarNumber: "1", CurrentPosition: 1, PredictedPosition: 2, CurrentPoints: 100, PredictedPoints: 100, Change: -1, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 2, DriverName: "Audi 2", CarNumber: "2", CurrentPosition: 2, PredictedPosition: 1, CurrentPoints: 95, PredictedPoints: 110, Change: 1, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 3, DriverName: "Audi 3", CarNumber: "3", CurrentPosition: 3, PredictedPosition: 3, CurrentPoints: 90, PredictedPoints: 90, Change: 0, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 4, DriverName: "Audi 4", CarNumber: "4", CurrentPosition: 4, PredictedPosition: 4, CurrentPoints: 85, PredictedPoints: 85, Change: 0, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 5, DriverName: "Audi 5", CarNumber: "5", CurrentPosition: 5, PredictedPosition: 5, CurrentPoints: 80, PredictedPoints: 80, Change: 0, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 6, DriverName: "Audi 6", CarNumber: "6", CurrentPosition: 6, PredictedPosition: 7, CurrentPoints: 75, PredictedPoints: 75, Change: -1, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 7, DriverName: "Audi 7", CarNumber: "7", CurrentPosition: 7, PredictedPosition: 6, CurrentPoints: 70, PredictedPoints: 78, Change: 1, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 8, DriverName: "Audi 8", CarNumber: "8", CurrentPosition: 8, PredictedPosition: 8, CurrentPoints: 65, PredictedPoints: 65, Change: 0, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 9, DriverName: "Audi 9", CarNumber: "9", CurrentPosition: 9, PredictedPosition: 9, CurrentPoints: 60, PredictedPoints: 60, Change: 0, CarNames: []string{"Audi 90 GTO"}},
-		{CustID: 10, DriverName: "Audi 10", CarNumber: "10", CurrentPosition: 10, PredictedPosition: 10, CurrentPoints: 55, PredictedPoints: 55, Change: 0, CarNames: []string{"Audi 90 GTO"}},
+		return true
 	}
 
-	i84 := []PredictedStanding{
-		{CustID: 11, DriverName: "Nissan 1", CarNumber: "1", CurrentPosition: 1, PredictedPosition: 2, CurrentPoints: 100, PredictedPoints: 100, Change: -1, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 12, DriverName: "Nissan 2", CarNumber: "2", CurrentPosition: 2, PredictedPosition: 1, CurrentPoints: 95, PredictedPoints: 110, Change: 1, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 13, DriverName: "Nissan 3", CarNumber: "3", CurrentPosition: 3, PredictedPosition: 3, CurrentPoints: 90, PredictedPoints: 90, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 14, DriverName: "Nissan 4", CarNumber: "4", CurrentPosition: 4, PredictedPosition: 4, CurrentPoints: 85, PredictedPoints: 85, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 15, DriverName: "Nissan 5", CarNumber: "5", CurrentPosition: 5, PredictedPosition: 5, CurrentPoints: 80, PredictedPoints: 80, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 16, DriverName: "Nissan 6", CarNumber: "6", CurrentPosition: 6, PredictedPosition: 7, CurrentPoints: 75, PredictedPoints: 75, Change: -1, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 17, DriverName: "Nissan 7", CarNumber: "7", CurrentPosition: 7, PredictedPosition: 6, CurrentPoints: 70, PredictedPoints: 78, Change: 1, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 18, DriverName: "Nissan 8", CarNumber: "8", CurrentPosition: 8, PredictedPosition: 8, CurrentPoints: 65, PredictedPoints: 65, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 19, DriverName: "Nissan 9", CarNumber: "9", CurrentPosition: 9, PredictedPosition: 9, CurrentPoints: 60, PredictedPoints: 60, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-		{CustID: 20, DriverName: "Nissan 10", CarNumber: "10", CurrentPosition: 10, PredictedPosition: 10, CurrentPoints: 55, PredictedPoints: 55, Change: 0, CarNames: []string{"Nissan ZX-T"}},
-	}
+	log.Println("Skipped")
 
-	s83 := Standing{
-		SoFByCarClass:           2087,
-		CarClassID:              83,
-		CarClassName:            "GTO",
-		ClassLeaderLapsComplete: 10,
-		Items:                   i83,
-	}
-
-	s84 := Standing{
-		SoFByCarClass:           3025,
-		CarClassID:              84,
-		CarClassName:            "GTP",
-		ClassLeaderLapsComplete: 12,
-		Items:                   i84,
-	}
-
-	ps := PredictedStandings{
-		TrackName:   "Motegi Resort",
-		CountBestOf: 10,
-		Standings:   map[model.CarClassID]Standing{84: s84, 83: s83},
-	}
-
-	return ps
+	return false
 }
 
-func (a *App) SendTelemetry(telemetryJSON string) {
-	log.Println("Telemetry:", telemetryJSON)
-}
+func (a *App) LatestStandings() live.PredictedStandings {
+	log.Println("LatestStandings")
 
-func (a *App) SendSessionInfo(sessionJSON string) {
-	log.Println("SessionInfo:", sessionJSON)
-}
+	ps := predictor.NewPredictor(a.pointsPerSplit, a.pastResults, a.countBestOf)
+	s := ps.Live(&a.telemetryData)
 
-const irMaxCars = 64
+	log.Println("Returning", s)
 
-type CarInfo struct {
-	CarClassID          int
-	CarID               int
-	CarName             string
-	CarNumber           string
-	CustID              int
-	DriverName          string
-	IRating             int
-	IsPaceCar           bool
-	IsSelf              bool
-	IsSpectator         bool
-	LapComplete         int
-	RacePositionInClass int
-}
-
-type TelemetryData struct {
-	SeriesID     int
-	SessionID    int
-	SubsessionID int
-	SessionType  string // PRACTICE, QUALIFY, RACE
-	Status       string // Connected, Driving
-	TrackName    string
-	DriverCarIdx int
-	Cars         [irMaxCars]CarInfo
+	return s
 }
 
 // Runs as a Go routine reading the Windows shared memory to get session and telemetry data
-func irTelemetry(refreshSeconds int) {
-	const (
-		connectionRetrySecs = 5
-		waitForDataMilli    = 100
-	)
+func (a *App) irTelemetry(refreshSeconds int) {
+	a.Lock()
+	defer a.Unlock()
 
 	var (
 		sdk irsdk.SDK
@@ -226,7 +134,7 @@ func irTelemetry(refreshSeconds int) {
 	} else {
 		reader, err := os.Open("/tmp/test.ibt")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err) //nolint:gocritic // for dev only
 		}
 
 		sdk = irsdk.Init(reader)
@@ -244,7 +152,7 @@ func irTelemetry(refreshSeconds int) {
 
 		log.Println("iRacing connected")
 
-		telemetryData := TelemetryData{Status: "Connected"}
+		a.telemetryData.Status = "Connected"
 
 		for {
 			time.Sleep(time.Duration(refreshSeconds) * time.Second)
@@ -260,7 +168,7 @@ func irTelemetry(refreshSeconds int) {
 			if sdk.SessionChanged() {
 				session := sdk.GetSession()
 
-				updateSession(sdk, &session, &telemetryData)
+				a.updateSession(sdk, &session)
 			}
 
 			vars, err := sdk.GetVars()
@@ -269,84 +177,63 @@ func irTelemetry(refreshSeconds int) {
 				continue
 			}
 
-			updateTelemetry(vars, &telemetryData)
+			a.updateTelemetry(vars)
 
-			log.Println(telemetryData)
+			log.Println(a.telemetryData.TrackName)
 		}
 	}
 }
 
 // Updated often
-func updateTelemetry(vars map[string]irsdk.Variable, telemetryData *TelemetryData) {
+func (a *App) updateTelemetry(vars map[string]irsdk.Variable) {
 	var (
-		carIdxPositionsByClass [irMaxCars]int
-		carIdxLaps             [irMaxCars]int
+		carIdxPositionsByClass [telemetry.IrMaxCars]int
+		carIdxLaps             [telemetry.IrMaxCars]int
 	)
 
 	carIdxPositionByClass := vars["CarIdxClassPosition"].Values
 	if carIdxPositionByClass != nil {
-		carIdxPositionsByClass = carIdxPositionByClass.([irMaxCars]int)
+		carIdxPositionsByClass = carIdxPositionByClass.([telemetry.IrMaxCars]int)
 	}
 
 	carIdxLap := vars["CarIdxLap"].Values
 	if carIdxLap != nil {
-		carIdxLaps = carIdxLap.([irMaxCars]int)
+		carIdxLaps = carIdxLap.([telemetry.IrMaxCars]int)
 	}
 
-	for i := 0; i < irMaxCars; i++ {
-		telemetryData.Cars[i].RacePositionInClass = carIdxPositionsByClass[i]
-		telemetryData.Cars[i].LapComplete = carIdxLaps[i]
+	for i := 0; i < telemetry.IrMaxCars; i++ {
+		a.telemetryData.Cars[i].RacePositionInClass = carIdxPositionsByClass[i]
+		a.telemetryData.Cars[i].LapsComplete = carIdxLaps[i]
 	}
 }
 
 // Updated rarely
-func updateSession(sdk irsdk.SDK, session *iryaml.IRSession, telemetryData *TelemetryData) {
-	telemetryData.SeriesID = session.WeekendInfo.SeriesID
-	telemetryData.SessionID = session.WeekendInfo.SessionID
-	telemetryData.SubsessionID = session.WeekendInfo.SubSessionID
+func (a *App) updateSession(sdk irsdk.SDK, session *iryaml.IRSession) {
+	a.telemetryData.SeriesID = session.WeekendInfo.SeriesID
+	a.telemetryData.SessionID = session.WeekendInfo.SessionID
+	a.telemetryData.SubsessionID = session.WeekendInfo.SubSessionID
 
 	sessionNum, err := sdk.GetVar("SessionNum")
 	if err == nil {
-		telemetryData.SessionType = session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName
+		a.telemetryData.SessionType = session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName
 	}
 
-	telemetryData.TrackName = session.WeekendInfo.TrackDisplayName + " " + session.WeekendInfo.TrackConfigName
-	telemetryData.DriverCarIdx = session.DriverInfo.DriverCarIdx
+	a.telemetryData.TrackName = session.WeekendInfo.TrackDisplayName + " " + session.WeekendInfo.TrackConfigName
+	a.telemetryData.TrackID = session.WeekendInfo.TrackID
+	a.telemetryData.DriverCarIdx = session.DriverInfo.DriverCarIdx
 
 	for i := range session.DriverInfo.Drivers {
 		carIdx := session.DriverInfo.Drivers[i].CarIdx
 
-		telemetryData.Cars[carIdx].CarClassID = session.DriverInfo.Drivers[i].CarClassID
-		telemetryData.Cars[carIdx].CarID = session.DriverInfo.Drivers[i].CarID
-		telemetryData.Cars[carIdx].CarName = session.DriverInfo.Drivers[i].CarScreenName
-		telemetryData.Cars[carIdx].CarNumber = session.DriverInfo.Drivers[i].CarNumber
-		telemetryData.Cars[carIdx].CustID = session.DriverInfo.Drivers[i].UserID
-		telemetryData.Cars[carIdx].DriverName = cleanCRLF.Replace(session.DriverInfo.Drivers[i].UserName)
-		telemetryData.Cars[carIdx].IRating = session.DriverInfo.Drivers[i].IRating
-		telemetryData.Cars[carIdx].IsPaceCar = session.DriverInfo.Drivers[i].CarIsPaceCar == 1
-		telemetryData.Cars[carIdx].IsSelf = carIdx == telemetryData.DriverCarIdx
-		telemetryData.Cars[carIdx].IsSpectator = session.DriverInfo.Drivers[i].IsSpectator == 1
+		a.telemetryData.Cars[carIdx].CarClassID = session.DriverInfo.Drivers[i].CarClassID
+		a.telemetryData.Cars[carIdx].CarID = session.DriverInfo.Drivers[i].CarID
+		a.telemetryData.Cars[carIdx].CarName = session.DriverInfo.Drivers[i].CarScreenName
+		a.telemetryData.Cars[carIdx].CarNumber = session.DriverInfo.Drivers[i].CarNumber
+		a.telemetryData.Cars[carIdx].CustID = session.DriverInfo.Drivers[i].UserID
+		a.telemetryData.Cars[carIdx].DriverName = cleanCRLF.Replace(session.DriverInfo.Drivers[i].UserName)
+		a.telemetryData.Cars[carIdx].IRating = session.DriverInfo.Drivers[i].IRating
+		a.telemetryData.Cars[carIdx].IsPaceCar = session.DriverInfo.Drivers[i].CarIsPaceCar == 1
+		a.telemetryData.Cars[carIdx].IsSelf = carIdx == a.telemetryData.DriverCarIdx
+		a.telemetryData.Cars[carIdx].IsSpectator = session.DriverInfo.Drivers[i].IsSpectator == 1
 	}
-}
-
-func sofByCarClass(td *TelemetryData) map[int]int {
-	total := make(map[int]int)
-	count := make(map[int]int)
-
-	for i := range td.Cars {
-		if td.Cars[i].IsPaceCar || td.Cars[i].IsSpectator || td.Cars[i].DriverName == "" {
-			continue
-		}
-
-		count[td.Cars[i].CarClassID]++
-		total[td.Cars[i].CarClassID] += td.Cars[i].IRating
-	}
-
-	sof := make(map[int]int)
-
-	for carClassID := range total {
-		sof[carClassID] = total[carClassID] / count[carClassID]
-	}
-
-	return sof
 }

@@ -20,6 +20,10 @@ type CarClass struct {
 	carsInClass []car
 }
 
+func (c CarClass) Name() string {
+	return c.name
+}
+
 type CarClasses struct {
 	carClassNames map[model.CarClassID]CarClass
 	carNames      map[model.CarID]car

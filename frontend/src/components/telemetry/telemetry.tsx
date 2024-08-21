@@ -1,22 +1,33 @@
-import { useState, useEffect } from 'react';
-import worker_func from './irsdk';
+import { useEffect, useRef } from 'react';
+import { useAppDispatch } from '../../app/hooks';
+import { getLatestStandings } from './telemetrySlice';
+
+type Delay = number | null;
+type TimerHandler = (...args: any[]) => void;
 
 export const Telemetry = () => {
-  const [result, setResult] = useState(null);
-  const [worker, setWorker] = useState<Worker | null>(null);
+  const useInterval = (callback: TimerHandler, delay: Delay) => {
+    const savedCallbackRef = useRef<TimerHandler>();
 
-  useEffect(() => {
-    // Create a new web worker
-    const myWorker = new Worker(URL.createObjectURL(new Blob(["("+worker_func.toString()+")()"], {type: 'text/javascript'})));
+    useEffect(() => {
+      savedCallbackRef.current = callback;
+    }, [callback]);
 
-    // Save the worker instance to state
-    setWorker(myWorker);
+    useEffect(() => {
+      const handler = (...args: any[]) => savedCallbackRef.current!(...args);
 
-    // Clean up the worker when the component unmounts
-    return () => {
-      myWorker.terminate();
-    };
-  }, []); // Run this effect only once when the component mounts
+      if (delay !== null) {
+        const intervalId = setInterval(handler, delay);
+        return () => clearInterval(intervalId);
+      }
+    }, [delay]);
+  };
+
+  const dispatch = useAppDispatch();
+
+  useInterval(() => {
+    dispatch(getLatestStandings())
+  }, 5000);
 
   return null
 };

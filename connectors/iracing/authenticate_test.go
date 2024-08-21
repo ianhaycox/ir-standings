@@ -23,7 +23,7 @@ func TestAuthenticate(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
 		mockAPI := api.NewMockAPI(ctrl)
@@ -41,7 +41,7 @@ func TestAuthenticate(t *testing.T) {
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.NoError(t, err)
 	})
 
@@ -52,7 +52,7 @@ func TestAuthenticate(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
 		mockAPI := api.NewMockAPI(ctrl)
@@ -73,7 +73,7 @@ func TestAuthenticate(t *testing.T) {
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.ErrorContains(t, err, "failed to authenticate")
 	})
 }
@@ -86,11 +86,11 @@ func TestAuthenticateErrors(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(nil, fmt.Errorf("no creds"))
+		mockAuth.EXPECT().Credentials("", "").Return(nil, fmt.Errorf("no creds"))
 
 		ir := NewIracingService(nil, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "", "")
 		assert.ErrorContains(t, err, "no creds")
 	})
 
@@ -101,14 +101,14 @@ func TestAuthenticateErrors(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{}, nil)
 
 		mockAPI := api.NewMockAPI(ctrl)
 		mockAPI.EXPECT().PrepareRequest(ctx, "https://members-ng.iracing.com/auth", "POST", url.Values{}, &api.Credentials{}).Return(nil, fmt.Errorf("prepare failed"))
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.ErrorContains(t, err, "prepare failed")
 	})
 
@@ -119,7 +119,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{}, nil)
 
 		request := &http.Request{}
 		mockAPI := api.NewMockAPI(ctrl)
@@ -129,7 +129,7 @@ func TestAuthenticateErrors(t *testing.T) {
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.ErrorContains(t, err, "callapi failed")
 	})
 
@@ -140,7 +140,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{}, nil)
 
 		request := &http.Request{}
 		mockAPI := api.NewMockAPI(ctrl)
@@ -155,7 +155,7 @@ func TestAuthenticateErrors(t *testing.T) {
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.ErrorContains(t, err, "read error")
 	})
 
@@ -166,7 +166,7 @@ func TestAuthenticateErrors(t *testing.T) {
 		ctx := context.Background()
 
 		mockAuth := api.NewMockAuthenticator(ctrl)
-		mockAuth.EXPECT().Credentials().Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
+		mockAuth.EXPECT().Credentials("test@example.com", "abc").Return(&api.Credentials{Email: "test@example.com", EncodedPassword: "1234"}, nil)
 
 		request := &http.Request{}
 		mockAPI := api.NewMockAPI(ctrl)
@@ -183,7 +183,7 @@ func TestAuthenticateErrors(t *testing.T) {
 
 		ir := NewIracingService(mockAPI, nil, mockAuth)
 
-		err := ir.Authenticate(ctx)
+		err := ir.Authenticate(ctx, "test@example.com", "abc")
 		assert.ErrorContains(t, err, "403")
 	})
 }

@@ -16,33 +16,28 @@ type Credentials struct {
 
 type AuthenticationService struct {
 	credentials *Credentials
-	email       string
-	password    string // ENCODEDPW=$(echo -n $PASSWORD$EMAILLOWER | openssl dgst -binary -sha256 | openssl base64)
 }
 
 type Authenticator interface {
-	Credentials() (*Credentials, error)
+	Credentials(email string, password string) (*Credentials, error)
 }
 
-func NewAuthenticationService(email string, password string) *AuthenticationService {
-	return &AuthenticationService{
-		email:    email,
-		password: password,
-	}
+func NewAuthenticationService() *AuthenticationService {
+	return &AuthenticationService{}
 }
 
-func (a *AuthenticationService) Credentials() (*Credentials, error) {
+func (a *AuthenticationService) Credentials(email string, password string) (*Credentials, error) {
 	if a.credentials != nil {
 		return a.credentials, nil
 	}
 
-	if a.email == "" || a.password == "" {
-		return nil, fmt.Errorf("username:password combo can not be blank")
+	if email == "" || password == "" {
+		return nil, fmt.Errorf("email:password combo can not be blank")
 	}
 
 	credentials := Credentials{
-		Email:           a.email,
-		EncodedPassword: a.encode(),
+		Email:           email,
+		EncodedPassword: a.encode(email, password),
 	}
 
 	a.credentials = &credentials
@@ -50,9 +45,9 @@ func (a *AuthenticationService) Credentials() (*Credentials, error) {
 	return a.credentials, nil
 }
 
-func (a *AuthenticationService) encode() string {
+func (a *AuthenticationService) encode(email, password string) string {
 	h := sha256.New()
-	h.Write([]byte(a.password + strings.ToLower(a.email)))
+	h.Write([]byte(password + strings.ToLower(email)))
 	hash := h.Sum(nil)
 
 	return base64.StdEncoding.EncodeToString(hash)

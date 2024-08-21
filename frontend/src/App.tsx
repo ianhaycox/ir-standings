@@ -12,9 +12,13 @@ import { useEffect } from 'react';
 
 function App() {
     const loggedIn = useAppSelector(isLoggedIn)
-
     const dispatch = useAppDispatch();
-    dispatch(getPastResults(loggedIn));
+
+    useEffect(() => {
+        dispatch(getPastResults(loggedIn));
+    }, [loggedIn])
+
+
 
     return (
         <div id="App" className="container-sm my-2">

@@ -1,17 +1,23 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import {
-    selectStandings,
+    selectGotResults,
     selectStatus,
     getPastResults,
 } from "./standingsSlice"
+import { selectLatestStandings, selectTelemetryStatus } from "../telemetry/telemetrySlice"
 
 export const Standings = () => {
-    const standings = useAppSelector(selectStandings)
+    const standings = useAppSelector(selectLatestStandings)
     const status = useAppSelector(selectStatus)
+    const telemetryStatus = useAppSelector(selectTelemetryStatus)
 
-    if (status == "loading" || status == "failed") return null;
+
+
+    if (status == "loading" || status == "failed") return (<p>Loading...</p>);
 
     const tables:JSX.Element[] = []
+
+    tables.push(<p>{telemetryStatus}</p>)
 
     for (const carClassID in standings.standings) {
 
@@ -46,7 +52,7 @@ export const Standings = () => {
                     <div className={`float-start irc-box irc-car-number-${carClassID}`}>#{row.car_number}</div>
                     </div>
                     <div className="col p-0">{row.driver_name}</div>
-                    <div className="col-2 p-0">{row.car_names.join(',')}</div>
+                    <div className="col-2 p-0">{row.car_names}</div>
                     <div className="col-1 p-0">{row.current_position}</div>
                     <div className="col-1 p-0 text-end">{row.predicted_points}</div>
                     <div className="col-1 px-1 text-end">

@@ -2,26 +2,67 @@ package main
 
 import (
 	"embed"
+	"net/http"
+	"os"
+	"strconv"
 
+	"github.com/ianhaycox/ir-standings/connectors/api"
+	"github.com/ianhaycox/ir-standings/connectors/cdn"
+	"github.com/ianhaycox/ir-standings/connectors/iracing"
+	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
+	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
 const (
-	defaultWidth  = 800
-	defaultHeight = 600
+	defaultRefreshSeconds = 5
+	defaultWidth          = 800
+	defaultHeight         = 600
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
+var pointsPerSplit = points.PointsPerSplit{
+	//   0   1   2   3   4   5   6   7   8   9  10 11 12 13 14 15 16 17 18 19
+	0: {25, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+	1: {14, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+	2: {9, 6, 4, 3, 2, 1},
+}
+
 func main() {
+	refresh := os.Getenv("IR_STANDINGS_REFRESH_SECONDS")
+
+	refreshSeconds, err := strconv.Atoi(refresh)
+	if err != nil {
+		refreshSeconds = defaultRefreshSeconds
+	}
+
+	httpClient := http.DefaultClient
+	cookieStore := cookiejar.NewStore(iracing.CookiesFile)
+	httpClient.Jar = cookiejar.NewCookieJar(cookieStore)
+
+	cfg := api.NewConfiguration(httpClient, api.UserAgent)
+	cfg.AddDefaultHeader("Accept", "application/json")
+	cfg.AddDefaultHeader("Content-Type", "application/json")
+	client := api.NewHTTPClient(cfg)
+
+	// See auth.go that authenticates separately and saves encrypted credentials in a cookie jar
+	ir := iracing.NewIracingService(
+		client,
+		iracing.NewIracingDataService(
+			client, cdn.NewCDNService(api.NewHTTPClient(api.NewConfiguration(http.DefaultClient, ""))),
+		),
+		api.NewAuthenticationService(),
+	)
+
 	// Create an instance of the app structure
-	app := NewApp()
+	app := NewApp(ir, pointsPerSplit, refreshSeconds, 10, int(iracing.KamelSeriesID), 2024, 3)
 
 	// Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:  "iRacing Championship Standings",
 		Width:  defaultWidth,
 		Height: defaultHeight,
