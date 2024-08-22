@@ -11,6 +11,11 @@
 .banner {
     min-height: 50px;
 }
+
+.irc-absent {
+    color: grey;
+}
+
 .irc-box {
     border-radius: 4px;
     width:2.5em;

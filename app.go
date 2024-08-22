@@ -84,8 +84,6 @@ func (a *App) Login(email string, password string) bool {
 }
 
 func (a *App) PastResults() bool {
-	log.Println("PastResults")
-
 	if !a.triedPastResults {
 		searchSeriesResults, err := a.irAPI.SearchSeriesResults(a.ctx, a.seasonYear, a.seasonQuarter, a.seriesID)
 		if err != nil {
@@ -97,12 +95,12 @@ func (a *App) PastResults() bool {
 			log.Println("can not get series results:", err)
 		}
 
-		log.Println("Done")
+		log.Println("Got results from iRacing API")
 
 		return true
 	}
 
-	log.Println("Skipped")
+	log.Println("Skipped iRacing results API")
 
 	return false
 }
@@ -110,10 +108,8 @@ func (a *App) PastResults() bool {
 func (a *App) LatestStandings() live.PredictedStandings {
 	log.Println("LatestStandings")
 
-	ps := predictor.NewPredictor(a.pointsPerSplit, a.pastResults, a.countBestOf)
-	s := ps.Live(&a.telemetryData)
-
-	log.Println("Returning", s)
+	ps := predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
+	s := ps.Live()
 
 	return s
 }
@@ -178,8 +174,6 @@ func (a *App) irTelemetry(refreshSeconds int) {
 			}
 
 			a.updateTelemetry(vars)
-
-			log.Println(a.telemetryData.TrackName)
 		}
 	}
 }
@@ -226,6 +220,7 @@ func (a *App) updateSession(sdk irsdk.SDK, session *iryaml.IRSession) {
 		carIdx := session.DriverInfo.Drivers[i].CarIdx
 
 		a.telemetryData.Cars[carIdx].CarClassID = session.DriverInfo.Drivers[i].CarClassID
+		a.telemetryData.Cars[carIdx].CarClassName = session.DriverInfo.Drivers[i].CarClassShortName
 		a.telemetryData.Cars[carIdx].CarID = session.DriverInfo.Drivers[i].CarID
 		a.telemetryData.Cars[carIdx].CarName = session.DriverInfo.Drivers[i].CarScreenName
 		a.telemetryData.Cars[carIdx].CarNumber = session.DriverInfo.Drivers[i].CarNumber

@@ -3,6 +3,7 @@ import type { RootState } from "../../app/store"
 import { fetchLatestStandings } from "./telemetryAPI"
 
 export interface SerializablePredictedStanding {
+    driving: boolean;
     cust_id: number;
     driver_name: string;
     car_number?: string;
@@ -11,35 +12,23 @@ export interface SerializablePredictedStanding {
     current_points: number;
     predicted_points: number;
     change: number;
-    car_names: string;
-  }
+    car_names: string[];
+}
 
-  export interface SerializableStanding {
+export interface SerializableStanding {
     sof_by_car_class: number;
     car_class_id: number;
     car_class_name: string;
     class_leader_laps_complete: number;
     items: SerializablePredictedStanding[];
-  }
+}
 
-  export interface SerializablePredictedStandings {
+export interface SerializablePredictedStandings {
     status: string;
     track_name: string;
     count_best_of: number;
-    standings: {[key: number]: SerializableStanding}; // By Car Class ID
-  }
-
-  export interface PS {
-    cust_id: number;
-    driver_name: string;
-    car_number?: string;
-    current_position?: number;
-    predicted_position: number;
-    current_points: number;
-    predicted_points: number;
-    change: number;
-  }
-
+    standings: { [key: number]: SerializableStanding }; // By Car Class ID
+}
 
 export interface TelemetryState {
     standings: SerializablePredictedStandings

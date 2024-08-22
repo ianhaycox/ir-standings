@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -52,10 +53,10 @@ func TestChampionship(t *testing.T) {
 					{
 						SimsessionName: "RACE",
 						Results: []results.Results{
-							{CustID: 9001, DisplayName: "Driver-9001", FinishPositionInClass: 1, LapsComplete: 30, CarClassID: 84, CarID: 77},
-							{CustID: 9002, DisplayName: "Driver-9002", FinishPositionInClass: 2, LapsComplete: 30, CarClassID: 84, CarID: 77},
-							{CustID: 9003, DisplayName: "Driver-9003", FinishPositionInClass: 1, LapsComplete: 25, CarClassID: 83, CarID: 76},
-							{CustID: 9004, DisplayName: "Driver-9004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76},
+							{CustID: 9001, DisplayName: "Driver-9001", FinishPositionInClass: 1, LapsComplete: 30, CarClassID: 84, CarID: 77, NewiRating: 5},
+							{CustID: 9002, DisplayName: "Driver-9002", FinishPositionInClass: 2, LapsComplete: 30, CarClassID: 84, CarID: 77, NewiRating: 6},
+							{CustID: 9003, DisplayName: "Driver-9003", FinishPositionInClass: 1, LapsComplete: 25, CarClassID: 83, CarID: 76, NewiRating: 7},
+							{CustID: 9004, DisplayName: "Driver-9004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76, NewiRating: 8},
 						},
 					},
 				},
@@ -79,10 +80,10 @@ func TestChampionship(t *testing.T) {
 					{
 						SimsessionName: "RACE",
 						Results: []results.Results{
-							{CustID: 8001, DisplayName: "Driver-8001", FinishPositionInClass: 1, LapsComplete: 29, CarClassID: 84, CarID: 77},
-							{CustID: 8002, DisplayName: "Driver-8002", FinishPositionInClass: 2, LapsComplete: 28, CarClassID: 84, CarID: 77},
-							{CustID: 8003, DisplayName: "Driver-8003", FinishPositionInClass: 1, LapsComplete: 24, CarClassID: 83, CarID: 76},
-							{CustID: 8004, DisplayName: "Driver-8004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76},
+							{CustID: 8001, DisplayName: "Driver-8001", FinishPositionInClass: 1, LapsComplete: 29, CarClassID: 84, CarID: 77, NewiRating: 1},
+							{CustID: 8002, DisplayName: "Driver-8002", FinishPositionInClass: 2, LapsComplete: 28, CarClassID: 84, CarID: 77, NewiRating: 2},
+							{CustID: 8003, DisplayName: "Driver-8003", FinishPositionInClass: 1, LapsComplete: 24, CarClassID: 83, CarID: 76, NewiRating: 3},
+							{CustID: 8004, DisplayName: "Driver-8004", FinishPositionInClass: 2, LapsComplete: 24, CarClassID: 83, CarID: 76, NewiRating: 4},
 						},
 					},
 				},
@@ -98,14 +99,14 @@ func TestChampionship(t *testing.T) {
 		assert.Len(t, events, 1)
 
 		expectedDrivers := make(map[model.CustID]driver.Driver)
-		expectedDrivers[8001] = driver.NewDriver(8001, "Driver-8001")
-		expectedDrivers[8002] = driver.NewDriver(8002, "Driver-8002")
-		expectedDrivers[8003] = driver.NewDriver(8003, "Driver-8003")
-		expectedDrivers[8004] = driver.NewDriver(8004, "Driver-8004")
-		expectedDrivers[9001] = driver.NewDriver(9001, "Driver-9001")
-		expectedDrivers[9002] = driver.NewDriver(9002, "Driver-9002")
-		expectedDrivers[9003] = driver.NewDriver(9003, "Driver-9003")
-		expectedDrivers[9004] = driver.NewDriver(9004, "Driver-9004")
+		expectedDrivers[8001] = driver.NewDriver(8001, "Driver-8001", 1)
+		expectedDrivers[8002] = driver.NewDriver(8002, "Driver-8002", 2)
+		expectedDrivers[8003] = driver.NewDriver(8003, "Driver-8003", 3)
+		expectedDrivers[8004] = driver.NewDriver(8004, "Driver-8004", 4)
+		expectedDrivers[9001] = driver.NewDriver(9001, "Driver-9001", 5)
+		expectedDrivers[9002] = driver.NewDriver(9002, "Driver-9002", 6)
+		expectedDrivers[9003] = driver.NewDriver(9003, "Driver-9003", 7)
+		expectedDrivers[9004] = driver.NewDriver(9004, "Driver-9004", 8)
 
 		assert.Len(t, c.drivers, len(expectedDrivers))
 		assert.Equal(t, expectedDrivers, c.drivers)
@@ -202,7 +203,7 @@ func TestFixture2024S1(t *testing.T) {
 				"",
 				fmt.Sprintf("%d", entry.Position),
 				entry.DriverName,
-				entry.CarNames,
+				strings.Join(entry.CarNames, ","),
 				fmt.Sprintf("%d", entry.DroppedRoundPoints),
 				fmt.Sprintf("%d", entry.Counted),
 				// fmt.Sprintf("%d", entry.TotalLaps), vcr.myleague.racing gets this wrong, so ignore it.
@@ -231,7 +232,7 @@ func TestFixture2024S1(t *testing.T) {
 				"",
 				fmt.Sprintf("%d", entry.Position),
 				entry.DriverName,
-				entry.CarNames,
+				strings.Join(entry.CarNames, ","),
 				fmt.Sprintf("%d", entry.DroppedRoundPoints),
 				fmt.Sprintf("%d", entry.Counted),
 				// fmt.Sprintf("%d", entry.TotalLaps), broken in vcr.myleague.racing
@@ -279,7 +280,7 @@ func TestFixture2024S2(t *testing.T) {
 				"",
 				fmt.Sprintf("%d", entry.Position),
 				entry.DriverName,
-				entry.CarNames,
+				strings.Join(entry.CarNames, ","),
 				fmt.Sprintf("%d", entry.DroppedRoundPoints),
 				fmt.Sprintf("%d", entry.Counted),
 				// fmt.Sprintf("%d", entry.TotalLaps), broken in vcr.myleague.racing
@@ -308,7 +309,7 @@ func TestFixture2024S2(t *testing.T) {
 				"",
 				fmt.Sprintf("%d", entry.Position),
 				entry.DriverName,
-				entry.CarNames,
+				strings.Join(entry.CarNames, ","),
 				fmt.Sprintf("%d", entry.DroppedRoundPoints),
 				fmt.Sprintf("%d", entry.Counted),
 				// fmt.Sprintf("%d", entry.TotalLaps), broken in vcr.myleague.racing
@@ -345,7 +346,7 @@ func TestFixture2024S3(t *testing.T) {
 		fmt.Println(string(b))
 
 		for _, entry := range cs.Table {
-			fmt.Printf("%-2d %-30s %-20s %-4d %-4d", entry.Position, entry.DriverName, entry.CarNames, entry.DroppedRoundPoints, entry.Counted)
+			fmt.Printf("%-2d %-30s %-20s %-4d %-4d", entry.Position, entry.DriverName, strings.Join(entry.CarNames, ","), entry.DroppedRoundPoints, entry.Counted)
 			fmt.Println()
 		}
 	})

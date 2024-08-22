@@ -4,7 +4,6 @@ package championship
 import (
 	"log"
 	"sort"
-	"strings"
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/car"
@@ -87,7 +86,7 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 		for i := range irResult.SessionResults {
 			if irResult.SessionResults[i].SimsessionName == "RACE" {
 				for _, sessionResult := range irResult.SessionResults[i].Results {
-					sessionResult := result.Result{
+					result := result.Result{
 						SessionID:             model.SessionID(irResult.SessionID),
 						SubsessionID:          model.SubsessionID(irResult.SubsessionID),
 						CustID:                model.CustID(sessionResult.CustID),
@@ -99,11 +98,11 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 						CarName:               sessionResult.CarName,
 					}
 
-					sessionResults = append(sessionResults, sessionResult)
+					sessionResults = append(sessionResults, result)
 
-					c.addDriver(sessionResult.CustID, driver.NewDriver(sessionResult.CustID, sessionResult.DisplayName))
+					c.addDriver(result.CustID, driver.NewDriver(result.CustID, sessionResult.DisplayName, sessionResult.NewiRating))
 
-					c.carClasses.AddCarName(sessionResult.CarID, sessionResult.CarName)
+					c.carClasses.AddCarName(result.CarID, sessionResult.CarName)
 				}
 			}
 
@@ -152,8 +151,9 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(true, len(events)),
 			TieBreakFinishPositions: positions.TieBreakerPositions(false, len(events)),
-			CarNames:                strings.Join(c.carClasses.Names(positions.CarsDriven(true, c.countBestOf)), ","),
+			CarNames:                c.carClasses.Names(positions.CarsDriven(false, len(events))),
 			DriverName:              driver.DisplayName(),
+			IRating:                 driver.IRating(),
 			Counted:                 positions.Counted(false, c.countBestOf),
 			TotalLaps:               positions.Laps(false, c.countBestOf),
 		})

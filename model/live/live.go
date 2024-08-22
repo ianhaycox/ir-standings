@@ -22,13 +22,14 @@ type Standing struct {
 }
 
 type PredictedStanding struct {
-	CustID            model.CustID                `json:"cust_id"`                    // Key for React
-	DriverName        string                      `json:"driver_name"`                // Driver
-	CarNumber         string                      `json:"car_number,omitempty"`       // May be blank if not in the session
-	CurrentPosition   model.FinishPositionInClass `json:"current_position,omitempty"` // May be first race in the current session
-	PredictedPosition model.FinishPositionInClass `json:"predicted_position"`         // Championship position as is
-	CurrentPoints     model.Point                 `json:"current_points"`             // Championship position before race
-	PredictedPoints   model.Point                 `json:"predicted_points"`           // Championship points as is
-	Change            int                         `json:"change"`                     // +/- change from current position
-	CarNames          string                      `json:"car_names"`                  // Cars driven in this class
+	Driving           bool                        `json:"driving"`            // In current session
+	CustID            model.CustID                `json:"cust_id"`            // Key for React
+	DriverName        string                      `json:"driver_name"`        // Driver
+	CarNumber         string                      `json:"car_number"`         // May be blank if not in the session
+	CurrentPosition   model.FinishPositionInClass `json:"current_position"`   // May be first race in the current session
+	PredictedPosition model.FinishPositionInClass `json:"predicted_position"` // Championship position as is
+	CurrentPoints     model.Point                 `json:"current_points"`     // Championship position before race
+	PredictedPoints   model.Point                 `json:"predicted_points"`   // Championship points as is
+	Change            int                         `json:"change"`             // +/- change from current position
+	CarNames          []string                    `json:"car_names"`          // Cars driven in this class
 }

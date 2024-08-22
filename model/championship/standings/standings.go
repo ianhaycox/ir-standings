@@ -28,8 +28,9 @@ func NewTieBreaker(subsessionID model.SubsessionID, position model.FinishPositio
 type ChampionshipTable struct {
 	Position                model.FinishPositionInClass
 	CustID                  model.CustID
+	IRating                 int
 	DriverName              string
-	CarNames                string
+	CarNames                []string
 	DroppedRoundPoints      model.Point
 	AllRoundsPoints         model.Point  // Tie-breaker: points without drops
 	TieBreakFinishPositions []TieBreaker // then: higher number of better positions., i.e. promote driver with more 1st, then 2nd, etc.
@@ -88,7 +89,11 @@ func (cs ChampionshipStandings) Sort() ChampionshipStandings {
 		return false
 	}
 
-	cs.orderedBy(points, tieBreakOne, tieBreakTwo).Sort(cs.Table)
+	tieBreakFirstRaceOfSeason := func(c1, c2 *ChampionshipTable) bool {
+		return c1.IRating > c2.IRating
+	}
+
+	cs.orderedBy(points, tieBreakOne, tieBreakTwo, tieBreakFirstRaceOfSeason).Sort(cs.Table)
 
 	for i := range cs.Table {
 		cs.Table[i].Position = model.FinishPositionInClass(i + 1)

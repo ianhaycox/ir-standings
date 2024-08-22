@@ -1,6 +1,10 @@
 // Package telemetry read from Windows shared memory
 package telemetry
 
+import (
+	"github.com/ianhaycox/ir-standings/model/data/results"
+)
+
 const (
 	IrMaxCars = 64
 )
@@ -8,30 +12,31 @@ const (
 type CarsInfo [IrMaxCars]CarInfo
 
 type CarInfo struct {
-	CarClassID          int
-	CarID               int
-	CarName             string
-	CarNumber           string
-	CustID              int
-	DriverName          string
-	IRating             int
-	IsPaceCar           bool
-	IsSelf              bool
-	IsSpectator         bool
-	LapsComplete        int
-	RacePositionInClass int
+	CarClassID          int    `json:"car_class_id"`
+	CarClassName        string `json:"car_class_name"`
+	CarID               int    `json:"car_id"`
+	CarName             string `json:"car_name"`
+	CarNumber           string `json:"car_number"`
+	CustID              int    `json:"cust_id"`
+	DriverName          string `json:"driver_name"`
+	IRating             int    `json:"irating"`
+	IsPaceCar           bool   `json:"is_pace_car"`
+	IsSelf              bool   `json:"is_self"`
+	IsSpectator         bool   `json:"is_spectator"`
+	LapsComplete        int    `json:"laps_complete"`
+	RacePositionInClass int    `json:"race_position_in_class"`
 }
 
 type TelemetryData struct {
-	SeriesID     int
-	SessionID    int
-	SubsessionID int
-	SessionType  string // PRACTICE, QUALIFY, RACE
-	Status       string // Connected, Driving
-	TrackName    string
-	TrackID      int
-	DriverCarIdx int
-	Cars         CarsInfo
+	SeriesID     int      `json:"series_id"`
+	SessionID    int      `json:"session_id"`
+	SubsessionID int      `json:"subsession_id"`
+	SessionType  string   `json:"session_type"` // PRACTICE, QUALIFY, RACE
+	Status       string   `json:"status"`       // Connected, Driving
+	TrackName    string   `json:"track_name"`
+	TrackID      int      `json:"track_id"`
+	DriverCarIdx int      `json:"driver_car_idx"`
+	Cars         CarsInfo `json:"cars"`
 }
 
 func (td *TelemetryData) SofByCarClass() map[int]int {
@@ -74,4 +79,46 @@ func (td *TelemetryData) LeaderLapsComplete(carClassID int) int {
 
 func (ci *CarInfo) IsRacing() bool {
 	return !(ci.IsPaceCar || ci.IsSpectator || ci.DriverName == "")
+}
+
+// CarClasses build cars in session - TODO for a Race should only do once.
+func (td *TelemetryData) CarClasses() []results.CarClasses {
+	carClasses := make([]results.CarClasses, 0)
+
+	cc := make(map[int]results.CarClasses) // By CarClassID
+	cic := make(map[int]int)               // By CarID
+
+	for i := range td.Cars {
+		if !td.Cars[i].IsRacing() {
+			continue
+		}
+
+		if _, ok := cc[td.Cars[i].CarClassID]; !ok {
+			cc[td.Cars[i].CarClassID] = results.CarClasses{
+				CarClassID:  td.Cars[i].CarClassID,
+				ShortName:   td.Cars[i].CarClassName,
+				Name:        td.Cars[i].CarClassName,
+				CarsInClass: make([]results.CarsInClass, 0),
+			}
+		}
+
+		if _, ok := cic[td.Cars[i].CarID]; !ok {
+			cic[td.Cars[i].CarID] = td.Cars[i].CarClassID
+		}
+	}
+
+	for carClassID, carClass := range cc {
+		for carID, memberCarClassID := range cic {
+			if memberCarClassID == carClassID {
+				carClass.CarsInClass = append(carClass.CarsInClass, results.CarsInClass{CarID: carID})
+			}
+		}
+
+		carClasses = append(carClasses, carClass)
+	}
+
+	// b, _ := json.MarshalIndent(carClasses, "", "  ")
+	// fmt.Println(string(b))
+
+	return carClasses
 }

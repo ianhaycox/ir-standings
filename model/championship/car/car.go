@@ -49,9 +49,21 @@ func NewCarClasses(carClasses []results.CarClasses) CarClasses {
 			carID := model.CarID(carClasses[i].CarsInClass[j].CarID)
 			car := car{carID: carID}
 
-			carClass.carsInClass = append(carClass.carsInClass, car)
-			cc.carClassNames[carClassID] = carClass
-			cc.carNames[carID] = car
+			found := false
+
+			for k := range carClass.carsInClass {
+				if carClass.carsInClass[k].carID == carID {
+					found = true
+
+					break
+				}
+			}
+
+			if !found {
+				carClass.carsInClass = append(carClass.carsInClass, car)
+				cc.carClassNames[carClassID] = carClass
+				cc.carNames[carID] = car
+			}
 		}
 	}
 
@@ -81,7 +93,10 @@ func (cc *CarClasses) AddCarName(carID model.CarID, name string) {
 
 		cic := cc.carClassNames[carClassID].carsInClass
 		cic = append(cic, car{carID: carID, name: name})
-		cc.carClassNames[carClassID] = CarClass{carsInClass: cic}
+
+		carClass := cc.carClassNames[carClassID]
+		carClass.carsInClass = cic
+		cc.carClassNames[carClassID] = carClass
 	}
 }
 

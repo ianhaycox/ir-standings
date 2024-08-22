@@ -15,16 +15,3 @@ coverage.out
 build/bin
 node_modules
 frontend/dist
-
-# Shared library
-*.o
-*.lib
-*.dll
-*.a
-*.obj
-/windows/libgoir.h
-/shared_library/libgoir.h
-/shared_library/client
-/shared_library/client.exe
-
-/windows/test-results.json

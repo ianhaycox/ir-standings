@@ -15,7 +15,7 @@ export const Standings = () => {
 
     if (status == "loading" || status == "failed") return (<p>Loading...</p>);
 
-    const tables:JSX.Element[] = []
+    const tables: JSX.Element[] = []
 
     tables.push(<p>{telemetryStatus}</p>)
 
@@ -45,14 +45,24 @@ export const Standings = () => {
                 change = "^" + row.change
             }
 
+            let rowClass = "row irc-row text-start p-0"
+            if (!row.driving) {
+                rowClass += " irc-absent"
+            }
+
+            let car_number = row.car_number
+            if (row.car_number == "") {
+                car_number = "---"
+            }
+
             return (
-                <div key={`${row.cust_id}-${carClassID}`} className="row irc-row text-start p-0">
+                <div key={`${row.cust_id}-${carClassID}`} className={rowClass}>
                     <div className="col-1 p-0">{row.predicted_position}</div>
                     <div className="col-1 p-0">
-                    <div className={`float-start irc-box irc-car-number-${carClassID}`}>#{row.car_number}</div>
+                        <div className={`float-start irc-box irc-car-number-${carClassID}`}>#{car_number}</div>
                     </div>
-                    <div className="col p-0">{row.driver_name}</div>
-                    <div className="col-2 p-0">{row.car_names}</div>
+                    <div className="col-4 p-0">{row.driver_name}</div>
+                    <div className="col-3 p-0 text-start">{row.car_names}</div>
                     <div className="col-1 p-0">{row.current_position}</div>
                     <div className="col-1 p-0 text-end">{row.predicted_points}</div>
                     <div className="col-1 px-1 text-end">
@@ -65,7 +75,10 @@ export const Standings = () => {
         const footer = () => {
             return (
                 <div key={`footer-${carClassID}`} className="row irc-footer text-center">
-                    <div className="col p-0">Connected: SOF {standings.standings[carClassID].sof_by_car_class} Laps:23</div>
+                    <div className="col-2 p-0 text-start">{standings.standings[carClassID].car_class_name}</div>
+                    <div className="col-2 p-0 text-start">SOF:{standings.standings[carClassID].sof_by_car_class}</div>
+                    <div className="col p-0 text-center">{standings.track_name}</div>
+                    <div className="col-2 p-0 text-end">Laps:{standings.standings[carClassID].class_leader_laps_complete}</div>
                 </div>
             )
         }
@@ -88,6 +101,6 @@ export const Standings = () => {
     }
 
     return (
-       <div>{tables}</div>
+        <div>{tables}</div>
     )
 }

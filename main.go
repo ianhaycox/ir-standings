@@ -20,6 +20,9 @@ const (
 	defaultRefreshSeconds = 5
 	defaultWidth          = 800
 	defaultHeight         = 600
+	countBestOf           = 10
+	seasonYear            = 2024
+	seasonQuarter         = 3
 )
 
 //go:embed all:frontend/dist
@@ -59,7 +62,7 @@ func main() {
 	)
 
 	// Create an instance of the app structure
-	app := NewApp(ir, pointsPerSplit, refreshSeconds, 10, int(iracing.KamelSeriesID), 2024, 3)
+	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), seasonYear, seasonQuarter)
 
 	// Create application with options
 	err = wails.Run(&options.App{

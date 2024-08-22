@@ -1,15 +1,16 @@
 export namespace live {
 	
 	export class PredictedStanding {
+	    driving: boolean;
 	    cust_id: number;
 	    driver_name: string;
-	    car_number?: string;
-	    current_position?: number;
+	    car_number: string;
+	    current_position: number;
 	    predicted_position: number;
 	    current_points: number;
 	    predicted_points: number;
 	    change: number;
-	    car_names: string;
+	    car_names: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new PredictedStanding(source);
@@ -17,6 +18,7 @@ export namespace live {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.driving = source["driving"];
 	        this.cust_id = source["cust_id"];
 	        this.driver_name = source["driver_name"];
 	        this.car_number = source["car_number"];
