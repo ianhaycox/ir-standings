@@ -4,12 +4,6 @@ import {live} from '../models';
 
 export function LatestStandings():Promise<live.PredictedStandings>;
 
-export function Lock():Promise<void>;
-
 export function Login(arg1:string,arg2:string):Promise<boolean>;
 
 export function PastResults():Promise<boolean>;
-
-export function TryLock():Promise<boolean>;
-
-export function Unlock():Promise<void>;

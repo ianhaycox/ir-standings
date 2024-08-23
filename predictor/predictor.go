@@ -127,6 +127,7 @@ func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipSt
 			mergedStandings[entry.CustID] = ls
 		} else {
 			mergedStandings[entry.CustID] = live.PredictedStanding{
+				CurrentPosition:   entry.Position,
 				PredictedPosition: entry.Position,
 				CustID:            entry.CustID,
 				DriverName:        entry.DriverName,

@@ -12,23 +12,23 @@
     min-height: 50px;
 }
 
-.irc-absent {
+.irc-absent, .irc-absent .irc-car-number  {
     color: grey;
 }
 
 .irc-box {
     border-radius: 4px;
-    width:2.5em;
+    width:2.8em;
     padding: 0 0.2em 0 0.2em;
     margin: 1px;
 }
 
 .irc-change-up {
-    background-color: rgba(51, 83, 21, 0.562);
+    background-color: #30941f;
 }
 
 .irc-change-down {
-    background-color: rgba(151, 20, 37, 0.562);
+    background-color: #a61c1c;
 }
 
 .irc-change-none {
@@ -36,9 +36,10 @@
 }
 
 .irc-car-number-84 {
-    background-color: rgba(216, 226, 14, 0.562);
+    background-color: #fad352;
+    color: black;
 }
 
 .irc-car-number-83 {
-    background-color: rgba(14, 166, 226, 0.562);
+    background-color: #33cfff;
 }

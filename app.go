@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"runtime"
@@ -17,6 +18,7 @@ import (
 	"github.com/ianhaycox/ir-standings/model/live"
 	"github.com/ianhaycox/ir-standings/model/telemetry"
 	"github.com/ianhaycox/ir-standings/predictor"
+	"github.com/ianhaycox/ir-standings/test/devmode"
 )
 
 const (
@@ -27,7 +29,7 @@ const (
 // App struct
 type App struct {
 	ctx context.Context
-	sync.Mutex
+	mtx sync.Mutex
 
 	irAPI            iracing.IracingService  // iRacing API
 	pointsPerSplit   points.PointsPerSplit   // Points structure
@@ -51,7 +53,7 @@ func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, 
 		seasonQuarter:    seasonQuarter,
 		telemetryData:    telemetry.TelemetryData{Status: "Disconnected"},
 		pointsPerSplit:   pointsPerSplit,
-		triedPastResults: true,
+		triedPastResults: false,
 		countBestOf:      countBestOf,
 	}
 }
@@ -84,6 +86,29 @@ func (a *App) Login(email string, password string) bool {
 }
 
 func (a *App) PastResults() bool {
+	if devmode.IsDevMode() {
+		const fakeDelay = 5
+
+		filename := "./model/fixtures/2024-2-285-results-redacted.json"
+		log.Println("Using results fixture in dev mode:", filename)
+
+		a.triedPastResults = true
+
+		buf, err := os.ReadFile(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		a.pastResults = make([]results.Result, 0)
+
+		err = json.Unmarshal(buf, &a.pastResults)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		time.Sleep(fakeDelay * time.Second)
+	}
+
 	if !a.triedPastResults {
 		searchSeriesResults, err := a.irAPI.SearchSeriesResults(a.ctx, a.seasonYear, a.seasonQuarter, a.seriesID)
 		if err != nil {
@@ -108,6 +133,9 @@ func (a *App) PastResults() bool {
 func (a *App) LatestStandings() live.PredictedStandings {
 	log.Println("LatestStandings")
 
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
+
 	ps := predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
 	s := ps.Live()
 
@@ -116,9 +144,6 @@ func (a *App) LatestStandings() live.PredictedStandings {
 
 // Runs as a Go routine reading the Windows shared memory to get session and telemetry data
 func (a *App) irTelemetry(refreshSeconds int) {
-	a.Lock()
-	defer a.Unlock()
-
 	var (
 		sdk irsdk.SDK
 	)
@@ -130,13 +155,14 @@ func (a *App) irTelemetry(refreshSeconds int) {
 	} else {
 		reader, err := os.Open("/tmp/test.ibt")
 		if err != nil {
-			log.Fatal(err) //nolint:gocritic // for dev only
+			log.Fatal(err)
 		}
 
 		sdk = irsdk.Init(reader)
 	}
 
 	defer sdk.Close()
+	defer a.mtx.Unlock()
 
 	for {
 		if !sdk.IsConnected() {
@@ -161,8 +187,23 @@ func (a *App) irTelemetry(refreshSeconds int) {
 				break
 			}
 
+			a.mtx.Lock()
+
 			if sdk.SessionChanged() {
 				session := sdk.GetSession()
+
+				sessionNum, err := sdk.GetVar("SessionNum")
+				if err != nil {
+					log.Println("can not get iRacing SessionNum var", err)
+					a.mtx.Unlock()
+
+					continue
+				}
+
+				if session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName != "RACE" {
+					a.mtx.Unlock()
+					continue
+				}
 
 				a.updateSession(sdk, &session)
 			}
@@ -170,16 +211,20 @@ func (a *App) irTelemetry(refreshSeconds int) {
 			vars, err := sdk.GetVars()
 			if err != nil {
 				log.Println("can not get iRacing telemetry vars", err)
+				a.mtx.Unlock()
+
 				continue
 			}
 
-			a.updateTelemetry(vars)
+			a.updateCarInfo(vars)
+
+			a.mtx.Unlock()
 		}
 	}
 }
 
 // Updated often
-func (a *App) updateTelemetry(vars map[string]irsdk.Variable) {
+func (a *App) updateCarInfo(vars map[string]irsdk.Variable) {
 	var (
 		carIdxPositionsByClass [telemetry.IrMaxCars]int
 		carIdxLaps             [telemetry.IrMaxCars]int

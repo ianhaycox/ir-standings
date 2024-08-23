@@ -26,7 +26,7 @@ function App() {
                 {loggedIn ? (
                     <div>
                         <Telemetry />
-                        <Standings />
+                        <Standings topN={1000} carClassId={84}/>
                     </div>
                 ) : (
                     <div>

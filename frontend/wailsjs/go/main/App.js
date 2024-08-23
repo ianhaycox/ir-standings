@@ -6,22 +6,10 @@ export function LatestStandings() {
   return window['go']['main']['App']['LatestStandings']();
 }
 
-export function Lock() {
-  return window['go']['main']['App']['Lock']();
-}
-
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }
 
 export function PastResults() {
   return window['go']['main']['App']['PastResults']();
-}
-
-export function TryLock() {
-  return window['go']['main']['App']['TryLock']();
-}
-
-export function Unlock() {
-  return window['go']['main']['App']['Unlock']();
 }
