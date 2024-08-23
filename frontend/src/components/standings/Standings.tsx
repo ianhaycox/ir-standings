@@ -4,13 +4,13 @@ import { selectLatestStandings } from "../telemetry/telemetrySlice"
 
 type Props = {
     topN: number;
-    carClassId: number;
+    selectedCarClassIDs: number[];
 }
 
 export const Standings = (props: Props) => {
     const standings = useAppSelector(selectLatestStandings)
     const status = useAppSelector(selectStatus)
-    const { topN, carClassId } = props
+    const { topN, selectedCarClassIDs } = props
 
     if (status == "loading" || status == "failed") return (
         <div className="text-center">
@@ -22,7 +22,10 @@ export const Standings = (props: Props) => {
 
     const tables: JSX.Element[] = []
 
-    for (const carClassID in standings.standings) {
+    for (const carClassID of selectedCarClassIDs) {
+        if (standings.standings === undefined || !(carClassID in standings.standings)) {
+            continue
+        }
 
         const header = () => {
             return (

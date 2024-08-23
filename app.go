@@ -31,30 +31,37 @@ type App struct {
 	ctx context.Context
 	mtx sync.Mutex
 
-	irAPI            iracing.IracingService  // iRacing API
-	pointsPerSplit   points.PointsPerSplit   // Points structure
-	refreshSeconds   int                     // How often to read telemetry
-	countBestOf      int                     // Count best of n races in season
-	seriesID         int                     // iRacing series ID
-	seasonYear       int                     // E.g. 2024, 2025
-	seasonQuarter    int                     // E.g. 1,2,3
-	triedPastResults bool                    // Guard against call API too much
-	pastResults      []results.Result        // Previous weeks results for this season from the iRacing API
-	telemetryData    telemetry.TelemetryData // Shared memory updated every `refreshSeconds`
+	pastResults   []results.Result        // Previous weeks results for this season from the iRacing API
+	telemetryData telemetry.TelemetryData // Shared memory updated every `refreshSeconds`
+	prediction    *predictor.Predictor
+
+	irAPI               iracing.IracingService // iRacing API
+	pointsPerSplit      points.PointsPerSplit  // Points structure
+	refreshSeconds      int                    // How often to read telemetry
+	countBestOf         int                    // Count best of n races in season
+	seriesID            int                    // iRacing series ID
+	seasonYear          int                    // E.g. 2024, 2025
+	seasonQuarter       int                    // E.g. 1,2,3
+	triedPastResults    bool                   // Guard against call API too much
+	showTopN            int                    // Display top n standings
+	selectedCarClassIDs []int                  // Display car class IDs in table in order
 }
 
 // NewApp creates a new App application struct
-func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, seasonYear, seasonQuarter int) *App {
+func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID,
+	seasonYear, seasonQuarter, showTopN int, selectedCarClassIDs []int) *App {
 	return &App{
-		irAPI:            irAPI,
-		refreshSeconds:   refreshSeconds,
-		seriesID:         seriesID,
-		seasonYear:       seasonYear,
-		seasonQuarter:    seasonQuarter,
-		telemetryData:    telemetry.TelemetryData{Status: "Disconnected"},
-		pointsPerSplit:   pointsPerSplit,
-		triedPastResults: false,
-		countBestOf:      countBestOf,
+		irAPI:               irAPI,
+		refreshSeconds:      refreshSeconds,
+		seriesID:            seriesID,
+		seasonYear:          seasonYear,
+		seasonQuarter:       seasonQuarter,
+		telemetryData:       telemetry.TelemetryData{Status: "Disconnected"},
+		pointsPerSplit:      pointsPerSplit,
+		triedPastResults:    false,
+		countBestOf:         countBestOf,
+		showTopN:            showTopN,
+		selectedCarClassIDs: selectedCarClassIDs,
 	}
 }
 
@@ -68,6 +75,14 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	go a.irTelemetry(a.refreshSeconds)
+}
+
+func (a *App) ShowTopN() int {
+	return a.showTopN
+}
+
+func (a *App) SelectedCarClassIDs() []int {
+	return a.selectedCarClassIDs
 }
 
 func (a *App) Login(email string, password string) bool {
@@ -136,10 +151,11 @@ func (a *App) LatestStandings() live.PredictedStandings {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
-	ps := predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
-	s := ps.Live()
+	if a.prediction == nil {
+		a.prediction = predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
+	}
 
-	return s
+	return a.prediction.Live()
 }
 
 // Runs as a Go routine reading the Windows shared memory to get session and telemetry data

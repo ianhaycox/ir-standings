@@ -7,3 +7,7 @@ export function LatestStandings():Promise<live.PredictedStandings>;
 export function Login(arg1:string,arg2:string):Promise<boolean>;
 
 export function PastResults():Promise<boolean>;
+
+export function SelectedCarClassIDs():Promise<Array<number>>;
+
+export function ShowTopN():Promise<number>;
