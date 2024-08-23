@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
@@ -19,6 +20,7 @@ import (
 	"github.com/ianhaycox/ir-standings/model/telemetry"
 	"github.com/ianhaycox/ir-standings/predictor"
 	"github.com/ianhaycox/ir-standings/test/devmode"
+	"github.com/lxn/win"
 )
 
 const (
@@ -71,6 +73,9 @@ var (
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	hwnd := win.FindWindow(nil, syscall.StringToUTF16Ptr("iRacing Championship Standings"))
+	win.SetWindowLong(hwnd, win.GWL_EXSTYLE, win.GetWindowLong(hwnd, win.GWL_EXSTYLE)|win.WS_EX_LAYERED)
 
 	go a.irTelemetry(a.refreshSeconds)
 }
@@ -129,6 +134,7 @@ func (a *App) PastResults() bool {
 		}
 
 		for i := range seasons {
+			log.Println(seasons[i].SeriesID, "  ", a.seriesID)
 			if seasons[i].SeriesID == a.seriesID {
 				a.seasonYear = seasons[i].SeasonYear
 				a.seasonQuarter = seasons[i].SeasonQuarter
@@ -136,6 +142,8 @@ func (a *App) PastResults() bool {
 				break
 			}
 		}
+
+		log.Println("Getting results for :", a.seasonYear, a.seasonQuarter)
 
 		searchSeriesResults, err := a.irAPI.SearchSeriesResults(a.ctx, a.seasonYear, a.seasonQuarter, a.seriesID)
 		if err != nil {
@@ -163,9 +171,9 @@ func (a *App) LatestStandings() live.PredictedStandings {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
-	if a.prediction == nil {
-		a.prediction = predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
-	}
+	//	if a.prediction == nil {
+	a.prediction = predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
+	//	}
 
 	return a.prediction.Live()
 }
@@ -254,21 +262,21 @@ func (a *App) irTelemetry(refreshSeconds int) {
 // Updated often
 func (a *App) updateCarInfo(vars map[string]irsdk.Variable) {
 	var (
-		carIdxPositionsByClass [telemetry.IrMaxCars]int
-		carIdxLaps             [telemetry.IrMaxCars]int
+		carIdxPositionsByClass []int
+		carIdxLaps             []int
 	)
 
 	carIdxPositionByClass := vars["CarIdxClassPosition"].Values
 	if carIdxPositionByClass != nil {
-		carIdxPositionsByClass = carIdxPositionByClass.([telemetry.IrMaxCars]int)
+		carIdxPositionsByClass = carIdxPositionByClass.([]int)
 	}
 
 	carIdxLap := vars["CarIdxLap"].Values
 	if carIdxLap != nil {
-		carIdxLaps = carIdxLap.([telemetry.IrMaxCars]int)
+		carIdxLaps = carIdxLap.([]int)
 	}
 
-	for i := 0; i < telemetry.IrMaxCars; i++ {
+	for i := range carIdxPositionsByClass {
 		a.telemetryData.Cars[i].RacePositionInClass = carIdxPositionsByClass[i]
 		a.telemetryData.Cars[i].LapsComplete = carIdxLaps[i]
 	}

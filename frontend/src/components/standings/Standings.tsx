@@ -101,10 +101,10 @@ export const Standings = (props: Props) => {
             return (
                 <div key={`footer-${carClassID}`} className="row irc-footer text-center pt-2">
                     <div className="col-2 p-0 text-start">{standings.standings[carClassID].car_class_name}</div>
-                    <div className="col-1 p-0 text-start">SOF:{standings.standings[carClassID].sof_by_car_class}</div>
+                    <div className="col-1 p-0 text-start">SOF :{standings.standings[carClassID].sof_by_car_class}</div>
                     <div className="col p-0 text-center">{standings.track_name}</div>
-                    <div className="col-1 p-0 text-end">Best:{standings.count_best_of}</div>
-                    <div className="col-2 p-0 text-end">Laps:{standings.standings[carClassID].class_leader_laps_complete}</div>
+                    <div className="col-1 p-0 text-end">Best: {standings.count_best_of}</div>
+                    <div className="col-2 p-0 text-end">Laps: {standings.standings[carClassID].class_leader_laps_complete}</div>
                 </div>
             )
         }

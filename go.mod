@@ -23,6 +23,7 @@ require (
 require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hidez8891/shm v0.0.0-20200313135933-0ec4df5f28c7
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/text v0.15.0
 )
