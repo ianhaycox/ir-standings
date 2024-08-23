@@ -49,13 +49,11 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID,
-	seasonYear, seasonQuarter, showTopN int, selectedCarClassIDs []int) *App {
+	showTopN int, selectedCarClassIDs []int) *App {
 	return &App{
 		irAPI:               irAPI,
 		refreshSeconds:      refreshSeconds,
 		seriesID:            seriesID,
-		seasonYear:          seasonYear,
-		seasonQuarter:       seasonQuarter,
 		telemetryData:       telemetry.TelemetryData{Status: "Disconnected"},
 		pointsPerSplit:      pointsPerSplit,
 		triedPastResults:    false,
@@ -125,6 +123,20 @@ func (a *App) PastResults() bool {
 	}
 
 	if !a.triedPastResults {
+		seasons, err := a.irAPI.Seasons(a.ctx)
+		if err != nil {
+			log.Println("can not get series results:", err)
+		}
+
+		for i := range seasons {
+			if seasons[i].SeriesID == a.seriesID {
+				a.seasonYear = seasons[i].SeasonYear
+				a.seasonQuarter = seasons[i].SeasonQuarter
+
+				break
+			}
+		}
+
 		searchSeriesResults, err := a.irAPI.SearchSeriesResults(a.ctx, a.seasonYear, a.seasonQuarter, a.seriesID)
 		if err != nil {
 			log.Println("can not get series results:", err)

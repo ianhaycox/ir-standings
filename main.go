@@ -21,8 +21,6 @@ const (
 	defaultWidth          = 800
 	defaultHeight         = 650
 	countBestOf           = 10
-	seasonYear            = 2024
-	seasonQuarter         = 3
 	showTopN              = 10
 )
 
@@ -67,7 +65,7 @@ func main() {
 	)
 
 	// Create an instance of the app structure
-	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), seasonYear, seasonQuarter, showTopN, selectedCarClassIDs)
+	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), showTopN, selectedCarClassIDs)
 
 	// Create application with options
 	err = wails.Run(&options.App{
