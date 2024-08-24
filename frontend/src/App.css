@@ -35,11 +35,20 @@
     background-color: rgba(70, 64, 65, 0.562);
 }
 
+.irc-car-number {
+    color: black;
+}
+
 .irc-car-number-84 {
     background-color: #fad352;
-    color: black;
 }
 
 .irc-car-number-83 {
     background-color: #33cfff;
+}
+
+.irc-toggle-class {
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
 }

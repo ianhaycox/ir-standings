@@ -8,8 +8,6 @@ import (
 var isDevMode *bool
 
 func IsDevMode() bool {
-	return false
-
 	if isDevMode != nil {
 		return *isDevMode
 	}

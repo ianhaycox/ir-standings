@@ -20,7 +20,7 @@ import (
 const (
 	defaultRefreshSeconds = 5
 	defaultWidth          = 800
-	defaultHeight         = 650
+	defaultHeight         = 400
 	countBestOf           = 10
 	showTopN              = 10
 )

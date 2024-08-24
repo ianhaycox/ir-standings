@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
+	"github.com/ianhaycox/ir-standings/arch"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	"github.com/ianhaycox/ir-standings/irsdk"
 	"github.com/ianhaycox/ir-standings/irsdk/iryaml"
@@ -19,8 +19,6 @@ import (
 	"github.com/ianhaycox/ir-standings/model/live"
 	"github.com/ianhaycox/ir-standings/model/telemetry"
 	"github.com/ianhaycox/ir-standings/predictor"
-	"github.com/ianhaycox/ir-standings/test/devmode"
-	"github.com/lxn/win"
 )
 
 const (
@@ -36,6 +34,7 @@ type App struct {
 	pastResults   []results.Result        // Previous weeks results for this season from the iRacing API
 	telemetryData telemetry.TelemetryData // Shared memory updated every `refreshSeconds`
 	prediction    *predictor.Predictor
+	fakeLogin     bool
 
 	irAPI               iracing.IracingService // iRacing API
 	pointsPerSplit      points.PointsPerSplit  // Points structure
@@ -74,8 +73,9 @@ var (
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	hwnd := win.FindWindow(nil, syscall.StringToUTF16Ptr("iRacing Championship Standings"))
-	win.SetWindowLong(hwnd, win.GWL_EXSTYLE, win.GetWindowLong(hwnd, win.GWL_EXSTYLE)|win.WS_EX_LAYERED)
+	if runtime.GOOS == "windows" {
+		arch.WindowOptions()
+	}
 
 	go a.irTelemetry(a.refreshSeconds)
 }
@@ -90,6 +90,8 @@ func (a *App) SelectedCarClassIDs() []int {
 
 func (a *App) Login(email string, password string) bool {
 	if email == "test" {
+		a.fakeLogin = true
+
 		return true
 	}
 
@@ -104,8 +106,8 @@ func (a *App) Login(email string, password string) bool {
 }
 
 func (a *App) PastResults() bool {
-	if devmode.IsDevMode() {
-		const fakeDelay = 5
+	if a.fakeLogin {
+		const fakeDelay = 3
 
 		filename := "./model/fixtures/2024-2-285-results-redacted.json"
 		log.Println("Using results fixture in dev mode:", filename)
@@ -135,6 +137,7 @@ func (a *App) PastResults() bool {
 
 		for i := range seasons {
 			log.Println(seasons[i].SeriesID, "  ", a.seriesID)
+
 			if seasons[i].SeriesID == a.seriesID {
 				a.seasonYear = seasons[i].SeasonYear
 				a.seasonQuarter = seasons[i].SeasonQuarter
@@ -311,5 +314,9 @@ func (a *App) updateSession(sdk irsdk.SDK, session *iryaml.IRSession) {
 		a.telemetryData.Cars[carIdx].IsPaceCar = session.DriverInfo.Drivers[i].CarIsPaceCar == 1
 		a.telemetryData.Cars[carIdx].IsSelf = carIdx == a.telemetryData.DriverCarIdx
 		a.telemetryData.Cars[carIdx].IsSpectator = session.DriverInfo.Drivers[i].IsSpectator == 1
+
+		if a.telemetryData.Cars[carIdx].IsSelf {
+			a.telemetryData.SelfCarClassID = session.DriverInfo.Drivers[i].CarClassID
+		}
 	}
 }
