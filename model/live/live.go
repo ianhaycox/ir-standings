@@ -7,10 +7,12 @@ import "github.com/ianhaycox/ir-standings/model"
 // {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 
 type PredictedStandings struct {
-	Status      string                        `json:"status"` // iRacing connection status/session, Race, Qualifying,...
-	TrackName   string                        `json:"track_name"`
-	CountBestOf int                           `json:"count_best_of"`
-	Standings   map[model.CarClassID]Standing `json:"standings"`
+	Status         string                        `json:"status"` // iRacing connection status/session, Race, Qualifying,...
+	TrackName      string                        `json:"track_name"`
+	CountBestOf    int                           `json:"count_best_of"`
+	SelfCarClassID int                           `json:"self_car_class_id"`
+	CarClassIDs    []int                         `json:"car_class_ids"`
+	Standings      map[model.CarClassID]Standing `json:"standings"`
 }
 
 type Standing struct {

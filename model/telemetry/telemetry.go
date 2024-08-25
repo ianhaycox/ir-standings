@@ -37,6 +37,7 @@ type TelemetryData struct {
 	TrackID        int      `json:"track_id"`
 	DriverCarIdx   int      `json:"driver_car_idx"`
 	SelfCarClassID int      `json:"self_car_class_id"`
+	CarClassIDs    []int    `json:"car_class_ids"`
 	Cars           CarsInfo `json:"cars,omitempty"`
 }
 

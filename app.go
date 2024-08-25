@@ -19,6 +19,7 @@ import (
 	"github.com/ianhaycox/ir-standings/model/live"
 	"github.com/ianhaycox/ir-standings/model/telemetry"
 	"github.com/ianhaycox/ir-standings/predictor"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -36,31 +37,28 @@ type App struct {
 	prediction    *predictor.Predictor
 	fakeLogin     bool
 
-	irAPI               iracing.IracingService // iRacing API
-	pointsPerSplit      points.PointsPerSplit  // Points structure
-	refreshSeconds      int                    // How often to read telemetry
-	countBestOf         int                    // Count best of n races in season
-	seriesID            int                    // iRacing series ID
-	seasonYear          int                    // E.g. 2024, 2025
-	seasonQuarter       int                    // E.g. 1,2,3
-	triedPastResults    bool                   // Guard against call API too much
-	showTopN            int                    // Display top n standings
-	selectedCarClassIDs []int                  // Display car class IDs in table in order
+	irAPI            iracing.IracingService // iRacing API
+	pointsPerSplit   points.PointsPerSplit  // Points structure
+	refreshSeconds   int                    // How often to read telemetry
+	countBestOf      int                    // Count best of n races in season
+	seriesID         int                    // iRacing series ID
+	seasonYear       int                    // E.g. 2024, 2025
+	seasonQuarter    int                    // E.g. 1,2,3
+	triedPastResults bool                   // Guard against call API too much
+	showTopN         int                    // Display top n standings
 }
 
 // NewApp creates a new App application struct
-func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID,
-	showTopN int, selectedCarClassIDs []int) *App {
+func NewApp(irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, showTopN int) *App {
 	return &App{
-		irAPI:               irAPI,
-		refreshSeconds:      refreshSeconds,
-		seriesID:            seriesID,
-		telemetryData:       telemetry.TelemetryData{Status: "Disconnected"},
-		pointsPerSplit:      pointsPerSplit,
-		triedPastResults:    false,
-		countBestOf:         countBestOf,
-		showTopN:            showTopN,
-		selectedCarClassIDs: selectedCarClassIDs,
+		irAPI:            irAPI,
+		refreshSeconds:   refreshSeconds,
+		seriesID:         seriesID,
+		telemetryData:    telemetry.TelemetryData{Status: "Disconnected"},
+		pointsPerSplit:   pointsPerSplit,
+		triedPastResults: false,
+		countBestOf:      countBestOf,
+		showTopN:         showTopN,
 	}
 }
 
@@ -82,10 +80,6 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) ShowTopN() int {
 	return a.showTopN
-}
-
-func (a *App) SelectedCarClassIDs() []int {
-	return a.selectedCarClassIDs
 }
 
 func (a *App) Login(email string, password string) bool {
@@ -136,8 +130,6 @@ func (a *App) PastResults() bool {
 		}
 
 		for i := range seasons {
-			log.Println(seasons[i].SeriesID, "  ", a.seriesID)
-
 			if seasons[i].SeriesID == a.seriesID {
 				a.seasonYear = seasons[i].SeasonYear
 				a.seasonQuarter = seasons[i].SeasonQuarter
@@ -174,9 +166,7 @@ func (a *App) LatestStandings() live.PredictedStandings {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
-	//	if a.prediction == nil {
 	a.prediction = predictor.NewPredictor(a.pointsPerSplit, a.pastResults, &a.telemetryData, a.countBestOf)
-	//	}
 
 	return a.prediction.Live()
 }
@@ -241,6 +231,8 @@ func (a *App) irTelemetry(refreshSeconds int) {
 
 				if session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName != "RACE" {
 					a.mtx.Unlock()
+					log.Println("Ignoring session ", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName, " as not RACE")
+
 					continue
 				}
 
@@ -300,6 +292,8 @@ func (a *App) updateSession(sdk irsdk.SDK, session *iryaml.IRSession) {
 	a.telemetryData.TrackID = session.WeekendInfo.TrackID
 	a.telemetryData.DriverCarIdx = session.DriverInfo.DriverCarIdx
 
+	carClassIDs := make(map[int]bool)
+
 	for i := range session.DriverInfo.Drivers {
 		carIdx := session.DriverInfo.Drivers[i].CarIdx
 
@@ -318,5 +312,15 @@ func (a *App) updateSession(sdk irsdk.SDK, session *iryaml.IRSession) {
 		if a.telemetryData.Cars[carIdx].IsSelf {
 			a.telemetryData.SelfCarClassID = session.DriverInfo.Drivers[i].CarClassID
 		}
+
+		if a.telemetryData.Cars[carIdx].IsRacing() {
+			carClassIDs[session.DriverInfo.Drivers[i].CarClassID] = true
+		}
+	}
+
+	a.telemetryData.CarClassIDs = maps.Keys(carClassIDs)
+
+	if a.telemetryData.SelfCarClassID == 0 && len(a.telemetryData.CarClassIDs) > 0 {
+		a.telemetryData.SelfCarClassID = a.telemetryData.CarClassIDs[0]
 	}
 }

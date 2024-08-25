@@ -14,10 +14,6 @@ export function PastResults() {
   return window['go']['main']['App']['PastResults']();
 }
 
-export function SelectedCarClassIDs() {
-  return window['go']['main']['App']['SelectedCarClassIDs']();
-}
-
 export function ShowTopN() {
   return window['go']['main']['App']['ShowTopN']();
 }

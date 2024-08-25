@@ -34,7 +34,7 @@ export const Login = () => {
                     </div>
                     <div className="mb-3">
                         <label  htmlFor="password" className="form-label">Password</label>
-                        <input id="password" type="password" autoComplete="current-password" {...register('password')} className={`form-control ${errors.password ? 'is-invalid' : ''}`} />
+                        <input id="password" type="password" autoComplete="password" {...register('password')} className={`form-control ${errors.password ? 'is-invalid' : ''}`} />
                         <div className="invalid-feedback">{errors.password?.message}</div>
                     </div>
                     <button disabled={isSubmitting} className="btn btn-primary">

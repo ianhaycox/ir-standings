@@ -46,15 +46,12 @@ func NewPredictor(pointsPerSplit points.PointsPerSplit, pastResults []results.Re
 // {CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
 // {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 func (p *Predictor) Live() live.PredictedStandings {
-	const (
-		carClassIDNissan = 84
-		carClassIDAudi   = 83
-	)
-
 	ps := live.PredictedStandings{
-		Status:      p.td.Status,
-		TrackName:   p.td.TrackName,
-		CountBestOf: p.countBestOf,
+		Status:         p.td.Status,
+		TrackName:      p.td.TrackName,
+		CountBestOf:    p.countBestOf,
+		SelfCarClassID: p.td.SelfCarClassID,
+		CarClassIDs:    p.td.CarClassIDs,
 	}
 
 	seriesID := model.SeriesID(p.td.SeriesID)
@@ -66,8 +63,10 @@ func (p *Predictor) Live() live.PredictedStandings {
 
 	ps.Standings = make(map[model.CarClassID]live.Standing)
 
-	ps.Standings[carClassIDNissan] = p.liveStandings(seriesID, carClassIDNissan)
-	ps.Standings[carClassIDAudi] = p.liveStandings(seriesID, carClassIDAudi)
+	for _, carClassID := range p.td.CarClassIDs {
+		cci := model.CarClassID(carClassID)
+		ps.Standings[cci] = p.liveStandings(seriesID, cci)
+	}
 
 	return ps
 }

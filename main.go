@@ -25,10 +25,6 @@ const (
 	showTopN              = 10
 )
 
-var (
-	selectedCarClassIDs = []int{84, 83}
-)
-
 //go:embed all:frontend/dist
 var assets embed.FS
 
@@ -66,7 +62,7 @@ func main() {
 	)
 
 	// Create an instance of the app structure
-	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), showTopN, selectedCarClassIDs)
+	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), showTopN)
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -76,7 +72,6 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		//		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1}, //nolint:mnd // ok
 		AlwaysOnTop:      true,
 		Windows:          &windows.Options{WebviewIsTransparent: true, WindowIsTranslucent: false},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},

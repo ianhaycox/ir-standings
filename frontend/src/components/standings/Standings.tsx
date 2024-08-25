@@ -1,6 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks"
-import { selectCarClassId, selectStatus, setCarClassId } from "./standingsSlice"
-import { selectLatestStandings } from "../telemetry/telemetrySlice"
+import { selectStatus } from "./standingsSlice"
+import { selectLatestStandings, selectCarClassId, setCarClassId } from "../telemetry/telemetrySlice"
 
 type Props = {
     topN: number;
@@ -19,10 +19,6 @@ export const Standings = (props: Props) => {
     let { topN } = props
 
     let carClassID = useAppSelector(selectCarClassId)
-    if (carClassID == 0) {
-        carClassID = 83
-   }
-
 
     if (status == "loading" || status == "failed" || standings.standings === undefined || !(carClassID in standings.standings)) return (
         <div className="text-center">
@@ -108,7 +104,8 @@ export const Standings = (props: Props) => {
         return (
             <div key={`footer-${carClassID}`} className="row irc-footer text-center pt-2">
                 <div className="col-2 ps-0 text-center">
-                    <div className={`irc-toggle-class irc-car-number irc-car-number-${carClassID}`} onClick={() => dispatch(setCarClassId(carClassID))}>
+                    <div className={`irc-toggle-class irc-car-number irc-car-number-${carClassID}`}
+                        onClick={() => dispatch(setCarClassId(carClassID))}>
                         {standings.standings[carClassID].car_class_name}
                     </div>
                 </div>

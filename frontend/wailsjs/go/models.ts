@@ -72,6 +72,8 @@ export namespace live {
 	    status: string;
 	    track_name: string;
 	    count_best_of: number;
+	    self_car_class_id: number;
+	    car_class_ids: number[];
 	    standings: {[key: number]: Standing};
 	
 	    static createFrom(source: any = {}) {
@@ -83,6 +85,8 @@ export namespace live {
 	        this.status = source["status"];
 	        this.track_name = source["track_name"];
 	        this.count_best_of = source["count_best_of"];
+	        this.self_car_class_id = source["self_car_class_id"];
+	        this.car_class_ids = source["car_class_ids"];
 	        this.standings = this.convertValues(source["standings"], Standing, true);
 	    }
 	
