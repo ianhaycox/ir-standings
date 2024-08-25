@@ -21,7 +21,7 @@ function App() {
 
 
     return (
-        <div id="App" className="container-sm my-2">
+        <div id="App" className="container-sm my-0">
             <div className="py-1">
                 {loggedIn ? (
                     <div>

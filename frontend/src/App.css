@@ -1,3 +1,12 @@
+.container {
+    margin-left:0;
+    margin-right:0;
+}
+
+body .irc-standings {
+    background-color: rgb(0,0,0,0.2)
+}
+
 #iracing-logo {
     width: auto;
     height: 50px;

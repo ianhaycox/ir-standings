@@ -135,6 +135,6 @@ export const Standings = (props: Props) => {
     }
 
     return (
-        <div>{tables}</div>
+        <div className="irc-standings">{tables}</div>
     )
 }

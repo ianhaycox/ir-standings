@@ -221,28 +221,10 @@ func (a *App) irTelemetry(refreshSeconds int) {
 
 			a.mtx.Lock()
 
-			//			if sdk.SessionChanged() {
+			//if sdk.SessionChanged() {
 			session := sdk.GetSession()
-
-			sessionNum, err := sdk.GetVar("SessionNum")
-			if err != nil {
-				log.Println("can not get iRacing SessionNum var", err)
-				a.mtx.Unlock()
-
-				continue
-			}
-
-			log.Println("Session name:", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName)
-
-			if session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName != "RACE" {
-				a.mtx.Unlock()
-				log.Println("Ignoring session ", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName, " as not RACE")
-
-				continue
-			}
-
 			a.updateSession(sdk, &session)
-			//			}
+			//}
 
 			vars, err := sdk.GetVars()
 			if err != nil {
@@ -254,9 +236,12 @@ func (a *App) irTelemetry(refreshSeconds int) {
 
 			a.updateCarInfo(vars)
 
-			a.mtx.Unlock()
+			log.Println("Type", a.telemetryData.SessionType)
+			log.Println("Track", a.telemetryData.TrackName)
+			b, _ := json.MarshalIndent(a.telemetryData.Cars[0:2], "", "  ")
+			log.Println(string(b))
 
-			log.Println("Updated car info")
+			a.mtx.Unlock()
 		}
 	}
 }
