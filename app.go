@@ -180,12 +180,15 @@ func (a *App) irTelemetry(refreshSeconds int) {
 	log.Println("Starting iRacing telemetry...")
 
 	if runtime.GOOS == "windows" {
+		log.Println("Init irSDK Windows")
 		sdk = irsdk.Init(nil)
 	} else {
 		reader, err := os.Open("/tmp/test.ibt")
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		log.Println("Init irSDK Linux(other)")
 
 		sdk = irsdk.Init(reader)
 	}
@@ -218,26 +221,28 @@ func (a *App) irTelemetry(refreshSeconds int) {
 
 			a.mtx.Lock()
 
-			if sdk.SessionChanged() {
-				session := sdk.GetSession()
+			//			if sdk.SessionChanged() {
+			session := sdk.GetSession()
 
-				sessionNum, err := sdk.GetVar("SessionNum")
-				if err != nil {
-					log.Println("can not get iRacing SessionNum var", err)
-					a.mtx.Unlock()
+			sessionNum, err := sdk.GetVar("SessionNum")
+			if err != nil {
+				log.Println("can not get iRacing SessionNum var", err)
+				a.mtx.Unlock()
 
-					continue
-				}
-
-				if session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName != "RACE" {
-					a.mtx.Unlock()
-					log.Println("Ignoring session ", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName, " as not RACE")
-
-					continue
-				}
-
-				a.updateSession(sdk, &session)
+				continue
 			}
+
+			log.Println("Session name:", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName)
+
+			if session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName != "RACE" {
+				a.mtx.Unlock()
+				log.Println("Ignoring session ", session.SessionInfo.Sessions[sessionNum.Value.(int)].SessionName, " as not RACE")
+
+				continue
+			}
+
+			a.updateSession(sdk, &session)
+			//			}
 
 			vars, err := sdk.GetVars()
 			if err != nil {
@@ -250,6 +255,8 @@ func (a *App) irTelemetry(refreshSeconds int) {
 			a.updateCarInfo(vars)
 
 			a.mtx.Unlock()
+
+			log.Println("Updated car info")
 		}
 	}
 }

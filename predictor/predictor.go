@@ -3,6 +3,7 @@ package predictor
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"sort"
 	"time"
@@ -30,6 +31,8 @@ func NewPredictor(pointsPerSplit points.PointsPerSplit, pastResults []results.Re
 	if td != nil && devmode.IsDevMode() {
 		b, _ := json.MarshalIndent(td, "", "  ")
 		_ = os.WriteFile("/tmp/telemetry.json", b, 0600) //nolint:gosec,mnd // ok
+
+		log.Println(string(b))
 	}
 
 	return &Predictor{

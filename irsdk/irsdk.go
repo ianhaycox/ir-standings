@@ -39,13 +39,13 @@ type SDK interface {
 // IRSDK is the main SDK object clients must use
 type IRSDK struct {
 	SDK
-	r               reader
-	h               *header
-	session         iryaml.IRSession
-	s               []string
-	tVars           *TelemetryVars
-	lastValidData   int64
-	lastSessionInfo int
+	r                 reader
+	h                 *header
+	session           iryaml.IRSession
+	s                 []string
+	tVars             *TelemetryVars
+	lastValidData     int64
+	lastSessionUpdate int
 }
 
 func (sdk *IRSDK) RefreshSession() {
@@ -137,16 +137,22 @@ func (sdk *IRSDK) GetSession() iryaml.IRSession {
 }
 
 func (sdk *IRSDK) SessionChanged() bool {
+	log.Println("session status:", sdk.h.status)
+
 	if !sessionStatusOK(sdk.h.status) {
+		log.Println("session status not ok")
+
 		return false
 	}
 
-	if sdk.lastSessionInfo != sdk.h.sessionInfoLen {
-		log.Println("Session changed", sdk.lastSessionInfo, sdk.h.sessionInfoLen)
-		sdk.lastSessionInfo = sdk.h.sessionInfoLen
+	if sdk.lastSessionUpdate != sdk.h.sessionInfoUpdate {
+		log.Println("Session changed", sdk.lastSessionUpdate, sdk.h.sessionInfoUpdate)
+		sdk.lastSessionUpdate = sdk.h.sessionInfoUpdate
 
 		return true
 	}
+
+	log.Println("Session ", sdk.lastSessionUpdate, "head session", sdk.h.sessionInfoUpdate)
 
 	return false
 }
@@ -241,7 +247,7 @@ func initIRSDK(sdk *IRSDK) {
 	h := readHeader(sdk.r)
 	sdk.h = &h
 	sdk.s = nil
-	sdk.lastSessionInfo = -1
+	sdk.lastSessionUpdate = -1
 
 	if sdk.tVars != nil {
 		sdk.tVars.vars = nil
