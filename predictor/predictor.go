@@ -2,45 +2,33 @@
 package predictor
 
 import (
-	"encoding/json"
-	"log"
-	"os"
 	"sort"
 	"time"
 
+	"github.com/ianhaycox/ir-standings/irsdk/telemetry"
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship"
+	"github.com/ianhaycox/ir-standings/model/championship/car"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/championship/standings"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/ianhaycox/ir-standings/model/live"
-	"github.com/ianhaycox/ir-standings/model/telemetry"
-	"github.com/ianhaycox/ir-standings/test/devmode"
 )
 
 type Predictor struct {
 	previous          *championship.Championship
 	previousStandings map[model.CarClassID]standings.ChampionshipStandings
 	points            points.PointsStructure
-	pastResults       []results.Result
 	countBestOf       int
-	td                *telemetry.TelemetryData
+	carClasses        car.CarClasses
 }
 
-func NewPredictor(pointsPerSplit points.PointsPerSplit, pastResults []results.Result, td *telemetry.TelemetryData, countBestOf int) *Predictor {
-	if td != nil && devmode.IsDevMode() {
-		b, _ := json.MarshalIndent(td, "", "  ")
-		_ = os.WriteFile("/tmp/telemetry.json", b, 0600) //nolint:gosec,mnd // ok
-
-		log.Println(string(b))
-	}
-
+func NewPredictor(pointsPerSplit points.PointsPerSplit, countBestOf int, carClasses car.CarClasses) *Predictor {
 	return &Predictor{
 		points:            points.NewPointsStructure(pointsPerSplit),
-		pastResults:       pastResults,
 		countBestOf:       countBestOf,
-		td:                td,
 		previousStandings: make(map[model.CarClassID]standings.ChampionshipStandings),
+		carClasses:        carClasses,
 	}
 }
 
@@ -48,76 +36,74 @@ func NewPredictor(pointsPerSplit points.PointsPerSplit, pastResults []results.Re
 //
 // {CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
 // {CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
-func (p *Predictor) Live() live.PredictedStandings {
+func (p *Predictor) Live(pastResults []results.Result, td *telemetry.TelemetryData) live.PredictedStandings {
 	ps := live.PredictedStandings{
-		Status:         p.td.Status,
-		TrackName:      p.td.TrackName,
+		Status:         td.Status,
+		TrackName:      td.TrackName,
 		CountBestOf:    p.countBestOf,
-		SelfCarClassID: p.td.SelfCarClassID,
-		CarClassIDs:    p.td.CarClassIDs,
+		SelfCarClassID: td.SelfCarClassID,
+		CarClassIDs:    p.carClasses.CarClassIDs(),
 	}
 
-	seriesID := model.SeriesID(p.td.SeriesID)
+	seriesID := model.SeriesID(td.SeriesID)
 
 	if p.previous == nil {
-		p.previous = championship.NewChampionship(seriesID, nil, p.points, p.countBestOf)
-		p.previous.LoadRaceData(p.pastResults)
+		p.previous = championship.NewChampionship(seriesID, p.carClasses, nil, p.points, p.countBestOf)
+		p.previous.LoadRaceData(pastResults)
 	}
 
 	ps.Standings = make(map[model.CarClassID]live.Standing)
 
-	for _, carClassID := range p.td.CarClassIDs {
+	for _, carClassID := range ps.CarClassIDs {
 		cci := model.CarClassID(carClassID)
-		ps.Standings[cci] = p.liveStandings(seriesID, cci)
+		ps.Standings[cci] = p.liveStandings(seriesID, cci, pastResults, td)
 	}
 
 	return ps
 }
 
-func (p *Predictor) liveStandings(seriesID model.SeriesID, carClassID model.CarClassID) live.Standing {
+func (p *Predictor) liveStandings(seriesID model.SeriesID, carClassID model.CarClassID, pastResults []results.Result,
+	td *telemetry.TelemetryData) live.Standing {
 	if _, ok := p.previousStandings[carClassID]; !ok {
 		p.previousStandings[carClassID] = p.previous.Standings(carClassID)
 	}
 
-	liveResults := make([]results.Result, 0, len(p.pastResults))
-	liveResults = append(liveResults, p.pastResults...)
+	liveResults := make([]results.Result, 0, len(pastResults))
+	liveResults = append(liveResults, pastResults...)
 
 	liveResults = append(liveResults, results.Result{
-		SessionID:     p.td.SessionID,
-		SubsessionID:  p.td.SubsessionID,
-		SeriesID:      p.td.SeriesID,
-		SessionSplits: []results.SessionSplits{{SubsessionID: p.td.SubsessionID}},
+		SessionID:     td.SessionID,
+		SubsessionID:  td.SubsessionID,
+		SeriesID:      td.SeriesID,
+		SessionSplits: []results.SessionSplits{{SubsessionID: td.SubsessionID}},
 		StartTime:     time.Now().UTC(),
-		Track:         results.ResultTrack{TrackID: p.td.TrackID, TrackName: p.td.TrackName},
-		CarClasses:    p.td.CarClasses(),
+		Track:         results.ResultTrack{TrackID: td.TrackID, TrackName: td.TrackName},
 		SessionResults: []results.SessionResults{
 			{
 				SimsessionName: "RACE",
-				Results:        buildResults(&p.td.Cars),
+				Results:        p.buildResults(&td.Cars),
 			},
 		},
 	})
 
-	predicted := championship.NewChampionship(seriesID, nil, p.points, p.countBestOf)
+	predicted := championship.NewChampionship(seriesID, p.carClasses, nil, p.points, p.countBestOf)
 
 	predicted.LoadRaceData(liveResults)
-	predicted.SetCarClasses(predicted.CarClasses())
 
 	predictedStandings := predicted.Standings(carClassID)
 
-	carClasses := predicted.CarClasses()
-
 	return live.Standing{
-		SoFByCarClass:           p.td.SofByCarClass()[int(carClassID)],
+		SoFByCarClass:           td.SofByCarClass()[int(carClassID)],
 		CarClassID:              carClassID,
-		CarClassName:            carClasses.ClassNames()[carClassID].Name(),
-		ClassLeaderLapsComplete: model.LapsComplete(p.td.LeaderLapsComplete(int(carClassID))),
-		Items:                   p.provisionalTable(predictedStandings, carClassID),
+		CarClassName:            p.carClasses.Name(carClassID),
+		ClassLeaderLapsComplete: model.LapsComplete(td.LeaderLapsComplete(int(carClassID))),
+		Items:                   p.provisionalTable(predictedStandings, carClassID, td),
 	}
 }
 
 // provisionalTable calculate change between current and predicted championship tables for the Windows overlay
-func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipStandings, carClassID model.CarClassID) []live.PredictedStanding {
+func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipStandings, carClassID model.CarClassID,
+	td *telemetry.TelemetryData) []live.PredictedStanding {
 	mergedStandings := make(map[model.CustID]live.PredictedStanding)
 
 	for _, entry := range p.previousStandings[carClassID].Table {
@@ -153,8 +139,8 @@ func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipSt
 	predictedResult := make([]live.PredictedStanding, 0, len(mergedStandings))
 
 	carNums := make(map[model.CustID]string)
-	for i := range p.td.Cars {
-		carNums[model.CustID(p.td.Cars[i].CustID)] = p.td.Cars[i].CarNumber
+	for i := range td.Cars {
+		carNums[model.CustID(td.Cars[i].CustID)] = td.Cars[i].CarNumber
 	}
 
 	for custID := range mergedStandings {
@@ -176,7 +162,7 @@ func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipSt
 }
 
 // Create a fake result for the race based on current positions
-func buildResults(cars *telemetry.CarsInfo) []results.Results {
+func (p *Predictor) buildResults(cars *telemetry.CarsInfo) []results.Results {
 	res := make([]results.Results, 0)
 
 	for _, car := range cars {
@@ -190,7 +176,6 @@ func buildResults(cars *telemetry.CarsInfo) []results.Results {
 			LapsComplete:          car.LapsComplete,
 			CarID:                 car.CarID,
 			CarClassID:            car.CarClassID,
-			CarName:               car.CarName,
 			DisplayName:           car.DriverName,
 			NewiRating:            car.IRating,
 		})

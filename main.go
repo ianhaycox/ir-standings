@@ -2,14 +2,17 @@ package main
 
 import (
 	"embed"
+	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	cookiejar "github.com/ianhaycox/ir-standings/connectors/jar"
+	"github.com/ianhaycox/ir-standings/irsdk"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -61,8 +64,27 @@ func main() {
 		api.NewAuthenticationService(),
 	)
 
+	var sdk irsdk.SDK
+
+	if runtime.GOOS == "windows" {
+		log.Println("Init irSDK Windows")
+
+		sdk = irsdk.Init(nil)
+	} else {
+		reader, err := os.Open("/tmp/test.ibt")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Init irSDK Linux(other)")
+
+		sdk = irsdk.Init(reader)
+	}
+
+	defer sdk.Close()
+
 	// Create an instance of the app structure
-	app := NewApp(ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), showTopN)
+	app := NewApp(sdk, ir, pointsPerSplit, refreshSeconds, countBestOf, int(iracing.KamelSeriesID), showTopN)
 
 	// Create application with options
 	err = wails.Run(&options.App{

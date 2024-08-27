@@ -7,18 +7,9 @@ import { Telemetry } from './components/telemetry/telemetry';
 import { useAppSelector, useAppDispatch } from "./app/hooks"
 import { isLoggedIn } from "./components/login/loginSlice"
 import { Alert } from './components/alert/Alert';
-import { getPastResults } from "./components/standings/standingsSlice"
-import { useEffect } from 'react';
 
 function App() {
     const loggedIn = useAppSelector(isLoggedIn)
-    const dispatch = useAppDispatch();
-
-    useEffect(() => {
-        dispatch(getPastResults(loggedIn));
-    }, [loggedIn])
-
-
 
     return (
         <div id="App" className="container-sm my-0">

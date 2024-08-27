@@ -11,6 +11,7 @@ import (
 
 	"github.com/ianhaycox/ir-standings/connectors/api"
 	"github.com/ianhaycox/ir-standings/connectors/cdn"
+	"github.com/ianhaycox/ir-standings/model/data/cars"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/ianhaycox/ir-standings/model/data/results/searchseries"
 	"github.com/ianhaycox/ir-standings/model/data/seasons"
@@ -36,6 +37,8 @@ type IracingService interface {
 	SearchSeriesResults(ctx context.Context, seasonYear, seasonQuarter, seriesID int) ([]searchseries.SearchSeriesResult, error)
 	SeasonBroadcastResults(ctx context.Context, ssResults []searchseries.SearchSeriesResult) ([]results.Result, error)
 	Seasons(ctx context.Context) ([]seasons.Season, error)
+	Cars(ctx context.Context) ([]cars.Car, error)
+	CarClasses(ctx context.Context) ([]cars.CarClass, error)
 }
 
 type IracingAPI struct {

@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "../../app/store"
-import { error, success, clear } from "../../components/alert/alertSlice"
-import { getPastResults } from "../../components/standings/standingsSlice"
+import { error, clear, success } from "../../components/alert/alertSlice"
 
 import { login } from "./loginAPI"
 
@@ -53,6 +52,7 @@ export const loginAsync = createAsyncThunk(
     "login/authenticate",
     async (credentials: Credentials, thunkAPI) => {
         thunkAPI.dispatch(clear())
+        thunkAPI.dispatch(success("Fetching data from iRacing..."))
 
         const { username, password } = credentials;
         const response = await login(username, password)

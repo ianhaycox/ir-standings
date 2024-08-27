@@ -11,9 +11,11 @@ import (
 
 	"github.com/ianhaycox/ir-standings/connectors/iracing"
 	"github.com/ianhaycox/ir-standings/model"
+	"github.com/ianhaycox/ir-standings/model/championship/car"
 	"github.com/ianhaycox/ir-standings/model/championship/driver"
 	"github.com/ianhaycox/ir-standings/model/championship/points"
 	"github.com/ianhaycox/ir-standings/model/championship/position"
+	"github.com/ianhaycox/ir-standings/model/data/cars"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/ianhaycox/ir-standings/test/files"
 	"github.com/stretchr/testify/assert"
@@ -21,13 +23,23 @@ import (
 )
 
 func TestChampionship(t *testing.T) {
+	var (
+		carData      []cars.Car
+		carClassData []cars.CarClass
+	)
+
 	pointsPerSplit := points.PointsPerSplit{
 		0: {5, 3, 1},
 		1: {3, 1},
 	}
 
+	json.Unmarshal(files.ReadFile(t, "../fixtures/car.json"), &carData)
+	json.Unmarshal(files.ReadFile(t, "../fixtures/carclass.json"), &carClassData)
+
+	carClasses := car.NewCarClasses([]int{83, 84}, carData, carClassData)
+
 	t.Run("Loads a simplified set of results into Events and Races", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{1: true}, points.NewPointsStructure(pointsPerSplit), 9)
+		c := NewChampionship(1, carClasses, map[int]bool{1: true}, points.NewPointsStructure(pointsPerSplit), 9)
 
 		start1, err := time.Parse(time.RFC3339, "2024-03-16T17:00:00Z")
 		require.NoError(t, err)
@@ -42,10 +54,6 @@ func TestChampionship(t *testing.T) {
 				SessionSplits: []results.SessionSplits{
 					{SubsessionID: 1001},
 					{SubsessionID: 1002},
-				},
-				CarClasses: []results.CarClasses{
-					{CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
-					{CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 				},
 				SeriesID:   285,
 				SeriesName: "IMSA Vintage Series",
@@ -69,10 +77,6 @@ func TestChampionship(t *testing.T) {
 				SessionSplits: []results.SessionSplits{
 					{SubsessionID: 1001},
 					{SubsessionID: 1002},
-				},
-				CarClasses: []results.CarClasses{
-					{CarClassID: 84, ShortName: "GTP", Name: "Nissan GTP ZX-T", CarsInClass: []results.CarsInClass{{CarID: 77}}},
-					{CarClassID: 83, ShortName: "GTO", Name: "Audi 90 GTO", CarsInClass: []results.CarsInClass{{CarID: 76}}},
 				},
 				SeriesID:   285,
 				SeriesName: "IMSA Vintage Series",
@@ -154,7 +158,7 @@ func TestChampionship(t *testing.T) {
 	})
 
 	t.Run("Verify an excluded track is ignored", func(t *testing.T) {
-		c := NewChampionship(1, map[int]bool{219: true}, points.NewPointsStructure(pointsPerSplit), 1)
+		c := NewChampionship(1, carClasses, map[int]bool{219: true}, points.NewPointsStructure(pointsPerSplit), 1)
 
 		fixture := []results.Result{
 			{
@@ -172,6 +176,16 @@ func TestChampionship(t *testing.T) {
 }
 
 func TestFixture2024S1(t *testing.T) {
+	var (
+		carData      []cars.Car
+		carClassData []cars.CarClass
+	)
+
+	json.Unmarshal(files.ReadFile(t, "../fixtures/car.json"), &carData)
+	json.Unmarshal(files.ReadFile(t, "../fixtures/carclass.json"), &carClassData)
+
+	carClasses := car.NewCarClasses([]int{83, 84}, carData, carClassData)
+
 	exampleData := files.ReadResultsFixture(t, "../fixtures/2024-1-285-results-redacted.json")
 
 	pointsPerSplit := points.PointsPerSplit{
@@ -183,7 +197,7 @@ func TestFixture2024S1(t *testing.T) {
 
 	ps := points.NewPointsStructure(pointsPerSplit)
 
-	champ := NewChampionship(iracing.KamelSeriesID, nil, ps, 10)
+	champ := NewChampionship(iracing.KamelSeriesID, carClasses, nil, ps, 10)
 
 	champ.LoadRaceData(exampleData)
 
@@ -247,6 +261,16 @@ func TestFixture2024S1(t *testing.T) {
 }
 
 func TestFixture2024S2(t *testing.T) {
+	var (
+		carData      []cars.Car
+		carClassData []cars.CarClass
+	)
+
+	json.Unmarshal(files.ReadFile(t, "../fixtures/car.json"), &carData)
+	json.Unmarshal(files.ReadFile(t, "../fixtures/carclass.json"), &carClassData)
+
+	carClasses := car.NewCarClasses([]int{83, 84}, carData, carClassData)
+
 	exampleData := files.ReadResultsFixture(t, "../fixtures/2024-2-285-results-redacted.json")
 
 	var excludeTrackID = map[int]bool{18: true}
@@ -260,7 +284,7 @@ func TestFixture2024S2(t *testing.T) {
 
 	ps := points.NewPointsStructure(pointsPerSplit)
 
-	champ := NewChampionship(iracing.KamelSeriesID, excludeTrackID, ps, 9)
+	champ := NewChampionship(iracing.KamelSeriesID, carClasses, excludeTrackID, ps, 9)
 
 	champ.LoadRaceData(exampleData)
 
@@ -325,6 +349,16 @@ func TestFixture2024S2(t *testing.T) {
 func TestFixture2024S3(t *testing.T) {
 	t.Run("Latest", func(t *testing.T) {
 		// t.Skip("for testing real data")
+		var (
+			carData      []cars.Car
+			carClassData []cars.CarClass
+		)
+
+		json.Unmarshal(files.ReadFile(t, "../fixtures/car.json"), &carData)
+		json.Unmarshal(files.ReadFile(t, "../fixtures/carclass.json"), &carClassData)
+
+		carClasses := car.NewCarClasses([]int{83, 84}, carData, carClassData)
+
 		exampleData := files.ReadResultsFixture(t, "../fixtures/2024-2-285-results-redacted.json") //  "../../2024-3-285-results.json")
 
 		pointsPerSplit := points.PointsPerSplit{
@@ -336,7 +370,7 @@ func TestFixture2024S3(t *testing.T) {
 
 		ps := points.NewPointsStructure(pointsPerSplit)
 
-		champ := NewChampionship(iracing.KamelSeriesID, nil, ps, 10)
+		champ := NewChampionship(iracing.KamelSeriesID, carClasses, nil, ps, 10)
 
 		champ.LoadRaceData(exampleData)
 

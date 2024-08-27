@@ -19,7 +19,7 @@ export const alertSlice = createSlice({
     initialState,
     reducers: {
         success: (state, action:PayloadAction<string>) => {
-            state.type = 'alert-success';
+            state.type = 'alert-secondary';
             state.message =  action.payload;
           },
           error: (state, action:PayloadAction<string>) => {

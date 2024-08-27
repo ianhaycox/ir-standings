@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/ianhaycox/ir-standings/model"
-	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/model/data/cars"
 )
 
 type car struct {
@@ -20,49 +20,45 @@ type CarClass struct {
 	carsInClass []car
 }
 
-func (c CarClass) Name() string {
-	return c.name
-}
-
 type CarClasses struct {
 	carClassNames map[model.CarClassID]CarClass
 	carNames      map[model.CarID]car
 }
 
-func NewCarClasses(carClasses []results.CarClasses) CarClasses {
+func NewCarClasses(carClassIds []int, cars []cars.Car, classes []cars.CarClass) CarClasses {
 	cc := CarClasses{
 		carClassNames: make(map[model.CarClassID]CarClass),
 		carNames:      make(map[model.CarID]car),
 	}
 
-	for i := range carClasses {
-		carClassID := model.CarClassID(carClasses[i].CarClassID)
-
-		carClass := CarClass{
-			name:       carClasses[i].Name,
-			shortName:  carClasses[i].ShortName,
-			carClassID: carClassID,
-		}
-
-		// We only find out the car names later
-		for j := range carClasses[i].CarsInClass {
-			carID := model.CarID(carClasses[i].CarsInClass[j].CarID)
-			car := car{carID: carID}
-
-			found := false
-
-			for k := range carClass.carsInClass {
-				if carClass.carsInClass[k].carID == carID {
-					found = true
-
-					break
+	for i := range carClassIds {
+		for j := range classes {
+			if classes[j].CarClassID == carClassIds[i] {
+				carClass := CarClass{
+					name:       classes[j].Name,
+					shortName:  classes[j].ShortName,
+					carClassID: model.CarClassID(classes[j].CarClassID),
 				}
-			}
 
-			if !found {
-				carClass.carsInClass = append(carClass.carsInClass, car)
-				cc.carClassNames[carClassID] = carClass
-				cc.carNames[carID] = car
+				for k := range classes[j].CarsInClass {
+					for l := range cars {
+						if cars[l].CarID == classes[j].CarsInClass[k].CarID {
+							carName := car{
+								carID: model.CarID(classes[j].CarsInClass[k].CarID),
+								name:  cars[l].CarName,
+							}
+
+							carClass.carsInClass = append(carClass.carsInClass, carName)
+							cc.carNames[carName.carID] = carName
+
+							break
+						}
+					}
+				}
+
+				cc.carClassNames[model.CarClassID(carClassIds[i])] = carClass
+
+				break
 			}
 		}
 	}
@@ -70,37 +66,7 @@ func NewCarClasses(carClasses []results.CarClasses) CarClasses {
 	return cc
 }
 
-func (cc *CarClasses) AddCarName(carID model.CarID, name string) {
-	if name == "" {
-		return
-	}
-
-	if carr, ok := cc.carNames[carID]; ok {
-		carr.name = name
-		cc.carNames[carID] = carr
-	} else {
-		cc.carNames[carID] = car{carID: carID, name: name}
-	}
-
-	for carClassID := range cc.carClassNames {
-		for i := range cc.carClassNames[carClassID].carsInClass {
-			if cc.carClassNames[carClassID].carsInClass[i].carID == carID {
-				cc.carClassNames[carClassID].carsInClass[i].name = name
-
-				break
-			}
-		}
-
-		cic := cc.carClassNames[carClassID].carsInClass
-		cic = append(cic, car{carID: carID, name: name})
-
-		carClass := cc.carClassNames[carClassID]
-		carClass.carsInClass = cic
-		cc.carClassNames[carClassID] = carClass
-	}
-}
-
-func (cc *CarClasses) Names(carsDriven []model.CarID) []string {
+func (cc *CarClasses) CarNames(carsDriven []model.CarID) []string {
 	names := make([]string, 0)
 
 	unique := make(map[model.CarID]string)
@@ -118,6 +84,16 @@ func (cc *CarClasses) Names(carsDriven []model.CarID) []string {
 	return names
 }
 
-func (cc *CarClasses) ClassNames() map[model.CarClassID]CarClass {
-	return cc.carClassNames
+func (cc *CarClasses) Name(carClassID model.CarClassID) string {
+	return cc.carClassNames[carClassID].name
+}
+
+func (cc *CarClasses) CarClassIDs() []int {
+	carClassIDs := []int{}
+
+	for k := range cc.carClassNames {
+		carClassIDs = append(carClassIDs, int(k))
+	}
+
+	return carClassIDs
 }

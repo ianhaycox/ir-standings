@@ -1,26 +1,19 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks"
-import { selectStatus } from "./standingsSlice"
 import { selectLatestStandings, selectCarClassId, setCarClassId } from "../telemetry/telemetrySlice"
 
 type Props = {
     topN: number;
 }
 
-interface IProps_Square {
-    message: string,
-    onClick: (e: React.MouseEvent<HTMLElement>) => void,
-}
-
 export const Standings = (props: Props) => {
     const standings = useAppSelector(selectLatestStandings)
-    const status = useAppSelector(selectStatus)
     const dispatch = useAppDispatch();
 
     let { topN } = props
 
     let carClassID = useAppSelector(selectCarClassId)
 
-    if (status == "loading" || status == "failed" || standings.standings === undefined || !(carClassID in standings.standings)) return (
+    if (standings.standings === undefined || !(carClassID in standings.standings)) return (
         <div className="text-center">
             <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>

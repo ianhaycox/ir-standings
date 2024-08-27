@@ -1,54 +1,27 @@
 package car
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/ianhaycox/ir-standings/model"
-	"github.com/ianhaycox/ir-standings/model/data/results"
+	"github.com/ianhaycox/ir-standings/model/data/cars"
+	"github.com/ianhaycox/ir-standings/test/files"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCarClasses(t *testing.T) {
-	resultCarClasses := []results.CarClasses{
-		{
-			CarClassID: 81,
-			Name:       "GTE cars",
-			ShortName:  "GTE",
-			CarsInClass: []results.CarsInClass{
-				{CarID: 811},
-				{CarID: 812},
-			},
-		},
-		{
-			CarClassID: 82,
-			Name:       "GTO cars",
-			ShortName:  "GTO",
-			CarsInClass: []results.CarsInClass{
-				{CarID: 821},
-				{CarID: 822},
-			},
-		},
-		{
-			CarClassID: 83,
-			Name:       "GTP cars",
-			ShortName:  "GTP",
-			CarsInClass: []results.CarsInClass{
-				{CarID: 831},
-			},
-		},
-	}
+	var (
+		carData      []cars.Car
+		carClassData []cars.CarClass
+	)
 
-	carClasses := NewCarClasses(resultCarClasses)
+	json.Unmarshal(files.ReadFile(t, "../../fixtures/car.json"), &carData)
+	json.Unmarshal(files.ReadFile(t, "../../fixtures/carclass.json"), &carClassData)
 
-	carClasses.AddCarName(811, "Ferrari")
-	carClasses.AddCarName(811, "Ferrari") // Dup ignored
-	carClasses.AddCarName(812, "Ford")
-	carClasses.AddCarName(821, "Audi GTO")
-	carClasses.AddCarName(822, "Nissan Skyline")
-	carClasses.AddCarName(831, "Porsche 962")
-	carClasses.AddCarName(999, "Lambo")
+	carClasses := NewCarClasses([]int{2268}, carData, carClassData)
 
-	assert.Equal(t, []string{"Audi GTO"}, carClasses.Names([]model.CarID{821}))
-	assert.Equal(t, []string{"Audi GTO", "Ferrari", "Porsche 962"}, carClasses.Names([]model.CarID{831, 811, 821}))
-	assert.Equal(t, []string{"Lambo"}, carClasses.Names([]model.CarID{999}))
+	assert.Equal(t, []string{"BMW M4 GT4", "McLaren 570S GT4"}, carClasses.CarNames([]model.CarID{135, 122}))
+	assert.Equal(t, []string{"Aston Martin Vantage GT4"}, carClasses.CarNames([]model.CarID{150}))
+	assert.Equal(t, "GT4 Class", carClasses.Name(2268))
 }

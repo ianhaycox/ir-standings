@@ -23,7 +23,7 @@ func (ir *IracingAPI) Seasons(ctx context.Context) ([]seasons.Season, error) {
 
 	err = ir.data.CDN(ctx, link.Link, &seasons)
 	if err != nil {
-		return nil, fmt.Errorf("can not get result:%s, err:%w", link.Link, err)
+		return nil, fmt.Errorf("can not get seasons result:%s, err:%w", link.Link, err)
 	}
 
 	return seasons, nil

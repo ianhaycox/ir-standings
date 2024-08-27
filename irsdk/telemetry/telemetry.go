@@ -1,21 +1,19 @@
 // Package telemetry read from Windows shared memory
 package telemetry
 
-import (
-	"github.com/ianhaycox/ir-standings/model/data/results"
-)
-
 const (
-	IrMaxCars = 64
+	IrMaxCars    = 64
+	Connected    = "Connected"
+	Disconnected = "Disconnected"
+	Waiting      = "Waiting for iRacing connection"
+	Problem      = "Telemetry unavailable"
 )
 
 type CarsInfo [IrMaxCars]CarInfo
 
 type CarInfo struct {
 	CarClassID          int    `json:"car_class_id"`
-	CarClassName        string `json:"car_class_name"`
 	CarID               int    `json:"car_id"`
-	CarName             string `json:"car_name"`
 	CarNumber           string `json:"car_number"`
 	CustID              int    `json:"cust_id"`
 	DriverName          string `json:"driver_name"`
@@ -37,7 +35,6 @@ type TelemetryData struct {
 	TrackID        int      `json:"track_id"`
 	DriverCarIdx   int      `json:"driver_car_idx"`
 	SelfCarClassID int      `json:"self_car_class_id"`
-	CarClassIDs    []int    `json:"car_class_ids"`
 	Cars           CarsInfo `json:"cars,omitempty"`
 }
 
@@ -81,46 +78,4 @@ func (td *TelemetryData) LeaderLapsComplete(carClassID int) int {
 
 func (ci *CarInfo) IsRacing() bool {
 	return !(ci.IsPaceCar || ci.IsSpectator || ci.DriverName == "")
-}
-
-// CarClasses build cars in session - TODO for a Race should only do once.
-func (td *TelemetryData) CarClasses() []results.CarClasses {
-	carClasses := make([]results.CarClasses, 0)
-
-	cc := make(map[int]results.CarClasses) // By CarClassID
-	cic := make(map[int]int)               // By CarID
-
-	for i := range td.Cars {
-		if !td.Cars[i].IsRacing() {
-			continue
-		}
-
-		if _, ok := cc[td.Cars[i].CarClassID]; !ok {
-			cc[td.Cars[i].CarClassID] = results.CarClasses{
-				CarClassID:  td.Cars[i].CarClassID,
-				ShortName:   td.Cars[i].CarClassName,
-				Name:        td.Cars[i].CarClassName,
-				CarsInClass: make([]results.CarsInClass, 0),
-			}
-		}
-
-		if _, ok := cic[td.Cars[i].CarID]; !ok {
-			cic[td.Cars[i].CarID] = td.Cars[i].CarClassID
-		}
-	}
-
-	for carClassID, carClass := range cc {
-		for carID, memberCarClassID := range cic {
-			if memberCarClassID == carClassID {
-				carClass.CarsInClass = append(carClass.CarsInClass, results.CarsInClass{CarID: carID})
-			}
-		}
-
-		carClasses = append(carClasses, carClass)
-	}
-
-	// b, _ := json.MarshalIndent(carClasses, "", "  ")
-	// fmt.Println(string(b))
-
-	return carClasses
 }

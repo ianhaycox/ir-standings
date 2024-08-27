@@ -27,23 +27,17 @@ type Championship struct {
 	countBestOf    int
 }
 
-func NewChampionship(seriesID model.SeriesID, excludeTrackID map[int]bool, awards points.PointsStructure, countBestOf int) *Championship {
+func NewChampionship(seriesID model.SeriesID, carClasses car.CarClasses, excludeTrackID map[int]bool,
+	awards points.PointsStructure, countBestOf int) *Championship {
 	return &Championship{
 		seriesID:       seriesID,
+		carClasses:     carClasses,
 		events:         make(map[model.SessionID]event.Event),
 		excludeTrackID: excludeTrackID,
 		awards:         awards,
 		drivers:        make(map[model.CustID]driver.Driver),
 		countBestOf:    countBestOf,
 	}
-}
-
-func (c *Championship) CarClasses() car.CarClasses {
-	return c.carClasses
-}
-
-func (c *Championship) SetCarClasses(carClasses car.CarClasses) {
-	c.carClasses = carClasses
 }
 
 // Events list of events sorted by start time
@@ -60,10 +54,6 @@ func (c *Championship) Events() []event.Event {
 }
 
 func (c *Championship) LoadRaceData(data []results.Result) {
-	if len(data) > 0 {
-		c.carClasses = car.NewCarClasses(data[0].CarClasses)
-	}
-
 	for _, irResult := range data {
 		if c.isExcluded(irResult.Track.TrackID) {
 			continue
@@ -101,8 +91,6 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 					sessionResults = append(sessionResults, result)
 
 					c.addDriver(result.CustID, driver.NewDriver(result.CustID, sessionResult.DisplayName, sessionResult.NewiRating))
-
-					c.carClasses.AddCarName(result.CarID, sessionResult.CarName)
 				}
 			}
 
@@ -151,7 +139,7 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(true, len(events)),
 			TieBreakFinishPositions: positions.TieBreakerPositions(false, len(events)),
-			CarNames:                c.carClasses.Names(positions.CarsDriven(false, len(events))),
+			CarNames:                c.carClasses.CarNames(positions.CarsDriven(false, len(events))),
 			DriverName:              driver.DisplayName(),
 			IRating:                 driver.IRating(),
 			Counted:                 positions.Counted(false, c.countBestOf),
