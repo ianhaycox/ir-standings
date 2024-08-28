@@ -1,7 +1,9 @@
 package telemetry
 
 import (
+	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -41,42 +43,54 @@ func (d *Data) Telemetry() *TelemetryData {
 
 	d.updateSession()
 
-	vars, err := d.sdk.GetVars()
+	sessionState, err := d.sdk.GetVarValue("SessionState")
 	if err != nil {
-		log.Println("can not get iRacing telemetry vars", err)
-
-		d.data.Status = Problem
-
-		return d.data
+		log.Println("Error getting SessionState, %w", err)
+	} else {
+		d.data.SessionState = sessionState.(int)
 	}
 
-	d.data.SessionState = vars["SessionState"].Value.(int)
-
-	d.updateCarInfo(vars)
+	d.updateCarInfo()
 
 	return d.data
 }
 
 // Updated often
-func (d *Data) updateCarInfo(vars map[string]irsdk.Variable) {
-	var (
-		carIdxPositionsByClass []int
-		carIdxLaps             []int
-	)
-
-	carIdxPositionByClass := vars["CarIdxClassPosition"].Values
-	if carIdxPositionByClass != nil {
-		carIdxPositionsByClass = carIdxPositionByClass.([]int)
+func (d *Data) updateCarInfo() {
+	cicp, err := d.sdk.GetVarValues("CarIdxClassPosition")
+	if err != nil {
+		log.Println("Error getting CarIdxClassPosition, %w", err)
+	} else {
+		c := cicp.([]int)
+		for i := range c {
+			if d.data.Cars[i].IsRacing() {
+				if c[i] > 1000 {
+					fmt.Println("Pos:", i, c[i])
+				}
+				d.data.Cars[i].RacePositionInClass = c[i]
+			} else {
+				d.data.Cars[i].RacePositionInClass = 0
+			}
+		}
 	}
 
-	carIdxLap := vars["CarIdxLap"].Values
-	if carIdxLap != nil {
-		carIdxLaps = carIdxLap.([]int)
-	}
-
-	for i := range carIdxPositionsByClass {
-		d.data.Cars[i].RacePositionInClass = carIdxPositionsByClass[i]
-		d.data.Cars[i].LapsComplete = carIdxLaps[i]
+	cil, err := d.sdk.GetVarValues("CarIdxLap")
+	if err != nil {
+		log.Println("Error getting CarIdxLap, %w", err)
+	} else {
+		c := cil.([]int)
+		for i := range c {
+			if d.data.Cars[i].IsRacing() {
+				// I think byte4ToInt() should handle signed ints - bodge it here.
+				if c[i] > math.MaxInt32 {
+					d.data.Cars[i].LapsComplete = -1
+				} else {
+					d.data.Cars[i].LapsComplete = c[i]
+				}
+			} else {
+				d.data.Cars[i].LapsComplete = 0
+			}
+		}
 	}
 }
 

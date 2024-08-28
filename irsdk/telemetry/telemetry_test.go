@@ -1,6 +1,7 @@
 package telemetry
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -46,4 +47,16 @@ func TestTelemetry(t *testing.T) {
 			online = false
 		}
 	}
+}
+
+func TestTelemetry2(t *testing.T) {
+	t.Skip()
+
+	sdk := irsdk.Init(nil)
+
+	x := NewData(sdk)
+
+	s := x.Telemetry()
+
+	fmt.Println(s)
 }

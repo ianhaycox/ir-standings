@@ -65,6 +65,10 @@ func (td *TelemetryData) LeaderLapsComplete(carClassID int) int {
 	leaderLapsComplete := 0
 
 	for i := range td.Cars {
+		if td.Cars[i].CarClassID != carClassID {
+			continue
+		}
+
 		if !td.Cars[i].IsRacing() {
 			continue
 		}

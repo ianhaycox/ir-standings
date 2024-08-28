@@ -11,6 +11,8 @@ export const Standings = (props: Props) => {
     const dispatch = useAppDispatch();
 
     const { show_topn } = props.config
+    
+    document.body.classList.add('irc-transparent')
 
     let carClassID = useAppSelector(selectCarClassId)
 
