@@ -69,7 +69,15 @@ func (a *App) ShowTopN() int {
 
 func (a *App) Login(email string, password string) bool { // TODO return error
 	if email == "test" {
-		const fakeDelay = 5
+		const (
+			fakeDelay = 5
+			q         = 2
+			y         = 2024
+			gto       = 83
+			gtp       = 84
+			audi      = 76
+			datsun    = 77
+		)
 
 		filename := "./model/fixtures/2024-2-285-results-redacted.json"
 		log.Println("Using results fixture in dev mode:", filename)
@@ -86,13 +94,13 @@ func (a *App) Login(email string, password string) bool { // TODO return error
 			log.Fatal(err)
 		}
 
-		a.seasonQuarter = 2
-		a.seasonYear = 2024
-		a.carclasses = car.NewCarClasses([]int{83, 84},
-			[]cars.Car{{CarID: 76, CarName: "Audi"}, {CarID: 77, CarName: "Nissan"}},
+		a.seasonQuarter = q
+		a.seasonYear = y
+		a.carclasses = car.NewCarClasses([]int{gto, gtp},
+			[]cars.Car{{CarID: audi, CarName: "Audi"}, {CarID: datsun, CarName: "Nissan"}},
 			[]cars.CarClass{
-				{CarClassID: 83, Name: "Audi GTO", ShortName: "GTO", CarsInClass: []cars.CarsInClass{{CarID: 76}}},
-				{CarClassID: 84, Name: "Nissan GTP", ShortName: "GTP", CarsInClass: []cars.CarsInClass{{CarID: 77}}},
+				{CarClassID: gto, Name: "Audi GTO", ShortName: "GTO", CarsInClass: []cars.CarsInClass{{CarID: audi}}},
+				{CarClassID: gtp, Name: "Nissan GTP", ShortName: "GTP", CarsInClass: []cars.CarsInClass{{CarID: datsun}}},
 			})
 
 		time.Sleep(fakeDelay * time.Second)
@@ -169,7 +177,7 @@ func (a *App) LatestStandings() live.PredictedStandings {
 
 	data := a.telemetryData.Telemetry()
 
-	log.Println(data.Status, " ", data.SessionType)
+	log.Println(data.Status, " ", data.SessionState)
 
 	return a.prediction.Live(a.pastResults, data)
 }

@@ -50,6 +50,8 @@ func (d *Data) Telemetry() *TelemetryData {
 		return d.data
 	}
 
+	d.data.SessionState = vars["SessionState"].Value.(int)
+
 	d.updateCarInfo(vars)
 
 	return d.data

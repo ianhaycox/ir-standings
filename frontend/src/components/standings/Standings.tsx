@@ -14,18 +14,17 @@ export const Standings = (props: Props) => {
     let carClassID = useAppSelector(selectCarClassId)
 
     if (standings.standings === undefined || !(carClassID in standings.standings)) return (
-        <div className="text-center">
+        <div className="irc-standings">
             <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>
             </div>
-            <div className="irc-standings">
                 <div key={carClassID} id={`car-class-id-${carClassID}`} className="irc-standings small">
                     <div className='container py-2'>
                         {header(0)}
-                        {footer(null, 0, "", 0, "", 0, 0)}
+                        {dummyRows(10)}
+                        {footer(null, 0, "", 0, "Waiting for iRacing", 0, 0)}
                     </div>
                 </div>
-            </div>
         </div>
     );
 
@@ -141,3 +140,31 @@ const footer = (dispatch: any, carClassID: number, carClassName: string, sof: nu
     )
 }
 
+const dummyRows = (num:number) => {
+    const rows: JSX.Element[] = []
+
+    for (var i = 0; i < num; i++) {
+        rows.push(
+            <div key={i} className="row irc-row text-start p-0 irc-absent">
+                <div className="col-1 p-0">{i+1}</div>
+                <div className="col-1 p-0">
+                    <div className={`float-start px-0 irc-box irc-car-number irc-car-number`}>
+                        <i className="bi-dash-lg"></i>
+                    </div>
+                </div>
+                <div className="col-4 p-0"></div>
+                <div className="col-3 p-0 text-start"></div>
+                <div className="col-1 p-0"></div>
+                <div className="col-1 p-0 text-end"></div>
+                <div className="col-1 px-1 text-end">
+
+                    <div className="float-end irc-box ps-0 irc-change-none">
+                        <i className="bi-dash-lg"></i>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return rows
+}

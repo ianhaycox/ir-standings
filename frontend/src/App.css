@@ -21,6 +21,14 @@ body .irc-standings {
     min-height: 50px;
 }
 
+.irc-standings .spinner-border {
+    display: block;
+    position: fixed;
+    z-index: 1031;
+    top: 30%;
+    right: 50%;
+}
+
 .irc-absent, .irc-absent .irc-car-number  {
     color: grey;
 }

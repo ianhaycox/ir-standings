@@ -29,8 +29,9 @@ type TelemetryData struct {
 	SeriesID       int      `json:"series_id"`
 	SessionID      int      `json:"session_id"`
 	SubsessionID   int      `json:"subsession_id"`
-	SessionType    string   `json:"session_type"` // PRACTICE, QUALIFY, RACE
-	Status         string   `json:"status"`       // Connected, Driving
+	SessionType    string   `json:"session_type"`  // PRACTICE, QUALIFY, RACE
+	SessionState   int      `json:"session_state"` // Warmup, Racing, Cooldown etc.
+	Status         string   `json:"status"`        // Connected, Driving
 	TrackName      string   `json:"track_name"`
 	TrackID        int      `json:"track_id"`
 	DriverCarIdx   int      `json:"driver_car_idx"`

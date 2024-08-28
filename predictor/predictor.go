@@ -81,7 +81,7 @@ func (p *Predictor) liveStandings(seriesID model.SeriesID, carClassID model.CarC
 		SessionResults: []results.SessionResults{
 			{
 				SimsessionName: "RACE",
-				Results:        p.buildResults(&td.Cars),
+				Results:        p.buildResults(&td.Cars, td.SessionType),
 			},
 		},
 	})
@@ -162,7 +162,7 @@ func (p *Predictor) provisionalTable(predictedStandings standings.ChampionshipSt
 }
 
 // Create a fake result for the race based on current positions
-func (p *Predictor) buildResults(cars *telemetry.CarsInfo) []results.Results {
+func (p *Predictor) buildResults(cars *telemetry.CarsInfo, sessionType string) []results.Results {
 	res := make([]results.Results, 0)
 
 	for _, car := range cars {
@@ -170,10 +170,18 @@ func (p *Predictor) buildResults(cars *telemetry.CarsInfo) []results.Results {
 			continue
 		}
 
+		racePositionInClass := 0
+		lapsComplete := 0
+
+		if sessionType == "RACE" {
+			racePositionInClass = car.RacePositionInClass
+			lapsComplete = car.LapsComplete
+		}
+
 		res = append(res, results.Results{
 			CustID:                car.CustID,
-			FinishPositionInClass: car.RacePositionInClass,
-			LapsComplete:          car.LapsComplete,
+			FinishPositionInClass: racePositionInClass,
+			LapsComplete:          lapsComplete,
 			CarID:                 car.CarID,
 			CarClassID:            car.CarClassID,
 			DisplayName:           car.DriverName,

@@ -25,8 +25,6 @@ export const loginSlice = createSlice({
     reducers: {},
     extraReducers: builder => {
         builder
-            // Handle the action types defined by the `incrementAsync` thunk defined below.
-            // This lets the slice reducer update the state with request status and results.
             .addCase(loginAsync.pending, state => {
                 state.status = "loading"
                 state.ok = false
