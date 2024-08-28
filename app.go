@@ -41,7 +41,7 @@ type App struct {
 }
 
 // NewApp creates a new App application struct
-func NewApp(sdk irsdk.SDK, irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, showTopN int) *App {
+func NewApp(sdk *irsdk.IRSDK, irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, showTopN int) *App {
 	return &App{
 		irAPI:          irAPI,
 		refreshSeconds: refreshSeconds,
@@ -168,6 +168,8 @@ func (a *App) LatestStandings() live.PredictedStandings {
 	}
 
 	data := a.telemetryData.Telemetry()
+
+	log.Println(data.Status, " ", data.SessionType)
 
 	return a.prediction.Live(a.pastResults, data)
 }

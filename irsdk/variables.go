@@ -89,6 +89,7 @@ func findLatestBuffer(r reader, h *header) VarBuffer {
 		}
 
 		// fmt.Printf("BUFF?: %+v\n", currentVb)
+
 		if foundTickCount < currentVb.TickCount {
 			foundTickCount = currentVb.TickCount
 			vb = currentVb

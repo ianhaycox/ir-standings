@@ -26,7 +26,6 @@ type SDK interface {
 	GetVarValue(name string) (interface{}, error)
 	GetVarValues(name string) (interface{}, error)
 	GetSession() iryaml.IRSession
-	SessionChanged() bool
 	GetLastVersion() int
 	IsConnected() bool
 	ExportIbtTo(fileName string)
@@ -49,16 +48,14 @@ type IRSDK struct {
 }
 
 func (sdk *IRSDK) RefreshSession() {
-	if sdk.SessionChanged() {
-		sRaw := readSessionData(sdk.r, sdk.h)
+	sRaw := readSessionData(sdk.r, sdk.h)
 
-		err := yaml.Unmarshal([]byte(sRaw), &sdk.session)
-		if err != nil {
-			log.Println(err)
-		}
-
-		sdk.s = strings.Split(sRaw, "\n")
+	err := yaml.Unmarshal([]byte(sRaw), &sdk.session)
+	if err != nil {
+		log.Println(err)
 	}
+
+	sdk.s = strings.Split(sRaw, "\n")
 }
 
 func (sdk *IRSDK) WaitForData(timeout time.Duration) bool {
@@ -136,27 +133,6 @@ func (sdk *IRSDK) GetSession() iryaml.IRSession {
 	return sdk.session
 }
 
-func (sdk *IRSDK) SessionChanged() bool {
-	log.Println("session status:", sdk.h.status)
-
-	if !sessionStatusOK(sdk.h.status) {
-		log.Println("session status not ok")
-
-		return false
-	}
-
-	if sdk.lastSessionUpdate != sdk.h.sessionInfoUpdate {
-		log.Println("Session changed", sdk.lastSessionUpdate, sdk.h.sessionInfoUpdate)
-		sdk.lastSessionUpdate = sdk.h.sessionInfoUpdate
-
-		return true
-	}
-
-	log.Println("Session ", sdk.lastSessionUpdate, "head session", sdk.h.sessionInfoUpdate)
-
-	return false
-}
-
 func (sdk *IRSDK) GetLastVersion() int {
 	if !sessionStatusOK(sdk.h.status) {
 		return -1
@@ -225,7 +201,7 @@ func (sdk *IRSDK) Close() {
 }
 
 // Init creates a SDK instance to operate with
-func Init(r reader) SDK {
+func Init(r reader) *IRSDK {
 	if r == nil {
 		var err error
 

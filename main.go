@@ -23,7 +23,7 @@ import (
 const (
 	defaultRefreshSeconds = 5
 	defaultWidth          = 800
-	defaultHeight         = 400
+	defaultHeight         = 500
 	countBestOf           = 10
 	showTopN              = 10
 )
@@ -64,7 +64,7 @@ func main() {
 		api.NewAuthenticationService(),
 	)
 
-	var sdk irsdk.SDK
+	var sdk *irsdk.IRSDK
 
 	if runtime.GOOS == "windows" {
 		log.Println("Init irSDK Windows")

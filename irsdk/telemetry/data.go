@@ -14,11 +14,11 @@ const (
 )
 
 type Data struct {
-	sdk  irsdk.SDK
+	sdk  *irsdk.IRSDK
 	data *TelemetryData
 }
 
-func NewData(sdk irsdk.SDK) Data {
+func NewData(sdk *irsdk.IRSDK) Data {
 	return Data{
 		sdk: sdk,
 	}
@@ -29,25 +29,15 @@ func (d *Data) Telemetry() *TelemetryData {
 		Status: Waiting,
 	}
 
-	if !d.sdk.IsConnected() {
-		log.Println("Waiting for iRacing connection...")
-
-		return d.data
-	}
-
-	log.Println("iRacing connected")
-
-	d.data.Status = Connected
-
 	d.sdk.WaitForData(waitForDataMilli * time.Millisecond)
 
 	if !d.sdk.IsConnected() {
 		log.Println("iRacing disconnected")
 
-		d.data.Status = Disconnected
-
 		return d.data
 	}
+
+	d.data.Status = Connected
 
 	d.updateSession()
 
@@ -61,8 +51,6 @@ func (d *Data) Telemetry() *TelemetryData {
 	}
 
 	d.updateCarInfo(vars)
-
-	log.Println("Type", d.data.SessionType)
 
 	return d.data
 }

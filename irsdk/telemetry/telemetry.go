@@ -5,7 +5,7 @@ const (
 	IrMaxCars    = 64
 	Connected    = "Connected"
 	Disconnected = "Disconnected"
-	Waiting      = "Waiting for iRacing connection"
+	Waiting      = "Waiting for iRacing connection..."
 	Problem      = "Telemetry unavailable"
 )
 

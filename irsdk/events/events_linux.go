@@ -7,7 +7,7 @@ func OpenEvent(eventName string) {
 }
 
 func WaitForSingleObject(timeout time.Duration) bool {
-	return false
+	return true
 }
 
 func BroadcastMsg(msgName string, msg int, p1 int, p2 interface{}, p3 int) bool {
