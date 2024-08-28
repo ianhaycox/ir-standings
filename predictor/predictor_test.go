@@ -2,7 +2,6 @@ package predictor
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/ianhaycox/ir-standings/irsdk/telemetry"
@@ -11,6 +10,11 @@ import (
 	"github.com/ianhaycox/ir-standings/model/data/cars"
 	"github.com/ianhaycox/ir-standings/model/data/results"
 	"github.com/ianhaycox/ir-standings/test/files"
+	"github.com/stretchr/testify/assert"
+)
+
+const (
+	telemetryFile = "./fixtures/telemetry.json"
 )
 
 var (
@@ -31,15 +35,19 @@ var (
 func TestPredictorFirstRaceConnected(t *testing.T) {
 	var telem telemetry.TelemetryData
 
-	json.Unmarshal(files.ReadFile(t, "/tmp/telemetry.json"), &telem)
+	json.Unmarshal(files.ReadFile(t, telemetryFile), &telem)
 
 	p := NewPredictor(pointsPerSplit, 10, carClasses)
 
 	ps := p.Live([]results.Result{}, &telem)
 
-	b, _ := json.MarshalIndent(ps, "", "  ")
+	assert.Equal(t, 5580, ps.Standings[83].SoFByCarClass)
+	assert.Equal(t, "Audi GTO", ps.Standings[83].CarClassName)
+	assert.Len(t, ps.Standings[83].Items, 3)
 
-	fmt.Println(string(b))
+	assert.Equal(t, 5766, ps.Standings[84].SoFByCarClass)
+	assert.Equal(t, "Nissan GTP", ps.Standings[84].CarClassName)
+	assert.Len(t, ps.Standings[84].Items, 3)
 }
 
 func TestPredictorFirstRaceNotConnected(t *testing.T) {
@@ -47,23 +55,31 @@ func TestPredictorFirstRaceNotConnected(t *testing.T) {
 
 	ps := p.Live([]results.Result{}, &telemetry.TelemetryData{})
 
-	b, _ := json.MarshalIndent(ps, "", "  ")
+	assert.Equal(t, 0, ps.Standings[83].SoFByCarClass)
+	assert.Equal(t, "Audi GTO", ps.Standings[83].CarClassName)
+	assert.Len(t, ps.Standings[83].Items, 0)
 
-	fmt.Println(string(b))
+	assert.Equal(t, 0, ps.Standings[84].SoFByCarClass)
+	assert.Equal(t, "Nissan GTP", ps.Standings[84].CarClassName)
+	assert.Len(t, ps.Standings[84].Items, 0)
 }
 
 func TestPredictorInSeasonConnected(t *testing.T) {
 	var telem telemetry.TelemetryData
 
-	json.Unmarshal(files.ReadFile(t, "/tmp/telemetry.json"), &telem)
+	json.Unmarshal(files.ReadFile(t, "./fixtures/telemetry.json"), &telem)
 
 	p := NewPredictor(pointsPerSplit, 10, carClasses)
 
 	ps := p.Live(files.ReadResultsFixture(t, "../model/fixtures/2024-2-285-results-redacted.json"), &telem)
 
-	b, _ := json.MarshalIndent(ps, "", "  ")
+	assert.Equal(t, 5580, ps.Standings[83].SoFByCarClass)
+	assert.Equal(t, "Audi GTO", ps.Standings[83].CarClassName)
+	assert.Len(t, ps.Standings[83].Items, 127)
 
-	fmt.Println(string(b))
+	assert.Equal(t, 5766, ps.Standings[84].SoFByCarClass)
+	assert.Equal(t, "Nissan GTP", ps.Standings[84].CarClassName)
+	assert.Len(t, ps.Standings[84].Items, 160)
 }
 
 func TestPredictorInSeasonNotConnected(t *testing.T) {
@@ -71,7 +87,11 @@ func TestPredictorInSeasonNotConnected(t *testing.T) {
 
 	ps := p.Live(files.ReadResultsFixture(t, "../model/fixtures/2024-2-285-results-redacted.json"), &telemetry.TelemetryData{})
 
-	b, _ := json.MarshalIndent(ps, "", "  ")
+	assert.Equal(t, 0, ps.Standings[83].SoFByCarClass)
+	assert.Equal(t, "Audi GTO", ps.Standings[83].CarClassName)
+	assert.Len(t, ps.Standings[83].Items, 126)
 
-	fmt.Println(string(b))
+	assert.Equal(t, 0, ps.Standings[84].SoFByCarClass)
+	assert.Equal(t, "Nissan GTP", ps.Standings[84].CarClassName)
+	assert.Len(t, ps.Standings[84].Items, 157)
 }

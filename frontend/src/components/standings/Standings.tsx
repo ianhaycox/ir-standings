@@ -1,15 +1,16 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks"
 import { selectLatestStandings, selectCarClassId, setCarClassId } from "../telemetry/telemetrySlice"
+import { Config } from "../config/configSlice"
 
 type Props = {
-    topN: number;
+    config: Config;
 }
 
 export const Standings = (props: Props) => {
     const standings = useAppSelector(selectLatestStandings)
     const dispatch = useAppDispatch();
 
-    let { topN } = props
+    const { show_topn } = props.config
 
     let carClassID = useAppSelector(selectCarClassId)
 
@@ -35,7 +36,7 @@ export const Standings = (props: Props) => {
     for (var i = 0; i < standings.standings[carClassID].items.length; i++) {
         const row = standings.standings[carClassID].items[i]
 
-        if (i == topN) {
+        if (i == show_topn) {
             break;
         }
 

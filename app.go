@@ -40,6 +40,10 @@ type App struct {
 	showTopN       int                    // Display top n standings
 }
 
+type Config struct {
+	ShowTopN int `json:"show_topn"`
+}
+
 // NewApp creates a new App application struct
 func NewApp(sdk *irsdk.IRSDK, irAPI iracing.IracingService, pointsPerSplit points.PointsPerSplit, refreshSeconds, countBestOf, seriesID, showTopN int) *App {
 	return &App{
@@ -63,8 +67,10 @@ func (a *App) startup(ctx context.Context) {
 	}
 }
 
-func (a *App) ShowTopN() int {
-	return a.showTopN
+func (a *App) Configuration() Config {
+	return Config{
+		ShowTopN: a.showTopN,
+	}
 }
 
 func (a *App) Login(email string, password string) bool { // TODO return error
@@ -103,7 +109,9 @@ func (a *App) Login(email string, password string) bool { // TODO return error
 				{CarClassID: gtp, Name: "Nissan GTP", ShortName: "GTP", CarsInClass: []cars.CarsInClass{{CarID: datsun}}},
 			})
 
-		time.Sleep(fakeDelay * time.Second)
+		if a.ctx != context.TODO() {
+			time.Sleep(fakeDelay * time.Second)
+		}
 
 		return true
 	}

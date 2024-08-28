@@ -7,9 +7,15 @@ import { Telemetry } from './components/telemetry/telemetry';
 import { useAppSelector, useAppDispatch } from "./app/hooks"
 import { isLoggedIn } from "./components/login/loginSlice"
 import { Alert } from './components/alert/Alert';
+import { fetchConfiguration } from './components/config/configAPI';
+import { selectConfiguration } from './components/config/configSlice';
 
 function App() {
     const loggedIn = useAppSelector(isLoggedIn)
+    const config = useAppSelector(selectConfiguration)
+    const dispatch = useAppDispatch();
+
+    dispatch(fetchConfiguration)
 
     return (
         <div id="App" className="container-sm my-0">
@@ -17,7 +23,7 @@ function App() {
                 {loggedIn ? (
                     <div>
                         <Telemetry />
-                        <Standings topN={10} />
+                        <Standings config={config} />
                     </div>
                 ) : (
                     <div>

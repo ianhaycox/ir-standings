@@ -111,3 +111,20 @@ export namespace live {
 
 }
 
+export namespace main {
+	
+	export class Config {
+	    show_topn: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Config(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.show_topn = source["show_topn"];
+	    }
+	}
+
+}
+

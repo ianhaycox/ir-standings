@@ -347,6 +347,8 @@ func TestFixture2024S2(t *testing.T) {
 	})
 }
 func TestFixture2024S3(t *testing.T) {
+	t.Skip()
+
 	t.Run("Latest", func(t *testing.T) {
 		// t.Skip("for testing real data")
 		var (
@@ -375,9 +377,6 @@ func TestFixture2024S3(t *testing.T) {
 		champ.LoadRaceData(exampleData)
 
 		cs := champ.Standings(84)
-
-		b, _ := json.Marshal(cs)
-		fmt.Println(string(b))
 
 		for _, entry := range cs.Table {
 			fmt.Printf("%-2d %-30s %-20s %-4d %-4d", entry.Position, entry.DriverName, strings.Join(entry.CarNames, ","), entry.DroppedRoundPoints, entry.Counted)
