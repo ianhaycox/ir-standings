@@ -5,7 +5,17 @@ export const Alert = () => {
     const dispatch = useAppDispatch();
     const alert = useAppSelector(getAlert);
 
-    if (alert.message == "") return null;
+    if (alert.message == "") {
+        return (
+            <div>
+                <div className="m-3">
+                    <div className="alert alert-secondary irc-alert">
+                        &nbsp;
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>

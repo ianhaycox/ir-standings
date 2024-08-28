@@ -4,7 +4,7 @@
 }
 
 body .irc-standings {
-    background-color: rgb(0,0,0,0.2)
+    background-color: rgb(0,0,0,0.2);
 }
 
 #iracing-logo {
@@ -19,6 +19,10 @@ body .irc-standings {
 
 .banner {
     min-height: 50px;
+}
+
+.alert {
+    background-color: #212529;
 }
 
 .irc-standings .spinner-border {
