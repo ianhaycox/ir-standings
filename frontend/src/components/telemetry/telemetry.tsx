@@ -27,7 +27,7 @@ export const Telemetry = () => {
 
   useInterval(() => {
     dispatch(getLatestStandings())
-  }, 3000);
+  }, 8000);
 
   return null
 };
