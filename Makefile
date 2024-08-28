@@ -11,6 +11,7 @@ install:
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.58.2
 	@go install go.uber.org/mock/mockgen@v0.4.0
 	mkdir -p frontend/dist/assets
+	touch frontend/dist/index.html
 
 ## test: run unit/mock tests
 test: generate
