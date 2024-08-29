@@ -17,21 +17,36 @@ This project provides a lightweight browser overlay for iRacing to display live 
 
 The latest binary release can be found [here](https://github.com/ianhaycox/ir-standings/releases/latest).
 
+### Installing & Running
+
+The app does not require installation. Just copy the executable to a folder of your choice.
+
+To use it, simply run the executable. It doesn't matter whether you do this before or after launching iRacing.
+
+If you prefer to use the installer, that is available as well.
+
+---
+
 ## Overlays
 
 ### *Standings*
 
 Shows the top ten standings of each class. Click on the 'Class Name' box bottom left to toggle between classes.
 
-![standings](https://github.com/ianhaycox/ir-standings/blob/develop/images/live-standings.png?raw=true)
+![standingsgtp](https://github.com/ianhaycox/ir-standings/blob/develop/images/live-standings-gtp.png?raw=true)
 
----
+![standingsgto](https://github.com/ianhaycox/ir-standings/blob/develop/images/live-standings-gto.png?raw=true)
 
-## Installing & Running
+Login with your iRacing email and password. The details are not saved, but are required to download the results for previous broadcast races.
 
-The app does not require installation. Just copy the executable to a folder of your choice.
+The VCR Championship rules are used to calculate championship points from the previous races and the current race.
+The current race does not have to be the Saturday broadcast race, the current positions are used along with the prior broadcast results to work out the live standings.
 
-To use it, simply run the executable. It doesn't matter whether you do this before or after launching iRacing.
+Drivers greyed out in the table are not present in the current session.
+
+The overlay has very low resource usage only updating every 3 seconds to determine the new race positions.
+
+NOTE: The window title bar is invisible but is there on screen. To re-size or close the overlay you'll have to guess where the borders are and the close icon is.
 
 ---
 
@@ -47,3 +62,11 @@ to this in your browser, and you can call your Go code from devtools.
 ## Building
 
 To build a redistributable, production mode package, use `wails build`.
+
+## TODO
+
+- Allow the window to be used as an OBS Browser source
+- Sort out closing the app/window resizing and title bar.
+- Cache previous results to avoid fetching each time.
+- Configurable settings - refresh rate, best of, points system, top 10, colors etc.
+- 
