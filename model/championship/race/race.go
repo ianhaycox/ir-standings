@@ -50,7 +50,7 @@ func (r *Race) Positions(carClassID model.CarClassID, winnerLapsComplete model.L
 			continue
 		}
 
-		pointsAwarded := awards.Award(r.SplitNum(), result.FinishPositionInClass)
+		pointsAwarded := awards.Award(r.SplitNum(), result.FinishPositionInClass, winnerLapsComplete)
 
 		finishingPositions[result.CustID] = position.NewPosition(result.SubsessionID, r.IsClassified(winnerLapsComplete, result.LapsComplete),
 			result.LapsComplete, result.FinishPositionInClass, pointsAwarded, result.CarID)

@@ -23,8 +23,8 @@ type AuthenticationBadResponse struct {
 	Message  string `json:"message,omitempty"`
 }
 
-func (ir *IracingAPI) Authenticate(ctx context.Context) error {
-	auth, err := ir.auth.Credentials()
+func (ir *IracingAPI) Authenticate(ctx context.Context, username, password string) error {
+	auth, err := ir.auth.Credentials(username, password)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve credentials, err:%w", err)
 	}

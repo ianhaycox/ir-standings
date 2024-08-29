@@ -5,6 +5,7 @@ const NotCounted Point = -1
 
 // Some types to avoid passing the wrong int
 
+type SeriesID int
 type SessionID int
 type SubsessionID int
 type CarClassID int

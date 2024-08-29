@@ -4,7 +4,6 @@ package championship
 import (
 	"log"
 	"sort"
-	"strings"
 
 	"github.com/ianhaycox/ir-standings/model"
 	"github.com/ianhaycox/ir-standings/model/championship/car"
@@ -19,7 +18,7 @@ import (
 )
 
 type Championship struct {
-	seriesID       int
+	seriesID       model.SeriesID
 	events         map[model.SessionID]event.Event // Events have multiple races in different splits
 	carClasses     car.CarClasses                  // Competing car classes and names
 	excludeTrackID map[int]bool                    // Exclude these candidates from the results
@@ -28,9 +27,11 @@ type Championship struct {
 	countBestOf    int
 }
 
-func NewChampionship(seriesID int, excludeTrackID map[int]bool, awards points.PointsStructure, countBestOf int) *Championship {
+func NewChampionship(seriesID model.SeriesID, carClasses car.CarClasses, excludeTrackID map[int]bool,
+	awards points.PointsStructure, countBestOf int) *Championship {
 	return &Championship{
 		seriesID:       seriesID,
+		carClasses:     carClasses,
 		events:         make(map[model.SessionID]event.Event),
 		excludeTrackID: excludeTrackID,
 		awards:         awards,
@@ -53,10 +54,6 @@ func (c *Championship) Events() []event.Event {
 }
 
 func (c *Championship) LoadRaceData(data []results.Result) {
-	if len(data) > 0 {
-		c.carClasses = car.NewCarClasses(data[0].CarClasses)
-	}
-
 	for _, irResult := range data {
 		if c.isExcluded(irResult.Track.TrackID) {
 			continue
@@ -79,34 +76,21 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 		for i := range irResult.SessionResults {
 			if irResult.SessionResults[i].SimsessionName == "RACE" {
 				for _, sessionResult := range irResult.SessionResults[i].Results {
-					sessionResult := result.Result{
-						SessionID:               model.SessionID(irResult.SessionID),
-						SubsessionID:            model.SubsessionID(irResult.SubsessionID),
-						CustID:                  model.CustID(sessionResult.CustID),
-						DisplayName:             sessionResult.DisplayName,
-						FinishPositionInClass:   model.FinishPositionInClass(sessionResult.FinishPositionInClass),
-						LapsLead:                sessionResult.LapsLead,
-						LapsComplete:            model.LapsComplete(sessionResult.LapsComplete),
-						Position:                sessionResult.Position,
-						QualLapTime:             sessionResult.QualLapTime,
-						StartingPosition:        sessionResult.StartingPosition,
-						StartingPositionInClass: sessionResult.StartingPositionInClass,
-						CarClassID:              model.CarClassID(sessionResult.CarClassID),
-						ClubID:                  sessionResult.ClubID,
-						ClubName:                sessionResult.ClubName,
-						ClubShortname:           sessionResult.ClubShortname,
-						Division:                sessionResult.Division,
-						DivisionName:            sessionResult.DivisionName,
-						Incidents:               sessionResult.Incidents,
-						CarID:                   model.CarID(sessionResult.CarID),
-						CarName:                 sessionResult.CarName,
+					result := result.Result{
+						SessionID:             model.SessionID(irResult.SessionID),
+						SubsessionID:          model.SubsessionID(irResult.SubsessionID),
+						CustID:                model.CustID(sessionResult.CustID),
+						DisplayName:           sessionResult.DisplayName,
+						FinishPositionInClass: model.FinishPositionInClass(sessionResult.FinishPositionInClass),
+						LapsComplete:          model.LapsComplete(sessionResult.LapsComplete),
+						CarClassID:            model.CarClassID(sessionResult.CarClassID),
+						CarID:                 model.CarID(sessionResult.CarID),
+						CarName:               sessionResult.CarName,
 					}
 
-					sessionResults = append(sessionResults, sessionResult)
+					sessionResults = append(sessionResults, result)
 
-					c.addDriver(sessionResult.CustID, driver.NewDriver(sessionResult.CustID, sessionResult.DisplayName))
-
-					c.carClasses.AddCarName(sessionResult.CarID, sessionResult.CarName)
+					c.addDriver(result.CustID, driver.NewDriver(result.CustID, sessionResult.DisplayName, sessionResult.NewiRating))
 				}
 			}
 
@@ -121,9 +105,8 @@ func (c *Championship) LoadRaceData(data []results.Result) {
 
 func (c *Championship) Standings(carClassID model.CarClassID) standings.ChampionshipStandings {
 	cs := standings.ChampionshipStandings{
-		BestOf:       c.countBestOf,
-		CarClassName: "GTP",
-		Table:        make([]standings.ChampionshipTable, 0),
+		BestOf: c.countBestOf,
+		Table:  make([]standings.ChampionshipTable, 0),
 	}
 
 	events := c.Events()
@@ -152,11 +135,13 @@ func (c *Championship) Standings(carClassID model.CarClassID) standings.Champion
 		driver := c.drivers[custID]
 
 		cs.Table = append(cs.Table, standings.ChampionshipTable{
+			CustID:                  custID,
 			DroppedRoundPoints:      positions.Total(true, c.countBestOf),
 			AllRoundsPoints:         positions.Total(true, len(events)),
-			TieBreakFinishPositions: positions.TieBreakerPositions(true, c.countBestOf),
-			CarNames:                strings.Join(c.carClasses.Names(positions.CarsDriven(true, c.countBestOf)), ","),
+			TieBreakFinishPositions: positions.TieBreakerPositions(false, len(events)),
+			CarNames:                c.carClasses.CarNames(positions.CarsDriven(false, len(events))),
 			DriverName:              driver.DisplayName(),
+			IRating:                 driver.IRating(),
 			Counted:                 positions.Counted(false, c.countBestOf),
 			TotalLaps:               positions.Laps(false, c.countBestOf),
 		})
@@ -184,5 +169,7 @@ func (c *Championship) isExcluded(trackID int) bool {
 }
 
 func (c *Championship) addDriver(custID model.CustID, driver driver.Driver) {
-	c.drivers[custID] = driver
+	if _, ok := c.drivers[custID]; !ok {
+		c.drivers[custID] = driver
+	}
 }

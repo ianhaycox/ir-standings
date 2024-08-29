@@ -10,6 +10,8 @@ export BUILD_DATE := $(shell date +%Y%m%d%H%M%S)
 install:
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.58.2
 	@go install go.uber.org/mock/mockgen@v0.4.0
+	mkdir -p frontend/dist/assets
+	touch frontend/dist/index.html
 
 ## test: run unit/mock tests
 test: generate
@@ -49,4 +51,3 @@ cover-check: cover
 
 standalone:
 	CGO_ENABLED=0 GOOS=linux go build -o load ./loader/load/load.go
-

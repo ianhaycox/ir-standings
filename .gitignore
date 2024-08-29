@@ -10,4 +10,8 @@ coverage.nomocks.out
 coverage.out
 
 .vscode/
+.vs/
 
+build/bin
+node_modules
+frontend/dist
