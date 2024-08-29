@@ -185,17 +185,7 @@ func (a *App) LatestStandings() live.PredictedStandings {
 
 	data := a.telemetryData.Telemetry()
 
-	b1, _ := json.MarshalIndent(data, "", "  ")
-
 	ps := a.prediction.Live(a.pastResults, data)
-
-	b2, _ := json.MarshalIndent(ps, "", "  ")
-
-	f, _ := os.OpenFile("debug.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-	f.WriteString(time.Now().UTC().Format(time.RFC3339))
-	f.Write(b1)
-	f.Write(b2)
-	f.Close()
 
 	return ps
 }

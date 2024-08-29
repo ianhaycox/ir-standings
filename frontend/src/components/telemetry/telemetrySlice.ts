@@ -2,45 +2,16 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "../../app/store"
 import { fetchLatestStandings } from "./telemetryAPI"
 import type { PayloadAction } from "@reduxjs/toolkit"
-
-export interface SerializablePredictedStanding {
-    driving: boolean;
-    cust_id: number;
-    driver_name: string;
-    car_number?: string;
-    current_position?: number;
-    predicted_position: number;
-    current_points: number;
-    predicted_points: number;
-    change: number;
-    car_names: string[];
-}
-
-export interface SerializableStanding {
-    sof_by_car_class: number;
-    car_class_id: number;
-    car_class_name: string;
-    class_leader_laps_complete: number;
-    items: SerializablePredictedStanding[];
-}
-
-export interface SerializablePredictedStandings {
-    status: string;
-    track_name: string;
-    count_best_of: number;
-    car_class_ids: number[];
-    self_car_class_id: number;
-    standings: { [key: number]: SerializableStanding }; // By Car Class ID
-}
+import {live} from "../../../wailsjs/go/models"
 
 export interface TelemetryState {
-    standings: SerializablePredictedStandings
+    standings: live.PredictedStandings
     status: "idle" | "loading" | "failed"
     selectedCarClassID: number
 }
 
 const initialState: TelemetryState = {
-    standings: <SerializablePredictedStandings>{},
+    standings: <live.PredictedStandings>{},
     status: "idle",
     selectedCarClassID: 0,
 }

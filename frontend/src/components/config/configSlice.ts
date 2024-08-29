@@ -1,13 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { RootState } from "../../app/store"
 import { fetchConfiguration } from "./configAPI"
-
-export interface Config {
-    show_topn: number;
-}
+import { main } from "../../../wailsjs/go/models"
 
 export interface ConfigState {
-    config: Config,
+    config: main.Config,
     status: "idle" | "loading" | "failed"
 }
 

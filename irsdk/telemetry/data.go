@@ -1,7 +1,6 @@
 package telemetry
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"strings"
@@ -64,9 +63,6 @@ func (d *Data) updateCarInfo() {
 		c := cicp.([]int)
 		for i := range c {
 			if d.data.Cars[i].IsRacing() {
-				if c[i] > 1000 {
-					fmt.Println("Pos:", i, c[i])
-				}
 				d.data.Cars[i].RacePositionInClass = c[i]
 			} else {
 				d.data.Cars[i].RacePositionInClass = 0

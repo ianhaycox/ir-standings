@@ -9,5 +9,19 @@
   "author": {
     "name": "Ian Haycox",
     "email": "ian.haycox@gmail.com"
+  },
+  "bindings": {
+    "ts_generation": {
+      "prefix": "",
+      "suffix": "",
+      "outputType": "interfaces"
+    }
+  },
+  "info": {
+    "companyName": "Ian Haycox",
+    "productName": "iRacing Championship Standings",
+    "productVersion": "1.0.0",
+    "copyright": "MIT License - Copyright (c) 2024 Ian Haycox",
+    "comments": "Display an overlay with live championship standings"
   }
 }
